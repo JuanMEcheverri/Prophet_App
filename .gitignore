@@ -9,3 +9,4 @@ env/
 .claude/
 .DS_Store
 Thumbs.db
+Prophet_App/positions.json

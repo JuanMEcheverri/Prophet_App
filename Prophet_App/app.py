@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from prophet import Prophet
 import plotly.graph_objects as go
-import warnings, logging
+import warnings, logging, json, os
 from datetime import date, timedelta
 
 warnings.filterwarnings("ignore")
@@ -36,6 +36,24 @@ div[data-testid="metric-container"] {
 TODAY      = date.today()
 TODAY_STR  = TODAY.strftime("%Y-%m-%d")
 TODAY_TS   = pd.Timestamp(TODAY)
+
+# ── PERSISTENCIA DE POSICIONES (disco) ────────────────────────────────────────
+POSITIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "positions.json")
+
+
+def load_positions():
+    if os.path.exists(POSITIONS_FILE):
+        try:
+            with open(POSITIONS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return []
+    return []
+
+
+def save_positions(positions):
+    with open(POSITIONS_FILE, "w", encoding="utf-8") as f:
+        json.dump(positions, f, indent=2, ensure_ascii=False)
 
 # Nasdaq-100 completo (componentes actuales)
 NASDAQ100 = sorted([
@@ -97,25 +115,23 @@ with st.sidebar:
         t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", "")
 
     with st.expander("📋 Acciones Nasdaq-100"):
+        if "ticker_multiselect" not in st.session_state:
+            st.session_state.ticker_multiselect = DEFAULT_SELECTION
+
         col_sel1, col_sel2 = st.columns(2)
         with col_sel1:
             if st.button("Todas", use_container_width=True, key="btn_all"):
-                st.session_state.selected_tickers = NASDAQ100
+                st.session_state.ticker_multiselect = NASDAQ100
         with col_sel2:
             if st.button("Ninguna", use_container_width=True, key="btn_none"):
-                st.session_state.selected_tickers = []
-
-        if "selected_tickers" not in st.session_state:
-            st.session_state.selected_tickers = DEFAULT_SELECTION
+                st.session_state.ticker_multiselect = []
 
         selected_tickers = st.multiselect(
             "Selecciona acciones",
             options=NASDAQ100,
-            default=st.session_state.selected_tickers,
             key="ticker_multiselect",
             label_visibility="collapsed",
         )
-        st.session_state.selected_tickers = selected_tickers
         tickers = tuple(sorted(set(selected_tickers)))
         st.caption(f"{len(tickers)} acciones seleccionadas")
 
@@ -129,7 +145,7 @@ t_end_str = t_end_inp.strip() if t_end_inp.strip() else TODAY_STR
 if "cache_buster" not in st.session_state:
     st.session_state.cache_buster = 0
 if "positions" not in st.session_state:
-    st.session_state.positions = []
+    st.session_state.positions = load_positions()
 if "trained" not in st.session_state:
     st.session_state.trained = False
 
@@ -567,12 +583,16 @@ with tab_screen:
 with tab_chart:
     st.subheader("Analisis Prophet por accion")
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
+    buy_zone_tickers = sorted(df_hoy[df_hoy["Señal"] == "🟢 COMPRAR"]["Ticker"].tolist())
+
+    view_mode = st.radio(
+        "Vista",
+        ["Una accion", "Todas las acciones", f"🟢 Solo zona de compra ({len(buy_zone_tickers)})"],
+        horizontal=True,
+    )
+
+    if view_mode == "Una accion":
         selected_t = st.selectbox("Selecciona accion", sorted(sdata.keys()))
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        show_all_charts = st.checkbox("Mostrar todas las acciones")
 
     def render_chart(t):
         sd = sdata[t]
@@ -592,10 +612,19 @@ with tab_chart:
                 c4.metric("Umbral compra", f"${yht[0]*(1-entry_dev):.2f}")
                 c5.metric("Umbral venta", f"${yht[0]*(1+exit_dev):.2f}")
 
-    if show_all_charts:
+    if view_mode == "Todas las acciones":
         for t in sorted(sdata.keys()):
             with st.expander(f"📈 {t}", expanded=False):
                 render_chart(t)
+    elif view_mode.startswith("🟢 Solo zona de compra"):
+        if not buy_zone_tickers:
+            st.info("Ninguna accion esta en zona de compra con los parametros actuales.")
+        else:
+            st.success(f"**{len(buy_zone_tickers)} acciones en zona de compra:** " +
+                       ", ".join(buy_zone_tickers))
+            for t in buy_zone_tickers:
+                with st.expander(f"📈 {t}", expanded=True):
+                    render_chart(t)
     else:
         if selected_t:
             render_chart(selected_t)
@@ -726,7 +755,8 @@ with tab_pos:
                     "capital":   pos_cap,
                     "nota":      pos_note,
                 })
-                st.success(f"Posicion {pos_ticker} agregada.")
+                save_positions(st.session_state.positions)
+                st.success(f"Posicion {pos_ticker} agregada y guardada permanentemente.")
 
     # ── Tabla de posiciones ──────────────────────────────────────────────────
     if not st.session_state.positions:
@@ -827,4 +857,5 @@ with tab_pos:
                 st.session_state.positions = [
                     p for j, p in enumerate(st.session_state.positions) if j not in del_idx
                 ]
+                save_positions(st.session_state.positions)
                 st.rerun()
