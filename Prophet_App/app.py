@@ -83,36 +83,93 @@ with st.sidebar:
 
     with st.expander("🎯 Estrategia", expanded=True):
         entry_dev = st.slider("Entrada: caida bajo yhat (%)", 1, 12, 3,
-                              help="Comprar cuando precio < yhat × (1 − X%)") / 100
+                              help="Comprar cuando precio < yhat × (1 − X%). yhat es el valor "
+                                   "'justo' que predice Prophet para hoy — cuanto mas bajo pongas "
+                                   "esto, menos señales de compra veras, pero mas seguras.") / 100
         exit_dev  = st.slider("Salida: subida sobre yhat (%)", 3, 30, 5,
-                              help="Vender cuando precio > yhat × (1 + X%)") / 100
-        sl_pct    = st.slider("Stop Loss (%)", 3, 20, 8) / 100
-        max_hold  = st.slider("Dias max en posicion", 5, 90, 30)
+                              help="Vender (take profit) cuando precio > yhat × (1 + X%). Es tu "
+                                   "objetivo de ganancia una vez el precio vuelve o supera el "
+                                   "valor esperado por Prophet.") / 100
+        sl_pct    = st.slider("Stop Loss (%)", 3, 20, 8,
+                              help="Si el precio cae este % por debajo de TU precio de entrada "
+                                   "(no de yhat), se marca como stop loss: la tesis de reversion "
+                                   "a la media fallo y toca cortar la perdida.") / 100
+        max_hold  = st.slider("Dias max en posicion", 5, 90, 30,
+                              help="Dias maximos que mantienes una posicion abierta. Si no llega "
+                                   "al Take Profit ni al Stop Loss antes, se marca 'VENCER PRONTO' "
+                                   "para que decidas cerrarla manualmente.")
         max_dev   = st.slider("Cap caida maxima (%)", 5, 30, 12,
-                              help="No entrar si precio < yhat × (1 − cap%)") / 100
+                              help="No entrar si precio < yhat × (1 − cap%). Una caida mayor a "
+                                   "esto suele indicar una mala noticia real (no ruido) o que el "
+                                   "ajuste de Prophet ya no es confiable, asi que la accion se "
+                                   "marca '⚠️ MUY BAJO' en vez de '🟢 COMPRAR'.") / 100
 
     with st.expander("💰 Capital"):
-        capital   = st.number_input("Capital total (EUR)", 200, 200_000, 1_000, step=200)
-        max_n     = st.slider("Posiciones simultaneas max", 1, 20, 5)
-        fee       = st.number_input("Comision por transaccion (EUR)", 0.0, 10.0, 0.90, step=0.10)
+        capital   = st.number_input("Capital total (EUR)", 200, 200_000, 1_000, step=200,
+                                    help="Capital total disponible para repartir entre todas tus "
+                                         "posiciones abiertas simultaneamente.")
+        max_n     = st.slider("Posiciones simultaneas max", 1, 20, 5,
+                              help="Cuantas posiciones puedes tener abiertas al mismo tiempo. El "
+                                   "capital total se divide en partes iguales (slots) entre ellas.")
+        fee       = st.number_input("Comision por transaccion (EUR)", 0.0, 10.0, 0.90, step=0.10,
+                                    help="Comision que cobra tu broker por cada operacion (compra "
+                                         "o venta), solo informativa para estimar el costo real.")
         slot_cap  = capital / max_n
         st.caption(f"Capital por slot: €{slot_cap:,.0f}")
 
     with st.expander("🔍 Screening"):
-        min_r2     = st.slider("R² minimo Prophet", 0.50, 0.99, 0.68, step=0.01)
-        max_sigma  = st.slider("Residual sigma max (%)", 2, 15, 6) / 100
-        min_growth = st.slider("Crecimiento anual min (%)", 1, 30, 2) / 100
-        max_growth = st.slider("Crecimiento anual max (%)", 5, 120, 35) / 100
-        max_adr    = st.slider("ADR diario max (%)", 1, 10, 4) / 100
+        min_r2     = st.slider("R² minimo Prophet", 0.50, 0.99, 0.68, step=0.01,
+                               help="R² mide que tan bien el modelo de Prophet explica el precio "
+                                    "historico: 1 = ajuste casi perfecto, 0 = sin relacion. Si es "
+                                    "bajo, el yhat de esa accion no es confiable y se descarta.")
+        max_sigma  = st.slider("Residual sigma max (%)", 2, 15, 6,
+                               help="Sigma es la desviacion estandar del error (precio real vs "
+                                    "yhat) en %: mide el 'ruido' que Prophet NO logra explicar. "
+                                    "Sigma alto = señales de compra/venta menos fiables.") / 100
+        min_growth = st.slider("Crecimiento anual min (%)", 1, 30, 2,
+                               help="Crecimiento anualizado minimo de la tendencia (yhat) para "
+                                    "incluir la accion — descarta acciones estancadas o en "
+                                    "declive de largo plazo.") / 100
+        max_growth = st.slider("Crecimiento anual max (%)", 5, 120, 35,
+                               help="Crecimiento anualizado maximo permitido — descarta acciones "
+                                    "con una tendencia demasiado explosiva/no sostenible, donde "
+                                    "'comprar en la caida' es mas arriesgado.") / 100
+        max_adr    = st.slider("ADR diario max (%)", 1, 10, 4,
+                               help="Average Daily Range: rango (maximo−minimo)/cierre promedio "
+                                    "de los ultimos 90 dias. Filtra acciones demasiado volatiles "
+                                    "dia a dia para una estrategia de reversion a la media.") / 100
 
     with st.expander("🔮 Prophet"):
-        seas_mode  = st.selectbox("Seasonality mode", ["multiplicative", "additive"])
-        intv_w     = st.slider("Intervalo de confianza (%)", 80, 99, 95) / 100
+        seas_mode  = st.selectbox("Seasonality mode", ["multiplicative", "additive"],
+                                  help="Como se combina la estacionalidad con la tendencia. "
+                                       "'multiplicative': el efecto estacional crece o decrece "
+                                       "proporcional al precio (recomendado para acciones, que "
+                                       "crecen exponencialmente). 'additive': el efecto estacional "
+                                       "es un monto fijo, independiente del nivel de precio.")
+        intv_w     = st.slider("Intervalo de confianza (%)", 80, 99, 95,
+                               help="Ancho de la banda de incertidumbre (sombreada en los charts) "
+                                    "alrededor de yhat. Prophet la calcula simulando que los "
+                                    "cambios de tendencia futuros se parecen a los del pasado. "
+                                    "Solo afecta la visualizacion, no las señales de compra/venta.") / 100
         chpt_scale = st.slider("Flexibilidad de tendencia", 0.01, 0.50, 0.05, step=0.01,
-                               help="changepoint_prior_scale — mayor = mas flexible")
-        fc_days    = st.slider("Dias de proyeccion futura", 30, 180, 60)
-        t_start    = st.text_input("Inicio entrenamiento", "2022-01-01")
-        t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", "")
+                               help="changepoint_prior_scale — controla cuanto puede doblarse la "
+                                    "linea de tendencia (yhat) en los 'changepoints' que Prophet "
+                                    "detecta. Mas alto = tendencia mas flexible/pegada al precio "
+                                    "(riesgo de sobreajuste); mas bajo = tendencia mas rigida "
+                                    "(riesgo de no captar cambios reales de comportamiento).")
+        fc_days    = st.slider("Dias de proyeccion futura", 30, 180, 60,
+                               help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro. "
+                                    "Define el horizonte de las señales y de la pestaña "
+                                    "Proyecciones.")
+        t_start    = st.text_input("Inicio entrenamiento", "2022-01-01",
+                                   help="Fecha desde la cual se toman datos historicos para "
+                                        "entrenar (fit) el modelo Prophet de cada accion.")
+        t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", "",
+                                   help="Fecha hasta la cual se usan datos para entrenar el "
+                                        "modelo. Dejalo vacio para usar todos los datos hasta hoy. "
+                                        "Poner una fecha pasada sirve para backtesting: entrenas "
+                                        "con datos viejos y comparas el yhat contra lo que "
+                                        "realmente paso despues.")
 
     with st.expander("📋 Acciones Nasdaq-100"):
         if "ticker_multiselect" not in st.session_state:
@@ -447,12 +504,13 @@ px_buster = st.session_state.cache_buster + (1 if refresh_px else 0)
 cur_prices = get_prices(tuple(sorted(sdata.keys())), _buster=px_buster)
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos = st.tabs([
+tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_docs = st.tabs([
     "🚨 Señales de Hoy",
     "🔍 Screening",
     "📊 Charts",
     "📋 Proyecciones",
     "💼 Mis Posiciones",
+    "📚 Como funciona Prophet",
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -859,3 +917,115 @@ with tab_pos:
                 ]
                 save_positions(st.session_state.positions)
                 st.rerun()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — COMO FUNCIONA PROPHET
+# ═══════════════════════════════════════════════════════════════════════════════
+with tab_docs:
+    st.subheader("La estadistica detras de Prophet")
+    st.caption(
+        "Basado en la documentacion oficial de Meta/Facebook Prophet "
+        "(facebook.github.io/prophet) y en el paper original "
+        "*Forecasting at Scale* (Taylor & Letham, 2018)."
+    )
+
+    st.markdown("### 1. El modelo generativo")
+    st.markdown(
+        "Prophet es un **modelo de regresion aditivo (o multiplicativo)**, no una red "
+        "neuronal ni un ARIMA clasico. Descompone la serie de precios en tres piezas "
+        "interpretables por separado, mas un termino de error:"
+    )
+    st.latex(r"y(t) = g(t) + s(t) + h(t) + \varepsilon_t")
+    st.markdown(
+        "- **g(t) — Tendencia**: hacia donde va el precio en el largo plazo (curva base).\n"
+        "- **s(t) — Estacionalidad**: patrones periodicos (anual, semanal) que se repiten.\n"
+        "- **h(t) — Holidays/eventos**: efectos puntuales de fechas especiales (esta app no "
+        "los usa, se deja en cero).\n"
+        "- **εₜ — Error**: todo lo que el modelo no explica; se asume ruido normal.\n\n"
+        "El **yhat** que ves en los charts es la suma `g(t) + s(t) + h(t)` — la 'linea justa' "
+        "que Prophet cree que deberia tener el precio ese dia, sin el ruido del dia a dia."
+    )
+
+    st.divider()
+    st.markdown("### 2. La tendencia g(t): piecewise linear + changepoints")
+    st.markdown(
+        "Prophet no ajusta una sola linea recta a todo el historico. Coloca automaticamente "
+        "**~25 puntos de quiebre potenciales (changepoints)**, distribuidos en el primer 80% "
+        "de los datos, donde la pendiente de la tendencia puede cambiar abruptamente (por "
+        "ejemplo, cuando una accion pasa de crecer 10%/año a crecer 40%/año tras un buen "
+        "resultado trimestral).\n\n"
+        "Cuanto puede 'doblarse' la tendencia en cada changepoint se controla con un "
+        "**prior tipo Laplace (equivalente a regularizacion L1)** sobre la magnitud de esos "
+        "cambios — la mayoria de los changepoints terminan con un cambio de pendiente "
+        "practicamente nulo, y solo unos pocos absorben cambios reales de comportamiento. "
+        "Ese es exactamente el parametro **'Flexibilidad de tendencia' (changepoint_prior_scale)** "
+        "del panel de la izquierda:\n"
+        "- **Valor alto** → mas changepoints activos → yhat persigue mas de cerca al precio → "
+        "riesgo de sobreajuste (confundir ruido con tendencia real).\n"
+        "- **Valor bajo** → tendencia mas rigida/suave → riesgo de ignorar un cambio real de "
+        "comportamiento del precio."
+    )
+
+    st.divider()
+    st.markdown("### 3. La estacionalidad s(t): series de Fourier")
+    st.markdown(
+        "La estacionalidad se modela como una **suma parcial de series de Fourier** "
+        "(senos y cosenos de distintas frecuencias). El *orden* de esa suma (10 para "
+        "estacionalidad anual, 3 para semanal, por defecto) define cuantos armonicos se "
+        "usan — mas orden = puede capturar patrones estacionales mas complejos, pero con "
+        "mas riesgo de sobreajuste, porque cada armonico agrega 2 parametros al modelo.\n\n"
+        "El selector **'Seasonality mode'** define como se combina s(t) con la tendencia:\n"
+        "- **multiplicative** (recomendado para acciones): el efecto estacional es un "
+        "*porcentaje* de la tendencia — si la tendencia crece, la amplitud estacional crece "
+        "con ella. Coherente con precios que se mueven en % (crecimiento exponencial).\n"
+        "- **additive**: el efecto estacional es un monto fijo en dolares, sin importar el "
+        "nivel de precio — tiene mas sentido en series donde la amplitud estacional no "
+        "escala con el nivel (ej. temperaturas)."
+    )
+
+    st.divider()
+    st.markdown("### 4. Intervalos de incertidumbre (la banda sombreada de los charts)")
+    st.markdown(
+        "Prophet **no** calcula la banda de incertidumbre con una formula cerrada tipo "
+        "intervalo de confianza clasico. En su lugar:\n\n"
+        "1. Mide la frecuencia y magnitud de los changepoints **historicos**.\n"
+        "2. Asume que el futuro tendra cambios de tendencia con esa misma distribucion "
+        "estadistica (frecuencia/magnitud).\n"
+        "3. Simula muchos futuros posibles con esos cambios aleatorios y calcula los "
+        "percentiles de esas simulaciones para dibujar la banda.\n\n"
+        "El slider **'Intervalo de confianza (%)'** (interval_width) define que percentil "
+        "se dibuja (80%, 95%, etc.) — por defecto Prophet usa estimacion puntual (MAP) via "
+        "optimizacion, no muestreo Bayesiano completo (MCMC), salvo que se active "
+        "explicitamente `mcmc_samples`. **Esta banda es solo visual: no participa en el "
+        "calculo de las señales de compra/venta de esta app**, que se basan unicamente en "
+        "la desviacion del precio respecto a yhat."
+    )
+
+    st.divider()
+    st.markdown("### 5. Que metricas añade esta app (no son de Prophet)")
+    st.markdown(
+        "Prophet solo entrega `yhat`, `yhat_lower`, `yhat_upper`. Las metricas de la pestaña "
+        "**🔍 Screening** las calcula esta app comparando el yhat ajustado contra el precio "
+        "historico real:\n\n"
+        "- **R²**: correlacion al cuadrado entre precio real y yhat en el periodo de "
+        "entrenamiento. Mide que tan bien Prophet 'explica' el movimiento historico del "
+        "precio (1 = ajuste perfecto).\n"
+        "- **Sigma (σ)**: desviacion estandar de los residuos `(precio − yhat) / yhat` — el "
+        "'ruido' que el modelo no logra explicar. Sigma alto implica que la desviacion de "
+        "hoy respecto a yhat es menos informativa (puede ser solo ruido, no una señal real).\n"
+        "- **Growth anualizado**: tasa de crecimiento compuesta implicita en el yhat entre el "
+        "primer y ultimo dia proyectado — sirve para descartar acciones estancadas o con "
+        "crecimiento no sostenible.\n"
+        "- **ADR (Average Daily Range)**: `(maximo − minimo) / cierre`, promedio de los "
+        "ultimos 90 dias — mide volatilidad intradiaria, independiente de Prophet.\n\n"
+        "La estrategia de esta app es de **reversion a la media**: usa yhat como 'valor "
+        "justo' de referencia, y genera señales cuando el precio se desvia demasiado de "
+        "esa referencia (🟢 por debajo = posible compra, 🔴 por arriba = posible venta), "
+        "filtrando de antemano las acciones donde Prophet ajusta mal (R² bajo, sigma alto) "
+        "para que esa referencia sea confiable."
+    )
+
+    st.info(
+        "📖 Documentacion completa: "
+        "[facebook.github.io/prophet/docs](https://facebook.github.io/prophet/docs/quick_start.html)"
+    )
