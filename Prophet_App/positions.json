@@ -1,0 +1,9 @@
+[
+  {
+    "ticker": "AAPL",
+    "fecha_entrada": "2026-08-01",
+    "precio_entrada": 100.0,
+    "capital": 200.0,
+    "nota": "TEST Persisencia "
+  }
+]
