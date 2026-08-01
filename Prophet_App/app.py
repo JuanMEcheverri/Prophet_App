@@ -8,7 +8,8 @@ import pandas as pd
 import numpy as np
 from prophet import Prophet
 import plotly.graph_objects as go
-import warnings, logging, json, os
+import warnings, logging, json, os, base64
+import requests
 from datetime import date, timedelta
 
 warnings.filterwarnings("ignore")
@@ -37,41 +38,115 @@ TODAY      = date.today()
 TODAY_STR  = TODAY.strftime("%Y-%m-%d")
 TODAY_TS   = pd.Timestamp(TODAY)
 
-# ── PERSISTENCIA EN DISCO (sobrevive a cierres/reinicios del servidor) ────────
-APP_DIR        = os.path.dirname(os.path.abspath(__file__))
-POSITIONS_FILE = os.path.join(APP_DIR, "positions.json")
-SELECTION_FILE = os.path.join(APP_DIR, "selected_tickers.json")
+# ── PERSISTENCIA ───────────────────────────────────────────────────────────────
+# Streamlit Community Cloud tiene disco efimero (se borra en cada sleep/redeploy),
+# asi que ahi usamos el repo de GitHub como base de datos via su API de contenidos.
+# Corriendo localmente (lanzar.bat) sin token configurado, usa disco local normal.
+APP_DIR       = os.path.dirname(os.path.abspath(__file__))
+GITHUB_REPO   = "JuanMEcheverri/Prophet_App"
+GITHUB_BRANCH = "master"
+GITHUB_SUBDIR = "Prophet_App"   # ubicacion de este script dentro del repo
+GITHUB_API    = "https://api.github.com"
 
 
-def load_json(path, default):
-    if os.path.exists(path):
+def _get_secret(name):
+    try:
+        return st.secrets[name]
+    except Exception:
+        return os.environ.get(name)
+
+
+GITHUB_TOKEN      = _get_secret("GITHUB_TOKEN")
+USE_GITHUB_STORAGE = bool(GITHUB_TOKEN)
+
+
+def _gh_headers():
+    return {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+    }
+
+
+def _gh_get_file(filename):
+    """Lee un archivo del repo. Devuelve (data, sha) o (None, None) si no existe."""
+    url = f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{GITHUB_SUBDIR}/{filename}"
+    r = requests.get(url, headers=_gh_headers(), params={"ref": GITHUB_BRANCH}, timeout=10)
+    if r.status_code == 404:
+        return None, None
+    r.raise_for_status()
+    payload = r.json()
+    content = base64.b64decode(payload["content"]).decode("utf-8")
+    return json.loads(content), payload["sha"]
+
+
+def _gh_put_file(filename, data, sha, message):
+    url = f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{GITHUB_SUBDIR}/{filename}"
+    body = {
+        "message": message,
+        "content": base64.b64encode(
+            json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
+        ).decode("utf-8"),
+        "branch": GITHUB_BRANCH,
+    }
+    if sha:
+        body["sha"] = sha
+    r = requests.put(url, headers=_gh_headers(), json=body, timeout=10)
+    if r.status_code == 409 and sha:
+        # otro proceso escribio primero: releer sha actual y reintentar una vez
+        _, fresh_sha = _gh_get_file(filename)
+        body["sha"] = fresh_sha
+        r = requests.put(url, headers=_gh_headers(), json=body, timeout=10)
+    r.raise_for_status()
+    return r.json()["content"]["sha"]
+
+
+def load_json(filename, default):
+    if USE_GITHUB_STORAGE:
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            data, sha = _gh_get_file(filename)
+            st.session_state[f"_sha_{filename}"] = sha
+            return data if data is not None else default
+        except Exception as e:
+            st.sidebar.warning(f"No se pudo leer {filename} de GitHub: {e}")
+            return default
+    local_path = os.path.join(APP_DIR, filename)
+    if os.path.exists(local_path):
+        try:
+            with open(local_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             return default
     return default
 
 
-def save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
+def save_json(filename, data, commit_message):
+    if USE_GITHUB_STORAGE:
+        try:
+            sha = st.session_state.get(f"_sha_{filename}")
+            new_sha = _gh_put_file(filename, data, sha, commit_message)
+            st.session_state[f"_sha_{filename}"] = new_sha
+        except Exception as e:
+            st.sidebar.warning(f"No se pudo guardar {filename} en GitHub: {e}")
+        return
+    local_path = os.path.join(APP_DIR, filename)
+    with open(local_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def load_positions():
-    return load_json(POSITIONS_FILE, [])
+    return load_json("positions.json", [])
 
 
 def save_positions(positions):
-    save_json(POSITIONS_FILE, positions)
+    save_json("positions.json", positions, "Actualizar posiciones (Prophet Trader)")
 
 
 def load_selection():
-    return load_json(SELECTION_FILE, None)
+    return load_json("selected_tickers.json", None)
 
 
 def save_selection(tickers):
-    save_json(SELECTION_FILE, tickers)
+    save_json("selected_tickers.json", tickers, "Actualizar seleccion de tickers (Prophet Trader)")
 
 # Nasdaq-100 completo (componentes actuales)
 NASDAQ100 = sorted([
@@ -97,6 +172,7 @@ DEFAULT_SELECTION = [
 with st.sidebar:
     st.title("📈 Prophet Trader")
     st.caption(f"Sesion: {TODAY_STR}")
+    st.caption("💾 Persistencia: " + ("GitHub (cloud) ✅" if USE_GITHUB_STORAGE else "Disco local"))
     st.divider()
 
     with st.expander("🎯 Estrategia", expanded=True):
@@ -195,6 +271,7 @@ with st.sidebar:
             st.session_state.ticker_multiselect = (
                 saved_selection if saved_selection is not None else DEFAULT_SELECTION
             )
+            st.session_state._last_saved_tickers = list(st.session_state.ticker_multiselect)
 
         col_sel1, col_sel2 = st.columns(2)
         with col_sel1:
@@ -209,10 +286,13 @@ with st.sidebar:
             options=NASDAQ100,
             key="ticker_multiselect",
             label_visibility="collapsed",
-            help="Tu seleccion se guarda automaticamente en disco (selected_tickers.json) "
-                 "y se recupera aunque cierres el navegador o reinicies la app.",
+            help="Tu seleccion se guarda automaticamente y se recupera aunque cierres el "
+                 "navegador o reinicies la app.",
         )
-        save_selection(selected_tickers)
+        # Solo guardar si de verdad cambio — evita un commit a GitHub en cada rerun
+        if selected_tickers != st.session_state.get("_last_saved_tickers"):
+            save_selection(selected_tickers)
+            st.session_state._last_saved_tickers = list(selected_tickers)
         tickers = tuple(sorted(set(selected_tickers)))
         st.caption(f"{len(tickers)} acciones seleccionadas — guardadas permanentemente ✅")
 
