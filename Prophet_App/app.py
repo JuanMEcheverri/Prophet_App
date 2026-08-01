@@ -27,6 +27,13 @@ st.markdown("""
 <style>
 section[data-testid="stSidebar"] { width: 300px !important; }
 .stTabs [data-baseweb="tab"] { font-size: 13px; font-weight: 600; padding: 8px 16px; }
+.stTabs [data-baseweb="tab-list"] {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: var(--background-color, #ffffff);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
 div[data-testid="metric-container"] {
     background: #131c27; border: 1px solid #1e2d40;
     border-radius: 8px; padding: 10px 14px;
@@ -171,12 +178,20 @@ SCREENING_DEFAULTS = {
     "max_adr_pct":    4,
 }
 PROPHET_DEFAULTS = {
-    "seas_mode":  "multiplicative",
-    "intv_w_pct": 95,
-    "chpt_scale": 0.05,
-    "fc_days":    60,
-    "t_start":    "2022-01-01",
-    "t_end_inp":  "",
+    "seas_mode":       "multiplicative",
+    "intv_w_pct":      95,
+    "chpt_scale":      0.05,
+    "fc_days":         60,
+    "t_start_preset":  "Personalizado",
+    "t_start_custom":  "2022-01-01",
+    "t_end_inp":       "",
+}
+
+T_START_PRESETS = {
+    "Ultimos 6 meses": pd.DateOffset(months=6),
+    "Ultimo 1 año":    pd.DateOffset(years=1),
+    "Ultimos 2 años":  pd.DateOffset(years=2),
+    "Ultimos 3 años":  pd.DateOffset(years=3),
 }
 
 
@@ -329,9 +344,20 @@ with st.sidebar:
                                help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro. "
                                     "Define el horizonte de las señales y de la pestaña "
                                     "Proyecciones.")
-        t_start    = st.text_input("Inicio entrenamiento", key="cfg_t_start",
-                                   help="Fecha desde la cual se toman datos historicos para "
-                                        "entrenar (fit) el modelo Prophet de cada accion.")
+        t_start_preset = st.selectbox(
+            "Inicio entrenamiento",
+            list(T_START_PRESETS.keys()) + ["Personalizado"],
+            key="cfg_t_start_preset",
+            help="Desde cuando se toman datos historicos para entrenar (fit) el modelo Prophet "
+                 "de cada accion. Elige un rango rapido o 'Personalizado' para escribir una "
+                 "fecha exacta.",
+        )
+        if t_start_preset == "Personalizado":
+            t_start = st.text_input("Fecha exacta (AAAA-MM-DD)", key="cfg_t_start_custom",
+                                    help="Formato AAAA-MM-DD, ej. 2022-01-01.")
+        else:
+            t_start = (TODAY_TS - T_START_PRESETS[t_start_preset]).strftime("%Y-%m-%d")
+            st.caption(f"Entrenando desde {t_start}")
         t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", key="cfg_t_end_inp",
                                    help="Fecha hasta la cual se usan datos para entrenar el "
                                         "modelo. Dejalo vacio para usar todos los datos hasta hoy. "
