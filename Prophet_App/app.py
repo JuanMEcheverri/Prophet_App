@@ -148,6 +148,66 @@ def load_selection():
 def save_selection(tickers):
     save_json("selected_tickers.json", tickers, "Actualizar seleccion de tickers (Prophet Trader)")
 
+
+# Un archivo JSON independiente por seccion del sidebar (igual que positions.json
+# y selected_tickers.json), para que cada grupo de parametros se recuerde solo.
+ESTRATEGIA_DEFAULTS = {
+    "entry_dev_pct": 3,
+    "exit_dev_pct":  5,
+    "sl_pct_pct":    8,
+    "max_hold":      30,
+    "max_dev_pct":   12,
+}
+CAPITAL_DEFAULTS = {
+    "capital": 1_000,
+    "max_n":   5,
+    "fee":     0.90,
+}
+SCREENING_DEFAULTS = {
+    "min_r2":         0.68,
+    "max_sigma_pct":  6,
+    "min_growth_pct": 2,
+    "max_growth_pct": 35,
+    "max_adr_pct":    4,
+}
+PROPHET_DEFAULTS = {
+    "seas_mode":  "multiplicative",
+    "intv_w_pct": 95,
+    "chpt_scale": 0.05,
+    "fc_days":    60,
+    "t_start":    "2022-01-01",
+    "t_end_inp":  "",
+}
+
+
+def load_section(filename, defaults):
+    saved = load_json(filename, {}) or {}
+    return {**defaults, **{k: v for k, v in saved.items() if k in defaults}}
+
+
+def save_section(filename, data, commit_message):
+    save_json(filename, data, commit_message)
+
+
+def init_section_state(filename, defaults):
+    """Precarga session_state[f'cfg_{key}'] desde el JSON de esta seccion, una sola vez."""
+    marker = f"_init_{filename}"
+    if marker not in st.session_state:
+        for k, v in load_section(filename, defaults).items():
+            st.session_state[f"cfg_{k}"] = v
+        st.session_state[marker] = True
+        st.session_state[f"_last_saved_{filename}"] = {
+            k: st.session_state[f"cfg_{k}"] for k in defaults
+        }
+
+
+def save_section_if_changed(filename, defaults, commit_message):
+    """Guarda esta seccion solo si algun valor cambio desde el ultimo guardado."""
+    current = {k: st.session_state[f"cfg_{k}"] for k in defaults}
+    if current != st.session_state.get(f"_last_saved_{filename}"):
+        save_section(filename, current, commit_message)
+        st.session_state[f"_last_saved_{filename}"] = current
+
 # Nasdaq-100 completo (componentes actuales)
 NASDAQ100 = sorted([
     "AAPL","MSFT","NVDA","AMZN","META","GOOGL","GOOG","TSLA","AVGO","COST",
@@ -175,95 +235,111 @@ with st.sidebar:
     st.caption("💾 Persistencia: " + ("GitHub (cloud) ✅" if USE_GITHUB_STORAGE else "Disco local"))
     st.divider()
 
+    init_section_state("estrategia.json", ESTRATEGIA_DEFAULTS)
     with st.expander("🎯 Estrategia", expanded=True):
-        entry_dev = st.slider("Entrada: caida bajo yhat (%)", 1, 12, 3,
+        entry_dev = st.slider("Entrada: caida bajo yhat (%)", 1, 12, key="cfg_entry_dev_pct",
                               help="Comprar cuando precio < yhat × (1 − X%). yhat es el valor "
                                    "'justo' que predice Prophet para hoy — cuanto mas bajo pongas "
                                    "esto, menos señales de compra veras, pero mas seguras.") / 100
-        exit_dev  = st.slider("Salida: subida sobre yhat (%)", 3, 30, 5,
+        exit_dev  = st.slider("Salida: subida sobre yhat (%)", 3, 30, key="cfg_exit_dev_pct",
                               help="Vender (take profit) cuando precio > yhat × (1 + X%). Es tu "
                                    "objetivo de ganancia una vez el precio vuelve o supera el "
                                    "valor esperado por Prophet.") / 100
-        sl_pct    = st.slider("Stop Loss (%)", 3, 20, 8,
+        sl_pct    = st.slider("Stop Loss (%)", 3, 20, key="cfg_sl_pct_pct",
                               help="Si el precio cae este % por debajo de TU precio de entrada "
                                    "(no de yhat), se marca como stop loss: la tesis de reversion "
                                    "a la media fallo y toca cortar la perdida.") / 100
-        max_hold  = st.slider("Dias max en posicion", 5, 90, 30,
+        max_hold  = st.slider("Dias max en posicion", 5, 90, key="cfg_max_hold",
                               help="Dias maximos que mantienes una posicion abierta. Si no llega "
                                    "al Take Profit ni al Stop Loss antes, se marca 'VENCER PRONTO' "
                                    "para que decidas cerrarla manualmente.")
-        max_dev   = st.slider("Cap caida maxima (%)", 5, 30, 12,
+        max_dev   = st.slider("Cap caida maxima (%)", 5, 30, key="cfg_max_dev_pct",
                               help="No entrar si precio < yhat × (1 − cap%). Una caida mayor a "
                                    "esto suele indicar una mala noticia real (no ruido) o que el "
                                    "ajuste de Prophet ya no es confiable, asi que la accion se "
                                    "marca '⚠️ MUY BAJO' en vez de '🟢 COMPRAR'.") / 100
+    save_section_if_changed("estrategia.json", ESTRATEGIA_DEFAULTS,
+                            "Actualizar estrategia (Prophet Trader)")
 
+    init_section_state("capital.json", CAPITAL_DEFAULTS)
     with st.expander("💰 Capital"):
-        capital   = st.number_input("Capital total (EUR)", 200, 200_000, 1_000, step=200,
+        capital   = st.number_input("Capital total (EUR)", 200, 200_000, step=200,
+                                    key="cfg_capital",
                                     help="Capital total disponible para repartir entre todas tus "
                                          "posiciones abiertas simultaneamente.")
-        max_n     = st.slider("Posiciones simultaneas max", 1, 20, 5,
+        max_n     = st.slider("Posiciones simultaneas max", 1, 20, key="cfg_max_n",
                               help="Cuantas posiciones puedes tener abiertas al mismo tiempo. El "
                                    "capital total se divide en partes iguales (slots) entre ellas.")
-        fee       = st.number_input("Comision por transaccion (EUR)", 0.0, 10.0, 0.90, step=0.10,
+        fee       = st.number_input("Comision por transaccion (EUR)", 0.0, 10.0, step=0.10,
+                                    key="cfg_fee",
                                     help="Comision que cobra tu broker por cada operacion (compra "
                                          "o venta), solo informativa para estimar el costo real.")
         slot_cap  = capital / max_n
         st.caption(f"Capital por slot: €{slot_cap:,.0f}")
+    save_section_if_changed("capital.json", CAPITAL_DEFAULTS,
+                            "Actualizar capital (Prophet Trader)")
 
+    init_section_state("screening.json", SCREENING_DEFAULTS)
     with st.expander("🔍 Screening"):
-        min_r2     = st.slider("R² minimo Prophet", 0.50, 0.99, 0.68, step=0.01,
+        min_r2     = st.slider("R² minimo Prophet", 0.50, 0.99, step=0.01, key="cfg_min_r2",
                                help="R² mide que tan bien el modelo de Prophet explica el precio "
                                     "historico: 1 = ajuste casi perfecto, 0 = sin relacion. Si es "
                                     "bajo, el yhat de esa accion no es confiable y se descarta.")
-        max_sigma  = st.slider("Residual sigma max (%)", 2, 15, 6,
+        max_sigma  = st.slider("Residual sigma max (%)", 2, 15, key="cfg_max_sigma_pct",
                                help="Sigma es la desviacion estandar del error (precio real vs "
                                     "yhat) en %: mide el 'ruido' que Prophet NO logra explicar. "
                                     "Sigma alto = señales de compra/venta menos fiables.") / 100
-        min_growth = st.slider("Crecimiento anual min (%)", 1, 30, 2,
+        min_growth = st.slider("Crecimiento anual min (%)", 1, 30, key="cfg_min_growth_pct",
                                help="Crecimiento anualizado minimo de la tendencia (yhat) para "
                                     "incluir la accion — descarta acciones estancadas o en "
                                     "declive de largo plazo.") / 100
-        max_growth = st.slider("Crecimiento anual max (%)", 5, 120, 35,
+        max_growth = st.slider("Crecimiento anual max (%)", 5, 120, key="cfg_max_growth_pct",
                                help="Crecimiento anualizado maximo permitido — descarta acciones "
                                     "con una tendencia demasiado explosiva/no sostenible, donde "
                                     "'comprar en la caida' es mas arriesgado.") / 100
-        max_adr    = st.slider("ADR diario max (%)", 1, 10, 4,
+        max_adr    = st.slider("ADR diario max (%)", 1, 10, key="cfg_max_adr_pct",
                                help="Average Daily Range: rango (maximo−minimo)/cierre promedio "
                                     "de los ultimos 90 dias. Filtra acciones demasiado volatiles "
                                     "dia a dia para una estrategia de reversion a la media.") / 100
+    save_section_if_changed("screening.json", SCREENING_DEFAULTS,
+                            "Actualizar screening (Prophet Trader)")
 
+    init_section_state("prophet.json", PROPHET_DEFAULTS)
     with st.expander("🔮 Prophet"):
         seas_mode  = st.selectbox("Seasonality mode", ["multiplicative", "additive"],
+                                  key="cfg_seas_mode",
                                   help="Como se combina la estacionalidad con la tendencia. "
                                        "'multiplicative': el efecto estacional crece o decrece "
                                        "proporcional al precio (recomendado para acciones, que "
                                        "crecen exponencialmente). 'additive': el efecto estacional "
                                        "es un monto fijo, independiente del nivel de precio.")
-        intv_w     = st.slider("Intervalo de confianza (%)", 80, 99, 95,
+        intv_w     = st.slider("Intervalo de confianza (%)", 80, 99, key="cfg_intv_w_pct",
                                help="Ancho de la banda de incertidumbre (sombreada en los charts) "
                                     "alrededor de yhat. Prophet la calcula simulando que los "
                                     "cambios de tendencia futuros se parecen a los del pasado. "
                                     "Solo afecta la visualizacion, no las señales de compra/venta.") / 100
-        chpt_scale = st.slider("Flexibilidad de tendencia", 0.01, 0.50, 0.05, step=0.01,
+        chpt_scale = st.slider("Flexibilidad de tendencia", 0.01, 0.50, step=0.01,
+                               key="cfg_chpt_scale",
                                help="changepoint_prior_scale — controla cuanto puede doblarse la "
                                     "linea de tendencia (yhat) en los 'changepoints' que Prophet "
                                     "detecta. Mas alto = tendencia mas flexible/pegada al precio "
                                     "(riesgo de sobreajuste); mas bajo = tendencia mas rigida "
                                     "(riesgo de no captar cambios reales de comportamiento).")
-        fc_days    = st.slider("Dias de proyeccion futura", 30, 180, 60,
+        fc_days    = st.slider("Dias de proyeccion futura", 30, 180, key="cfg_fc_days",
                                help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro. "
                                     "Define el horizonte de las señales y de la pestaña "
                                     "Proyecciones.")
-        t_start    = st.text_input("Inicio entrenamiento", "2022-01-01",
+        t_start    = st.text_input("Inicio entrenamiento", key="cfg_t_start",
                                    help="Fecha desde la cual se toman datos historicos para "
                                         "entrenar (fit) el modelo Prophet de cada accion.")
-        t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", "",
+        t_end_inp  = st.text_input("Fin entrenamiento (vacio = hoy)", key="cfg_t_end_inp",
                                    help="Fecha hasta la cual se usan datos para entrenar el "
                                         "modelo. Dejalo vacio para usar todos los datos hasta hoy. "
                                         "Poner una fecha pasada sirve para backtesting: entrenas "
                                         "con datos viejos y comparas el yhat contra lo que "
                                         "realmente paso despues.")
+    save_section_if_changed("prophet.json", PROPHET_DEFAULTS,
+                            "Actualizar config Prophet (Prophet Trader)")
 
     with st.expander("📋 Acciones Nasdaq-100"):
         if "ticker_multiselect" not in st.session_state:
