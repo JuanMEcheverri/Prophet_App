@@ -2,7 +2,8 @@
   "seas_mode": "multiplicative",
   "intv_w_pct": 95,
   "chpt_scale": 0.05,
-  "fc_days": 180,
-  "t_start": "2022-01-01",
+  "fc_days": 30,
+  "t_start_preset": "Ultimos 3 años",
+  "t_start_custom": "2022-01-01",
   "t_end_inp": ""
 }
