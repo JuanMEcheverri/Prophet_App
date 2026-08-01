@@ -184,7 +184,7 @@ SCREENING_DEFAULTS = {
 PROPHET_DEFAULTS = {
     "seas_mode":       "multiplicative",
     "intv_w_pct":      95,
-    "chpt_scale":      0.05,
+    "chpt_scale":      0.03,
     "fc_days":         60,
     "t_start_preset":  "Personalizado",
     "t_start_custom":  "2022-01-01",
@@ -331,7 +331,13 @@ with st.sidebar:
                                        "'multiplicative': el efecto estacional crece o decrece "
                                        "proporcional al precio (recomendado para acciones, que "
                                        "crecen exponencialmente). 'additive': el efecto estacional "
-                                       "es un monto fijo, independiente del nivel de precio.")
+                                       "es un monto fijo, independiente del nivel de precio.\n\n"
+                                       "📊 Grid search (89 acciones, 890 backtests por combo): "
+                                       "'additive' da mediana de error ~3-4% mejor, pero con cola de "
+                                       "riesgo grave (media de error hasta 37% en el peor caso — "
+                                       "fallos raros pero catastroficos). 'multiplicative' se "
+                                       "mantiene estable en todos los casos probados. "
+                                       "**Recomendado y default: multiplicative.**")
         intv_w     = st.slider("Intervalo de confianza (%)", 80, 99, key="cfg_intv_w_pct",
                                help="Ancho de la banda de incertidumbre (sombreada en los charts) "
                                     "alrededor de yhat. Prophet la calcula simulando que los "
@@ -343,7 +349,11 @@ with st.sidebar:
                                     "linea de tendencia (yhat) en los 'changepoints' que Prophet "
                                     "detecta. Mas alto = tendencia mas flexible/pegada al precio "
                                     "(riesgo de sobreajuste); mas bajo = tendencia mas rigida "
-                                    "(riesgo de no captar cambios reales de comportamiento).")
+                                    "(riesgo de no captar cambios reales de comportamiento).\n\n"
+                                    "📊 Grid search (89 acciones, 890 backtests por valor, con "
+                                    "seasonality_mode=multiplicative): 0.03 gano en mediana, media "
+                                    "Y tasa de outliers frente al 0.05 original, y frente a 0.07/"
+                                    "0.10/0.15 probados. **Recomendado y default: 0.03.**")
         fc_days    = st.slider("Dias de proyeccion futura", 30, 180, key="cfg_fc_days",
                                help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro. "
                                     "Define el horizonte de las señales y de la pestaña "
@@ -354,7 +364,13 @@ with st.sidebar:
             key="cfg_t_start_preset",
             help="Desde cuando se toman datos historicos para entrenar (fit) el modelo Prophet "
                  "de cada accion. Elige un rango rapido o 'Personalizado' para escribir una "
-                 "fecha exacta.",
+                 "fecha exacta.\n\n"
+                 "📊 Backtest walk-forward (89 acciones, 890 trades simulados por ventana): "
+                 "'Ultimo 1 año' fue el mejor tanto en precision de yhat (menor error en "
+                 "cada punto de corte, menos fallos catastroficos) como en P&L real de la "
+                 "estrategia completa (mayor win-rate y expectativa por operacion). "
+                 "'Ultimos 6 meses' es riesgoso: la estacionalidad anual no tiene suficiente "
+                 "historia y puede extrapolar mal. **Recomendado: Ultimo 1 año.**",
         )
         if t_start_preset == "Personalizado":
             t_start = st.text_input("Fecha exacta (AAAA-MM-DD)", key="cfg_t_start_custom",
