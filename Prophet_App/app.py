@@ -27,7 +27,11 @@ st.markdown("""
 <style>
 section[data-testid="stSidebar"] { width: 300px !important; }
 .stTabs [data-baseweb="tab"] { font-size: 13px; font-weight: 600; padding: 8px 16px; }
-.stTabs [data-baseweb="tab-list"] {
+/* El propio [data-baseweb="tab-list"] no queda "sticky" (Streamlit le pone
+   overflow-x para el scroll horizontal de tabs). El que si funciona es su
+   div contenedor directo, que no tiene clase/testid propio, por eso se
+   selecciona con :has(). */
+.stTabs div:has(> [data-baseweb="tab-list"]) {
     position: sticky;
     top: 0;
     z-index: 999;
