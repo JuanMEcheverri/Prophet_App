@@ -37,23 +37,41 @@ TODAY      = date.today()
 TODAY_STR  = TODAY.strftime("%Y-%m-%d")
 TODAY_TS   = pd.Timestamp(TODAY)
 
-# ── PERSISTENCIA DE POSICIONES (disco) ────────────────────────────────────────
-POSITIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "positions.json")
+# ── PERSISTENCIA EN DISCO (sobrevive a cierres/reinicios del servidor) ────────
+APP_DIR        = os.path.dirname(os.path.abspath(__file__))
+POSITIONS_FILE = os.path.join(APP_DIR, "positions.json")
+SELECTION_FILE = os.path.join(APP_DIR, "selected_tickers.json")
+
+
+def load_json(path, default):
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return default
+    return default
+
+
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def load_positions():
-    if os.path.exists(POSITIONS_FILE):
-        try:
-            with open(POSITIONS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, OSError):
-            return []
-    return []
+    return load_json(POSITIONS_FILE, [])
 
 
 def save_positions(positions):
-    with open(POSITIONS_FILE, "w", encoding="utf-8") as f:
-        json.dump(positions, f, indent=2, ensure_ascii=False)
+    save_json(POSITIONS_FILE, positions)
+
+
+def load_selection():
+    return load_json(SELECTION_FILE, None)
+
+
+def save_selection(tickers):
+    save_json(SELECTION_FILE, tickers)
 
 # Nasdaq-100 completo (componentes actuales)
 NASDAQ100 = sorted([
@@ -173,7 +191,10 @@ with st.sidebar:
 
     with st.expander("📋 Acciones Nasdaq-100"):
         if "ticker_multiselect" not in st.session_state:
-            st.session_state.ticker_multiselect = DEFAULT_SELECTION
+            saved_selection = load_selection()
+            st.session_state.ticker_multiselect = (
+                saved_selection if saved_selection is not None else DEFAULT_SELECTION
+            )
 
         col_sel1, col_sel2 = st.columns(2)
         with col_sel1:
@@ -188,9 +209,12 @@ with st.sidebar:
             options=NASDAQ100,
             key="ticker_multiselect",
             label_visibility="collapsed",
+            help="Tu seleccion se guarda automaticamente en disco (selected_tickers.json) "
+                 "y se recupera aunque cierres el navegador o reinicies la app.",
         )
+        save_selection(selected_tickers)
         tickers = tuple(sorted(set(selected_tickers)))
-        st.caption(f"{len(tickers)} acciones seleccionadas")
+        st.caption(f"{len(tickers)} acciones seleccionadas — guardadas permanentemente ✅")
 
     st.divider()
     train_btn  = st.button("Entrenar Prophet", type="primary", use_container_width=True)

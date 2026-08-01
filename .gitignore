@@ -10,3 +10,4 @@ env/
 .DS_Store
 Thumbs.db
 Prophet_App/positions.json
+Prophet_App/selected_tickers.json
