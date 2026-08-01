@@ -185,7 +185,7 @@ PROPHET_DEFAULTS = {
     "seas_mode":       "multiplicative",
     "intv_w_pct":      95,
     "chpt_scale":      0.03,
-    "fc_days":         60,
+    "fc_days":         28,
     "t_start_preset":  "Personalizado",
     "t_start_custom":  "2022-01-01",
     "t_end_inp":       "",
@@ -324,6 +324,12 @@ with st.sidebar:
                             "Actualizar screening (Prophet Trader)")
 
     init_section_state("prophet.json", PROPHET_DEFAULTS)
+    FC_DAYS_OPTIONS = [7, 14, 21, 28, 35, 42, 49, 56]
+    if st.session_state.get("cfg_fc_days") not in FC_DAYS_OPTIONS:
+        # migracion: valores guardados antes de este cambio (ej. 30, 60, 180)
+        # se ajustan al multiplo de semana mas cercano.
+        prev = st.session_state.get("cfg_fc_days", 28)
+        st.session_state.cfg_fc_days = min(FC_DAYS_OPTIONS, key=lambda d: abs(d - prev))
     with st.expander("🔮 Prophet"):
         seas_mode  = st.selectbox("Seasonality mode", ["multiplicative", "additive"],
                                   key="cfg_seas_mode",
@@ -354,10 +360,15 @@ with st.sidebar:
                                     "seasonality_mode=multiplicative): 0.03 gano en mediana, media "
                                     "Y tasa de outliers frente al 0.05 original, y frente a 0.07/"
                                     "0.10/0.15 probados. **Recomendado y default: 0.03.**")
-        fc_days    = st.slider("Dias de proyeccion futura", 30, 180, key="cfg_fc_days",
-                               help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro. "
-                                    "Define el horizonte de las señales y de la pestaña "
-                                    "Proyecciones.")
+        fc_days    = st.radio(
+            "Dias de proyeccion futura",
+            FC_DAYS_OPTIONS,
+            format_func=lambda d: f"{d // 7} semana" + ("s" if d // 7 > 1 else ""),
+            horizontal=True,
+            key="cfg_fc_days",
+            help="Cuantos dias hacia adelante proyecta Prophet el yhat futuro (maximo 60 dias, "
+                 "en pasos de 1 semana). Define el horizonte de las señales y de la pestaña "
+                 "Proyecciones.")
         t_start_preset = st.selectbox(
             "Inicio entrenamiento",
             list(T_START_PRESETS.keys()) + ["Personalizado"],
