@@ -1,0 +1,38 @@
+﻿Ticker,Pass,R2,Sigma%,Growth%/yr,ADR%,Motivo
+AAPL,true,0.977,3.1,26.4,2.2,OK
+ADBE,false,0.963,5.8,-10.3,3.5,Sigma 5.8% > 5%
+ADI,true,0.977,4.5,29.3,3.1,OK
+AEP,true,0.985,2.7,16.1,1.8,OK
+AMGN,true,0.93,4.3,16.8,2.2,OK
+AMZN,true,0.962,4.7,31.6,2.6,OK
+AVGO,false,0.982,8.4,74,3.5,Sigma 8.4% > 5%
+BKNG,true,0.964,4.9,14.3,3.4,OK
+CDNS,false,0.869,6.3,20.3,3.6,Sigma 6.3% > 5%
+COST,true,0.987,2.9,22.9,1.9,OK
+CSCO,true,0.984,3.9,31.5,2.9,OK
+CTAS,true,0.977,3.2,16.3,2.4,OK
+EA,true,0.969,3.8,17.9,0.4,OK
+EBAY,true,0.985,4.4,33.4,2.9,OK
+FAST,true,0.978,3.1,24.9,2.4,OK
+GILD,true,0.985,3.5,19.2,2.5,OK
+GOOGL,false,0.992,4,47.2,2.5,Growth 47%/yr fuera rango
+INTU,false,,,,4.3,ADR 4.3% > 4%
+ISRG,false,0.961,5,12.2,2.9,Growth 12%/yr fuera rango
+KLAC,false,,,,4.9,ADR 4.9% > 4%
+LRCX,false,,,,5,ADR 5.0% > 4%
+MAR,true,0.98,3.4,27.5,2.3,OK
+MDLZ,false,0.843,2.9,-0,2.1,R2 0.84 < 0.85
+META,false,0.977,5.2,52.2,2.9,Sigma 5.2% > 5%
+MNST,true,0.969,3.4,20.3,2.1,OK
+MSFT,false,0.966,3.3,11.5,2.5,Growth 12%/yr fuera rango
+NFLX,false,0.972,6.8,22.7,2.8,Sigma 6.8% > 5%
+ORLY,true,0.982,2.7,17.5,2.5,OK
+PAYX,false,0.963,2.8,-0.2,2.8,Growth -0%/yr fuera rango
+PCAR,true,0.966,3.3,22.8,2.4,OK
+PEP,false,0.877,2.7,-1,2.1,Growth -1%/yr fuera rango
+QCOM,false,,,,5.4,ADR 5.4% > 4%
+REGN,false,0.968,4,1.9,2.5,Growth 2%/yr fuera rango
+ROST,true,0.981,3.3,24.3,2.3,OK
+TMUS,false,0.979,3.2,9.5,2.8,Growth 9%/yr fuera rango
+VRTX,true,0.902,4.4,13.4,2.5,OK
+XEL,false,0.968,2.8,8.8,2,Growth 9%/yr fuera rango
