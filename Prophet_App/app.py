@@ -164,15 +164,15 @@ def save_selection(tickers):
 # y selected_tickers.json), para que cada grupo de parametros se recuerde solo.
 ESTRATEGIA_DEFAULTS = {
     "entry_dev_pct": 3,
-    "exit_dev_pct":  5,
-    "sl_pct_pct":    8,
-    "max_hold":      30,
-    "max_dev_pct":   12,
+    "exit_dev_pct":  20,
+    "sl_pct_pct":    15,
+    "max_hold":      15,
+    "max_dev_pct":   15,
 }
 CAPITAL_DEFAULTS = {
     "capital": 1_000,
-    "max_n":   5,
-    "fee":     0.90,
+    "max_n":   3,
+    "fee":     1.00,
 }
 SCREENING_DEFAULTS = {
     "min_r2":         0.68,
@@ -1071,7 +1071,7 @@ with tab_pos:
             pnl_pct    = (cpx / epx - 1) * 100 if cpx else None
             pnl_eur    = cap * (cpx / epx - 1) if cpx else None
             sl_px      = epx * (1 - sl_pct)
-            tp_px      = yht[0] * (1 + exit_dev) if yht else None
+            tp_px      = epx * (1 + exit_dev)
             dist_tp    = (tp_px / cpx - 1) * 100 if (tp_px and cpx) else None
             dist_sl    = (sl_px / cpx - 1) * 100 if cpx else None
             dev_yhat   = (cpx / yht[0] - 1) * 100 if (cpx and yht) else None
