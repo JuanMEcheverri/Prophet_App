@@ -2,6 +2,6 @@
   "min_r2": 0.68,
   "max_sigma_pct": 6,
   "min_growth_pct": 2,
-  "max_growth_pct": 62,
+  "max_growth_pct": 60,
   "max_adr_pct": 4
 }
