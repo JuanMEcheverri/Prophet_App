@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "ticker": "EBAY",
+    "fecha_entrada": "2026-08-05",
+    "precio_entrada": 94.26,
+    "capital": 200.0,
+    "nota": "En N26 94.26 euros y en Degiro hasta 110.61 dolares"
+  }
+]
