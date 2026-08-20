@@ -1,6 +1,6 @@
 {
   "seas_mode": "multiplicative",
-  "intv_w_pct": 95,
+  "intv_w_pct": 96,
   "chpt_scale": 0.03,
   "fc_days": 21,
   "t_start_preset": "Ultimo 1 año",
