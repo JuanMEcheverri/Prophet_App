@@ -1,7 +1,7 @@
 {
   "entry_dev_pct": 5,
   "exit_dev_pct": 3,
-  "sl_pct_pct": 7,
+  "sl_pct_pct": 4,
   "max_hold": 15,
   "max_dev_pct": 15
 }
