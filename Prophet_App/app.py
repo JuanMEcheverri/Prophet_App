@@ -247,11 +247,63 @@ DEFAULT_SELECTION = [
     "REGN","VRTX","XEL","AEP","EBAY","EA","MNST","MDLZ","MAR","PAYX","CDNS",
 ]
 
+# Los 55 tickers que quedaron tras excluir del Nasdaq-100 los 34 con P&L
+# promedio negativo en el backtest de estrategia (ver backtests/README.md,
+# seccion 3 y resumen ejecutivo) — junto con ESTRATEGIA/CAPITAL/SCREENING/
+# PROPHET_DEFAULTS de arriba, es la configuracion que dio +19% en la
+# simulacion de portafolio (backtest 14).
+VALIDATED_TICKERS = [
+    "ADBE","ADI","AEP","AMAT","AMD","AMGN","AMZN","AVGO","CDNS","CEG",
+    "COST","CSCO","CTAS","DDOG","DLTR","DXCM","EXC","FAST","FSLR","FTNT",
+    "GEHC","GFS","GILD","GOOG","GOOGL","IDXX","ISRG","KHC","KLAC","LRCX",
+    "MAR","MELI","META","MNST","MRVL","MU","NTAP","NVDA","NXPI","ON",
+    "PANW","PAYX","PCAR","PDD","QCOM","REGN","SNPS","TSLA","TTD","TXN",
+    "VRTX","XEL","ZBRA","ZM","ZS",
+]
+
+
+def restore_validated_config():
+    """Restaura estrategia/capital/screening/prophet + seleccion de tickers
+    a la configuracion validada por backtest (ver backtests/README.md),
+    sobreescribiendo cualquier ajuste manual hecho despues desde el sidebar."""
+    for defaults, fname in [
+        (ESTRATEGIA_DEFAULTS, "estrategia.json"),
+        (CAPITAL_DEFAULTS,    "capital.json"),
+        (SCREENING_DEFAULTS,  "screening.json"),
+        (PROPHET_DEFAULTS,    "prophet.json"),
+    ]:
+        for k, v in defaults.items():
+            st.session_state[f"cfg_{k}"] = v
+        save_section(fname, defaults, "Restaurar config validada por backtest (Prophet Trader)")
+        st.session_state[f"_last_saved_{fname}"] = dict(defaults)
+
+    st.session_state.ticker_multiselect = list(VALIDATED_TICKERS)
+    save_selection(VALIDATED_TICKERS)
+    st.session_state._last_saved_tickers = list(VALIDATED_TICKERS)
+    st.session_state._just_restored_config = True
+
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("📈 Prophet Trader")
     st.caption(f"Sesion: {TODAY_STR}")
     st.caption("💾 Persistencia: " + ("GitHub (cloud) ✅" if USE_GITHUB_STORAGE else "Disco local"))
+
+    if st.session_state.pop("_just_restored_config", False):
+        st.success("Configuracion validada por backtest restaurada ✅")
+
+    st.button(
+        "↩️ Restaurar config validada (backtest)",
+        use_container_width=True,
+        on_click=restore_validated_config,
+        help="Sobreescribe Estrategia/Capital/Screening/Prophet y la seleccion "
+             "de acciones con la configuracion que dio +19% en la simulacion de "
+             "portafolio (ver Prophet_App/backtests/README.md): entry 3% / TP 20% "
+             "/ SL 15% / max_hold 15d / max_dev 15%, R2>=0.68 / sigma<=6% / growth "
+             "2-35%/yr / ADR<=4%, changepoint_prior_scale=0.03, IC 95%, 28 dias de "
+             "proyeccion, entrenamiento desde 2022-01-01, y los 55 tickers que "
+             "quedaron tras excluir los 34 con P&L negativo. Usalo si ajustaste "
+             "sliders manualmente y quieres volver al punto de partida probado.",
+    )
     st.divider()
 
     init_section_state("estrategia.json", ESTRATEGIA_DEFAULTS)
