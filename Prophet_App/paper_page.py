@@ -129,21 +129,39 @@ function applyPreset(key) {{
 }}
 const SUFFIXES = ['', '_s'];   // la misma fila de presets aparece en Señales ('') y en Screening ('_s')
 function presetRow(sfx) {{
-  return `<div class="controls" style="grid-template-columns:repeat(auto-fit, minmax(150px, max-content)) 1fr;align-items:center"><button type="button" class="btn" id="pre_bt15${{sfx}}">Cuadrar con Backtest 15</button><button type="button" class="btn" id="pre_combo${{sfx}}">Cuadrar con Combinado</button><button type="button" class="btn" id="pre_u1${{sfx}}">Mi preset 1</button><button type="button" class="btn" id="pre_u2${{sfx}}">Mi preset 2</button><button type="button" class="btn" id="pre_u3${{sfx}}">Mi preset 3</button><span id="preset_badge${{sfx}}" class="muted" style="font-size:13px"></span></div><p class="note" style="margin:0 0 8px">Los presets fijan a la vez los sliders de estrategia (Señales) <b>y</b> de screening. "Mi preset": <b>clic</b> = cargar (o guardar si esta vacio) · <b>mantener pulsado ~1 s</b> = sobrescribir con los valores actuales (se guarda en este navegador).</p>`;
+  return `<div class="controls" style="grid-template-columns:repeat(auto-fit, minmax(150px, max-content)) 1fr;align-items:center"><button type="button" class="btn" id="pre_bt15${{sfx}}">Cuadrar con Backtest 15</button><button type="button" class="btn" id="pre_combo${{sfx}}">Cuadrar con Combinado</button><button type="button" class="btn" id="pre_u1${{sfx}}">Mi preset 1</button><button type="button" class="btn" id="pre_u2${{sfx}}">Mi preset 2</button><button type="button" class="btn" id="pre_u3${{sfx}}">Mi preset 3</button><span id="preset_badge${{sfx}}" class="muted" style="font-size:13px"></span></div><p class="note" style="margin:0 0 8px">Los presets fijan a la vez los sliders de estrategia (Señales) <b>y</b> de screening. "Mi preset": <b>clic</b> = cargar (o guardar si esta vacio) · <b>mantener pulsado ~1 s</b> = sobrescribir con los valores actuales. <span id="preset_store${{sfx}}"></span></p>`;
 }}
 function presetBadge() {{
   const name = PRESET === 'manual' ? null : (DATA.cfgs[PRESET] ? DATA.cfgs[PRESET].name : PRESET);
   const txt = PRESET === 'manual' ? 'Ajuste manual (sliders)' : `Cuadrado con <b>${{esc(name)}}</b>` + (DROP_REQ ? ` · compra solo si la caida del dia es ≤ −${{DROP_REQ}} %` : '');
   SUFFIXES.forEach(sfx => {{ const b = document.getElementById('preset_badge' + sfx); if (b) b.innerHTML = txt; }});
 }}
-// ---- Presets del usuario (3 huecos, guardados en este navegador): clic = cargar; mantener pulsado ~0,8 s = guardar/sobrescribir
+// ---- Presets del usuario (3 huecos): clic = cargar; mantener pulsado ~0,8 s = guardar/sobrescribir.
+// Se guardan en la base de datos del artifact (coleccion 'presets', solo el dueño escribe), compartida entre
+// dispositivos y legible por Claude; si la base de datos no esta disponible (sin sesion, sin permiso), en este navegador.
 const USER_KEY = 'prophet_user_presets_v1';
-function userPresets() {{ try {{ return JSON.parse(localStorage.getItem(USER_KEY) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+let DBP = null, DB_PRESETS = {{}}, DB_STATE = 'local';
+function localPresets() {{ try {{ return JSON.parse(localStorage.getItem(USER_KEY) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
+function userPresets() {{ return DBP ? DB_PRESETS : localPresets(); }}
+function localSave(n, body) {{ const all = localPresets(); all[n] = body; try {{ localStorage.setItem(USER_KEY, JSON.stringify(all)); }} catch (e) {{}} }}
 function saveUserPreset(n) {{
-  const all = userPresets();
-  all[n] = {{S: {{...S}}, SC: {{...SC}}, drop: DROP_REQ, saved: D}};
-  try {{ localStorage.setItem(USER_KEY, JSON.stringify(all)); }} catch (e) {{}}
-  PRESET = 'Mi preset ' + n; presetBadge(); refreshUserButtons(n, 'guardado');
+  const body = {{S: {{...S}}, SC: {{...SC}}, drop: DROP_REQ, saved: D}};
+  PRESET = 'Mi preset ' + n; presetBadge();
+  if (DBP) {{
+    DB_PRESETS[n] = body; refreshUserButtons(n, 'guardando…');
+    DBP.doc('presets/' + n).set(body).then(() => refreshUserButtons(n, 'guardado ✓')).catch(() => {{ localSave(n, body); DB_STATE = 'local'; refreshUserButtons(n, 'guardado solo en este navegador'); }});
+  }} else {{ localSave(n, body); refreshUserButtons(n, 'guardado en este navegador'); }}
+}}
+async function initPresetsDb() {{
+  try {{
+    if (!window.claude || typeof claude.use !== 'function') return;
+    const db = await claude.use('db'); if (!db) return;
+    db.collection('presets').onSnapshot(snap => {{
+      DBP = db; DB_STATE = 'db'; DB_PRESETS = {{}};
+      snap.docs.forEach(d => {{ if (d.exists) DB_PRESETS[d.id] = d.data(); }});
+      refreshUserButtons();
+    }}, err => {{ DBP = null; DB_STATE = 'local'; refreshUserButtons(); }});
+  }} catch (e) {{}}
 }}
 function loadUserPreset(n) {{
   const p = userPresets()[n]; if (!p) return false;
@@ -160,6 +178,7 @@ function refreshUserButtons(flashN, flashText) {{
     const b = document.getElementById('pre_u' + n + sfx); if (!b) return;
     const p = all[n];
     b.textContent = (flashN === n && flashText) ? `Mi preset ${{n}}: ${{flashText}}` : (p ? `Mi preset ${{n}} ✓` : `Mi preset ${{n}} (vacio)`);
+    const st = document.getElementById('preset_store' + sfx); if (st) st.textContent = DB_STATE === 'db' ? 'Presets guardados en la base de datos del artifact (compartidos entre tus dispositivos).' : 'Presets guardados solo en este navegador (base de datos no disponible: entra con tu cuenta para compartirlos entre dispositivos).';
     b.title = p ? `Guardado el ${{p.saved}}: entrada ${{p.S.entry}} % · salida +${{p.S.exit}} % · SL ${{p.S.sl}} % · ${{p.S.hold}} d · cap ${{p.S.max_dev}} % · screening R² ${{p.SC.min_r2}} / sigma ${{p.SC.max_sigma}} % / crec. ${{p.SC.min_growth}}..${{p.SC.max_growth}} % / ADR ${{p.SC.max_adr}} %${{p.drop ? ' · caida ≥ ' + p.drop + ' %' : ''}}. Clic = cargar · mantener pulsado = sobrescribir` : 'Vacio. Clic o mantener pulsado = guardar los sliders actuales (estrategia + screening)';
   }}));
   if (flashN) setTimeout(() => refreshUserButtons(), 1500);
@@ -501,6 +520,7 @@ function show(id) {{
 bindSliders([['s_entry','entry',' %'],['s_exit','exit',' %'],['s_sl','sl',' %'],['s_hold','hold',' d'],['s_maxdev','max_dev',' %']], S, () => {{ PRESET = 'manual'; DROP_REQ = null; renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart(); }});
 bindSliders([['c_r2','min_r2',''],['c_sig','max_sigma',' %'],['c_gmin','min_growth',' %'],['c_gmax','max_growth',' %'],['c_adr','max_adr',' %']], SC, () => {{ PRESET = 'manual'; DROP_REQ = null; renderScreening(); renderSignals(); renderProj(); }});
 bindUserButtons();
+initPresetsDb();
 document.getElementById('chart_t').onchange = renderChart;
 function findTicker(q) {{
   q = (q || '').trim().toUpperCase(); if (!q) return null;
