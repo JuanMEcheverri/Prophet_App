@@ -1418,18 +1418,20 @@ def render_paper(state, key):
         f"Entrada: precio entre {cfg['entry_dev']:.0f}% y {cfg['max_dev']:.0f}% por debajo de yhat"
         + (f" **y** caida del dia >= {cfg['drop']:.0f}%" if cfg["drop"] else "")
         + f", con screening. Salida (en este orden): {cfg['hold']} dias → stop loss {cfg['sl']:.0f}% → precio >= yhat +{cfg['exit_dev']:.0f}%. "
-        f"Capital {paper.CAPITAL:.0f} $ en {paper.SLOTS} slots, {paper.FEE:.0f} $ por operacion. "
+        f"Capital {paper.CAPITAL:.0f} $ en una bolsa comun, hasta {paper.SLOTS} posiciones, ACCIONES ENTERAS "
+        f"(objetivo por compra = efectivo / huecos libres, redondeado al entero mas cercano), {paper.FEE:.0f} $ por operacion. "
         "Cada decision usa solo los datos de ese dia y se ejecuta a la apertura del dia siguiente; "
         "la app avanza un dia cada vez que se abre con una sesion nueva completa."
     )
     if _paper_msgs:
         st.info(" · ".join(_paper_msgs))
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Valor cartera", f"${s['equity']:,.2f}", f"{s['ret']:+.1%}")
-    c2.metric("Ultima sesion", state["last_date"] or "—")
-    c3.metric("Operaciones cerradas", s["n_closed"])
-    c4.metric("Acierto", f"{s['win_rate']*100:.0f}%" if s["win_rate"] is not None else "—")
-    c5.metric("P&L cerrado", f"${s['pnl_closed']:+,.2f}")
+    c2.metric("Efectivo", f"${s['cash']:,.2f}")
+    c3.metric("Ultima sesion", state["last_date"] or "—")
+    c4.metric("Operaciones cerradas", s["n_closed"])
+    c5.metric("Acierto", f"{s['win_rate']*100:.0f}%" if s["win_rate"] is not None else "—")
+    c6.metric("P&L cerrado", f"${s['pnl_closed']:+,.2f}")
 
     # posiciones abiertas y ordenes pendientes
     rows = []
@@ -1439,29 +1441,31 @@ def render_paper(state, key):
             cpx = _all_px.get(p["ticker"], {}).get("px")
             yh = get_yhat_at(sdata[p["ticker"]]["fc_dict"], TODAY_TS) if p["ticker"] in sdata else None
             rows.append({"Slot": i + 1, "Estado": "abierta" + (f" · orden de venta ({o['reason']})" if o and o["side"] == "sell" else ""),
-                         "Ticker": p["ticker"], "Señal": p["signal_date"], "Dev señal%": p["signal_dev"],
+                         "Ticker": p["ticker"], "Acciones": p["shares"], "Señal": p["signal_date"], "Dev señal%": p["signal_dev"],
                          "Caida señal%": p.get("signal_drop"), "Compra": p["fill_date"], "Precio compra": p["fill_px"],
-                         "Precio hoy": cpx, "P&L%": ((cpx / p["fill_px"] - 1) * 100 if cpx else None),
+                         "Invertido": p.get("cash_in"), "Precio hoy": cpx, "P&L%": ((cpx / p["fill_px"] - 1) * 100 if cpx else None),
+                         "P&L $": ((cpx - p["fill_px"]) * p["shares"] if cpx else None),
                          "Dias": (TODAY - date.fromisoformat(p["fill_date"])).days,
                          "Vender si >=": (yh[0] * (1 + cfg["exit_dev"] / 100) if yh else None),
                          "Stop loss": p["fill_px"] * (1 - cfg["sl"] / 100)})
         elif o:
-            rows.append({"Slot": i + 1, "Estado": "orden de compra pendiente", "Ticker": o["ticker"], "Señal": o["signal_date"],
-                         "Dev señal%": o["dev"], "Caida señal%": o.get("drop"), "Compra": None, "Precio compra": None,
-                         "Precio hoy": _all_px.get(o["ticker"], {}).get("px"), "P&L%": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
+            rows.append({"Slot": i + 1, "Estado": "orden de compra pendiente", "Ticker": o["ticker"], "Acciones": None, "Señal": o["signal_date"],
+                         "Dev señal%": o["dev"], "Caida señal%": o.get("drop"), "Compra": None, "Precio compra": None, "Invertido": None,
+                         "Precio hoy": _all_px.get(o["ticker"], {}).get("px"), "P&L%": None, "P&L $": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
         else:
-            rows.append({"Slot": i + 1, "Estado": f"libre ({slot['cash']:.2f} $)", "Ticker": None, "Señal": None, "Dev señal%": None,
-                         "Caida señal%": None, "Compra": None, "Precio compra": None, "Precio hoy": None, "P&L%": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
+            rows.append({"Slot": i + 1, "Estado": "libre", "Ticker": None, "Acciones": None, "Señal": None, "Dev señal%": None,
+                         "Caida señal%": None, "Compra": None, "Precio compra": None, "Invertido": None, "Precio hoy": None, "P&L%": None, "P&L $": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
     st.markdown("#### Posiciones abiertas y ordenes")
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, column_config={
         "Dev señal%": st.column_config.NumberColumn(format="%.1f%%"), "Caida señal%": st.column_config.NumberColumn(format="%.1f%%"),
         "Precio compra": st.column_config.NumberColumn(format="$%.2f"), "Precio hoy": st.column_config.NumberColumn(format="$%.2f"),
+        "Invertido": st.column_config.NumberColumn(format="$%.2f"), "P&L $": st.column_config.NumberColumn(format="$%.2f"),
         "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "Vender si >=": st.column_config.NumberColumn(format="$%.2f"),
         "Stop loss": st.column_config.NumberColumn(format="$%.2f")})
 
     st.markdown("#### Operaciones cerradas")
     if state["closed"]:
-        df_c = pd.DataFrame([{"Ticker": c["ticker"], "Señal": c["signal_date"], "Dev señal%": c["signal_dev"], "Caida señal%": c.get("signal_drop"),
+        df_c = pd.DataFrame([{"Ticker": c["ticker"], "Acciones": c.get("shares"), "Señal": c["signal_date"], "Dev señal%": c["signal_dev"], "Caida señal%": c.get("signal_drop"),
                               "Compra": c["fill_date"], "Precio compra": c["fill_px"], "Venta": c["exit_date"], "Precio venta": c["exit_px"],
                               "Motivo": c["exit_reason"], "Dias": c["days"], "P&L%": c["pnl_pct"] * 100, "P&L $": c["pnl_cash"]}
                              for c in state["closed"]]).sort_values("Venta", ascending=False)

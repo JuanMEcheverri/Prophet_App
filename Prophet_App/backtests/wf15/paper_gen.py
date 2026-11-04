@@ -15,15 +15,14 @@ from . import common as C
 def build_day_data(wide, cal, bank, meta, D):
     row_b = bank[(bank["fit_date"] == D) & (bank["ds"] == D)].set_index("ticker")["yhat"]
     row_m = meta[(meta["fit_date"] == D) & (meta["ok"])].set_index("ticker")
-    i = cal.get_loc(D)
     out = {}
     for t in C.TICKERS:
-        cl = wide["close"][t]
+        cl = wide["close"][t].dropna()
         close = cl.get(D)
         if close is None or pd.isna(close):
             continue
         op = wide["open"][t].get(D)
-        prev = cl.iloc[:i].dropna()
+        prev = cl[cl.index < D]          # cierre anterior del propio ticker (no por posicion: el indice incluye dias sin bolsa)
         m = row_m.loc[t] if t in row_m.index else None
         out[t] = dict(
             open=(None if op is None or pd.isna(op) else float(op)), close=float(close),
@@ -34,7 +33,7 @@ def build_day_data(wide, cal, bank, meta, D):
     return out
 
 
-def run(start="2026-10-01", end=None, refit_every=1):
+def run(start="2026-09-01", end=None, refit_every=1):
     from .fit_bank import load_bank
     wide = C.load_prices()
     cal = C.trading_calendar(wide)

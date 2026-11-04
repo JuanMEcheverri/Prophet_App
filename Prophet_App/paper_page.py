@@ -286,22 +286,23 @@ function renderPaper(key) {{
   const rows = st.slots.map((slot,i) => {{
     const p = slot.position, o = slot.pending;
     if (p) {{ const t = T[p.ticker]||{{}}, cpx = t.close, pnl = cpx ? (cpx/p.fill_px-1)*100 : null, yh = t.yhat;
-      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), p.ticker, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
-    if (o) return [i+1, 'compra pendiente (apertura siguiente)', o.ticker, o.signal_date, pct(o.dev), pct(o.drop), '—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—'];
-    return [i+1, `libre · ${{usd(slot.cash)}}`, '—','—','—','—','—','—','—','—','—','—','—'];
+      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), p.ticker, p.shares, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(p.cash_in), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [usd(cpx ? (cpx-p.fill_px)*p.shares : null), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
+    if (o) return [i+1, 'compra pendiente (apertura siguiente)', o.ticker, '—', o.signal_date, pct(o.dev), pct(o.drop), '—','—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—','—'];
+    return [i+1, 'libre', '—','—','—','—','—','—','—','—','—','—','—','—','—','—'];
   }});
-  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [c.ticker, c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
-  const log = st.log.slice(-8).reverse().map(e => `<div class="day"><b>${{e.date}}</b><ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
+  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [c.ticker, c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
+  const log = st.log.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b><ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
   document.getElementById('paper_'+key).innerHTML = `
-    <p class="note">Entrada: precio entre ${{cfg.entry_dev}} % y ${{cfg.max_dev}} % bajo yhat${{cfg.drop ? ` <b>y</b> caida del dia ≥ ${{cfg.drop}} %` : ''}}, con screening. Salida (en este orden): ${{cfg.hold}} dias → stop loss ${{cfg.sl}} % → precio ≥ yhat +${{cfg.exit_dev}} %. 1.000 $ en 3 slots, 1 $ por operacion. Cada decision usa solo los datos de ese dia y se ejecuta a la apertura siguiente.</p>
+    <p class="note">Entrada: precio entre ${{cfg.entry_dev}} % y ${{cfg.max_dev}} % bajo yhat${{cfg.drop ? ` <b>y</b> caida del dia ≥ ${{cfg.drop}} %` : ''}}, con screening. Salida (en este orden): ${{cfg.hold}} dias → stop loss ${{cfg.sl}} % → precio ≥ yhat +${{cfg.exit_dev}} %. 1.000 $ en una bolsa comun, hasta 3 posiciones, <b>acciones enteras</b> (objetivo por compra = efectivo / huecos libres, redondeado al entero mas cercano), 1 $ por operacion. Cada decision usa solo los datos de ese dia y se ejecuta a la apertura siguiente.</p>
     <div class="kpis"><div class="kpi"><div class="l">Valor cartera</div><div class="v ${{ret>0?'good':ret<0?'poor':''}}">${{usd(eq)}}</div><div class="n">${{pct(ret)}} desde el inicio</div></div>
+      <div class="kpi"><div class="l">Efectivo</div><div class="v">${{usd(st.cash)}}</div></div>
       <div class="kpi"><div class="l">Ultima sesion</div><div class="v" style="font-size:16px">${{st.last_date||'—'}}</div></div>
       <div class="kpi"><div class="l">Cerradas</div><div class="v">${{n}}</div><div class="n">acierto ${{n?Math.round(100*wins/n)+' %':'—'}}</div></div>
       <div class="kpi"><div class="l">P&amp;L cerrado</div><div class="v ${{pnlC>0?'good':pnlC<0?'poor':''}}">${{usd(pnlC)}}</div></div>
       <div class="kpi spark"><div class="l">Evolucion</div>${{spark(st.equity)}}</div></div>
-    <h3>Posiciones y ordenes</h3>${{table('pp_'+key, [['Slot',1],['Estado',0],['Ticker',0],['Señal',0],['Bajo yhat',1],['Caida dia',1],['Compra',0],['Precio compra',1],['Precio hoy',1],['P&L',1],['Dias',1],['Vender si ≥',1],['Stop loss',1]], rows)}}
-    <h3>Operaciones cerradas</h3>${{crow.length ? table('pc_'+key, [['Ticker',0],['Señal',0],['Bajo yhat',1],['Compra',0],['Precio',1],['Venta',0],['Precio',1],['Motivo',0],['Dias',1],['P&L',1],['P&L $',1]], crow) : '<p class="note">Todavia no hay operaciones cerradas.</p>'}}
-    <details><summary>Diario de decisiones (ultimos dias)</summary>${{log}}</details>`;
+    <h3>Posiciones y ordenes</h3>${{table('pp_'+key, [['Slot',1],['Estado',0],['Ticker',0],['Acciones',1],['Señal',0],['Bajo yhat',1],['Caida dia',1],['Compra',0],['Precio compra',1],['Invertido',1],['Precio hoy',1],['P&L',1],['P&L $',1],['Dias',1],['Vender si ≥',1],['Stop loss',1]], rows)}}
+    <h3>Operaciones cerradas</h3>${{crow.length ? table('pc_'+key, [['Ticker',0],['Acciones',1],['Señal',0],['Bajo yhat',1],['Compra',0],['Precio',1],['Venta',0],['Precio',1],['Motivo',0],['Dias',1],['P&L',1],['P&L $',1]], crow) : '<p class="note">Todavia no hay operaciones cerradas.</p>'}}
+    <details><summary>Diario de decisiones, dia a dia desde el inicio (${{st.log.length}} sesiones; la mas reciente arriba)</summary>${{log}}</details>`;
 }}
 // ---------- Montaje ----------
 const TABS = [

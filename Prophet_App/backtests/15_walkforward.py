@@ -45,4 +45,4 @@ if __name__ == "__main__":
         report.run(refit_every=a.refit)
     elif a.stage == "paper":
         from wf15 import paper_gen
-        paper_gen.run(start=a.start or "2026-10-01", refit_every=a.refit)
+        paper_gen.run(start=a.start or "2026-09-01", refit_every=a.refit)
