@@ -142,15 +142,32 @@ function presetBadge() {{
 const USER_KEY = 'prophet_user_presets_v1';
 let DBP = null, DB_PRESETS = {{}}, DB_STATE = 'local';
 function localPresets() {{ try {{ return JSON.parse(localStorage.getItem(USER_KEY) || '{{}}'); }} catch (e) {{ return {{}}; }} }}
-function userPresets() {{ return DBP ? DB_PRESETS : localPresets(); }}
+// Vista combinada: lo guardado en la base de datos manda; si un hueco esta vacio alli pero existe en este
+// navegador (presets guardados antes de activar la base de datos), se muestra el local y se migra a la base de datos.
+function userPresets() {{
+  const local = localPresets();
+  if (!DBP) return local;
+  const merged = {{...local, ...DB_PRESETS}};
+  return merged;
+}}
+let MIGRATED = false;
+function migrateLocalToDb() {{
+  if (!DBP || MIGRATED) return;
+  MIGRATED = true;
+  const local = localPresets();
+  Object.keys(local).forEach(n => {{
+    if (!DB_PRESETS[n]) DBP.doc('presets/' + n).set(local[n]).then(() => {{ DB_PRESETS[n] = local[n]; refreshUserButtons(); }}).catch(() => {{}});
+  }});
+}}
 function localSave(n, body) {{ const all = localPresets(); all[n] = body; try {{ localStorage.setItem(USER_KEY, JSON.stringify(all)); }} catch (e) {{}} }}
 function saveUserPreset(n) {{
   const body = {{S: {{...S}}, SC: {{...SC}}, drop: DROP_REQ, saved: D}};
   PRESET = 'Mi preset ' + n; presetBadge();
+  localSave(n, body);   // copia local siempre (respaldo si la base de datos no responde)
   if (DBP) {{
     DB_PRESETS[n] = body; refreshUserButtons(n, 'guardando…');
-    DBP.doc('presets/' + n).set(body).then(() => refreshUserButtons(n, 'guardado ✓')).catch(() => {{ localSave(n, body); DB_STATE = 'local'; refreshUserButtons(n, 'guardado solo en este navegador'); }});
-  }} else {{ localSave(n, body); refreshUserButtons(n, 'guardado en este navegador'); }}
+    DBP.doc('presets/' + n).set(body).then(() => refreshUserButtons(n, 'guardado ✓')).catch(() => {{ DB_STATE = 'local'; refreshUserButtons(n, 'guardado solo en este navegador'); }});
+  }} else {{ refreshUserButtons(n, 'guardado en este navegador'); }}
 }}
 async function initPresetsDb() {{
   try {{
@@ -160,6 +177,7 @@ async function initPresetsDb() {{
       DBP = db; DB_STATE = 'db'; DB_PRESETS = {{}};
       snap.docs.forEach(d => {{ if (d.exists) DB_PRESETS[d.id] = d.data(); }});
       refreshUserButtons();
+      if (!snap.metadata.fromCache) migrateLocalToDb();
     }}, err => {{ DBP = null; DB_STATE = 'local'; refreshUserButtons(); }});
   }} catch (e) {{}}
 }}
