@@ -88,7 +88,9 @@ details {{ margin-top:10px; }} summary {{ cursor:pointer; color:var(--muted); fo
 const DATA = JSON.parse(document.getElementById('data').textContent);
 const VERSIONS_HTML = {json.dumps(versions_html)};
 const DOCS_HTML = {json.dumps(DOCS_HTML)};
-const T = DATA.tickers, D = DATA.D;
+const T = DATA.tickers, D = DATA.D, NM = DATA.names || {{}};
+const lbl = tk => (tk && NM[tk]) ? `${{tk}} · ${{NM[tk]}}` : (tk || '—');
+const lblHtml = tk => (tk && NM[tk]) ? `<b>${{tk}}</b> <span class="muted">${{esc(NM[tk])}}</span>` : (tk || '—');
 const S = {{...DATA.strategy}};      // entry, exit, sl, hold, max_dev (en %)
 const SC = {{...DATA.screening}};    // min_r2, max_sigma, min_growth, max_growth, max_adr
 const fmt = (x, d=2) => (x==null||isNaN(x)) ? '—' : x.toLocaleString('es-ES', {{minimumFractionDigits:d, maximumFractionDigits:d}});
@@ -148,7 +150,7 @@ function renderSignals() {{
     if (cls === 'sell') nSell++;
     const drop = t.prev ? (t.close / t.prev - 1) * 100 : null;
     const thrB = t.yhat * (1 - S.entry/100), thrS = t.yhat * (1 + S.exit/100), slp = t.close * (1 - S.sl/100);
-    rows.push({{dev, cells: [tk, usd(t.close), usd(t.yhat), [pct(dev), dev<0?'poor':'good'], [pct(drop), drop!=null&&drop<=-5?'warn':''],
+    rows.push({{dev, cells: [lblHtml(tk), usd(t.close), usd(t.yhat), [pct(dev), dev<0?'poor':'good'], [pct(drop), drop!=null&&drop<=-5?'warn':''],
       `<span class="pill ${{cls}}">${{sig}}</span>`, usd(thrB), usd(thrS), usd(slp), pct((thrS/t.close-1)*100), pct((slp/t.close-1)*100), fmt(t.r2,2)]}});
   }}
   rows.sort((a,b) => a.dev - b.dev);
@@ -169,7 +171,7 @@ function renderScreening() {{
   for (const [tk, t] of Object.entries(T)) {{
     const r = screenReason(t, SC), ok = r === 'OK';
     if (ok) nPass++;
-    rows.push({{ok, r2: t.r2||0, cells: [tk, ok ? '<span class="pill buy">pasa</span>' : '<span class="pill neu">no</span>', fmt(t.r2,3), pct(t.sigma==null?null:t.sigma*100), pct(t.growth==null?null:t.growth*100), pct(t.adr==null?null:t.adr*100), r]}});
+    rows.push({{ok, r2: t.r2||0, cells: [lblHtml(tk), ok ? '<span class="pill buy">pasa</span>' : '<span class="pill neu">no</span>', fmt(t.r2,3), pct(t.sigma==null?null:t.sigma*100), pct(t.growth==null?null:t.growth*100), pct(t.adr==null?null:t.adr*100), r]}});
   }}
   rows.sort((a,b) => (b.ok - a.ok) || (b.r2 - a.r2));
   document.getElementById('scr_out').innerHTML = `<p class="note">✅ ${{nPass}} pasan · ❌ ${{rows.length-nPass}} no pasan · ${{rows.length}} en total. Las señales, graficas y proyecciones usan solo las que pasan.</p>` +
@@ -184,10 +186,12 @@ function fillTickerSelects() {{
   const sel = document.getElementById('chart_t');
   if (sel) {{
     const cur = sel.value;
-    sel.innerHTML = ok.map(o => `<option value="${{o}}">${{o}}</option>`).join('') +
-      all.filter(tk => !ok.includes(tk)).map(o => `<option value="${{o}}">${{o}} (no pasa screening)</option>`).join('');
+    sel.innerHTML = ok.map(o => `<option value="${{o}}">${{lbl(o)}}</option>`).join('') +
+      all.filter(tk => !ok.includes(tk)).map(o => `<option value="${{o}}">${{lbl(o)}} (no pasa screening)</option>`).join('');
     sel.value = all.includes(cur) ? cur : ok[0] || all[0];
   }}
+  const dl = document.getElementById('chart_list');
+  if (dl && !dl.children.length) dl.innerHTML = all.map(o => `<option value="${{lbl(o)}}"></option>`).join('');
   const sel2 = document.getElementById('proj_t2');
   if (sel2) {{
     const cur = sel2.value, opts = ['(todas)'].concat(ok);
@@ -220,7 +224,7 @@ function renderChart() {{
     traces.push({{x:[D], y:[t.close], mode:'markers+text', marker:{{size:11, color:c, line:{{width:2, color:'white'}}}}, text:[`Hoy ${{fmt(t.close)}} $ (${{pct(dev)}})`], textposition:'top center', textfont:{{size:10, color:c}}, name:`Precio hoy ${{pct(dev)}} yhat`}});
   }}
   Plotly.newPlot(box, traces, {{
-    title: {{text: `<b>${{tk}}</b> — R²=${{fmt(t.r2,2)}}  σ=${{fmt(t.sigma*100,1)}} %  g=${{fmt(t.growth*100,1)}} %/año  ADR=${{fmt(t.adr*100,1)}} %`, font:{{size:13, color:fg}}}},
+    title: {{text: `<b>${{lbl(tk)}}</b> — R²=${{fmt(t.r2,2)}}  σ=${{fmt(t.sigma*100,1)}} %  g=${{fmt(t.growth*100,1)}} %/año  ADR=${{fmt(t.adr*100,1)}} %${{passes(t, SC) ? '' : '  (no pasa el screening)'}}`, font:{{size:13, color:fg}}}},
     height: 480, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{{color:fg}},
     legend:{{orientation:'h', y:1.02, yanchor:'bottom', x:0, font:{{size:10}}, bgcolor:'rgba(0,0,0,0)'}},
     xaxis:{{gridcolor:grid, showspikes:true}}, yaxis:{{gridcolor:grid, tickprefix:'$'}}, margin:{{l:50, r:20, t:70, b:40}}, hovermode:'x unified',
@@ -248,7 +252,7 @@ function renderProj() {{
       if (dd > days) break;
       const y = t.yhat_s[i], dev = t.close ? (t.close/y-1)*100 : null;
       const [sig, cls] = dev==null ? ['—','neu'] : classify(dev, S);
-      rows.push({{dev: dev==null?0:dev, cells: [tk, d, dd, usd(y), usd(t.lo[i]), usd(t.hi[i]), usd(y*(1-S.entry/100)), usd(y*(1+S.exit/100)), usd(t.close), [pct(dev), dev<0?'poor':'good'], `<span class="pill ${{cls}}">${{sig}}</span>`]}});
+      rows.push({{dev: dev==null?0:dev, cells: [lblHtml(tk), d, dd, usd(y), usd(t.lo[i]), usd(t.hi[i]), usd(y*(1-S.entry/100)), usd(y*(1+S.exit/100)), usd(t.close), [pct(dev), dev<0?'poor':'good'], `<span class="pill ${{cls}}">${{sig}}</span>`]}});
     }}
   }}
   const sortBy = document.getElementById('proj_sort').value;
@@ -267,14 +271,14 @@ function renderPositions() {{
       const pnl = cpx ? (cpx/epx-1)*100 : null, days = Math.round((new Date(D)-new Date(p.fecha_entrada))/86400000);
       const slp = epx*(1-S.sl/100), tpp = yh ? yh*(1+S.exit/100) : null;
       const est = days >= S.hold ? '⏰ VENCER PRONTO' : (cpx && cpx <= slp) ? '🛑 SL ACTIVADO' : (tpp && cpx && cpx >= tpp) ? '✅ TP ALCANZADO' : '⏳ Activa';
-      return [p.ticker, p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], pnl==null?'—':fmt(p.capital*pnl/100)+' €', days, usd(slp), usd(tpp), est, esc(p.nota||'')];
+      return [lblHtml(p.ticker), p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], pnl==null?'—':fmt(p.capital*pnl/100)+' €', days, usd(slp), usd(tpp), est, esc(p.nota||'')];
     }});
     h += table('pos_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Prec. hoy $',1],['P&L %',1],['P&L €',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]], rows);
   }}
   h += '<h3>Mis salidas</h3>';
   if (!closed.length) h += '<p class="note">Sin ventas registradas.</p>';
   else h += table('cl_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Salida',0],['Prec. sal. $',1],['Dias',1],['Capital €',1],['P&L %',1],['P&L €',1],['Motivo',0]],
-    closed.map(p => [p.ticker, p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
+    closed.map(p => [lblHtml(p.ticker), p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
   h += '<p class="note">Las entradas y salidas se registran desde la app de Streamlit; aqui se muestran en solo lectura.</p>';
   document.getElementById('pos_out').innerHTML = h;
 }}
@@ -295,11 +299,11 @@ function renderPaper(key) {{
   const rows = st.slots.map((slot,i) => {{
     const p = slot.position, o = slot.pending;
     if (p) {{ const t = T[p.ticker]||{{}}, cpx = t.close, pnl = cpx ? (cpx/p.fill_px-1)*100 : null, yh = t.yhat;
-      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), p.ticker, p.shares, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(p.cash_in), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [usd(cpx ? (cpx-p.fill_px)*p.shares : null), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
-    if (o) return [i+1, 'compra pendiente (apertura siguiente)', o.ticker, '—', o.signal_date, pct(o.dev), pct(o.drop), '—','—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—','—'];
+      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), lblHtml(p.ticker), p.shares, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(p.cash_in), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [usd(cpx ? (cpx-p.fill_px)*p.shares : null), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
+    if (o) return [i+1, 'compra pendiente (apertura siguiente)', lblHtml(o.ticker), '—', o.signal_date, pct(o.dev), pct(o.drop), '—','—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—','—'];
     return [i+1, 'libre', '—','—','—','—','—','—','—','—','—','—','—','—','—','—'];
   }});
-  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [c.ticker, c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
+  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [lblHtml(c.ticker), c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
   const log = st.log.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b>${{e.oos ? ' <span class="pill buy">fuera de muestra</span>' : ''}}<ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
   const scr = (st.screening||[]).map(p => `desde ${{p.from}}: ${{esc(p.name)}}`).join(' · ');
   document.getElementById('paper_'+key).innerHTML = `
@@ -319,7 +323,7 @@ function renderPaper(key) {{
 const TABS = [
   ['hoy', '🚨 Señales de hoy', () => `<div class="controls">${{slider('s_entry','Entrada: caida bajo yhat',1,12,1,S.entry,' %')}}${{slider('s_exit','Salida: subida sobre yhat',3,30,1,S.exit,' %')}}${{slider('s_sl','Stop loss',3,20,1,S.sl,' %')}}${{slider('s_hold','Dias max en posicion',5,90,1,S.hold,' d')}}${{slider('s_maxdev','Cap caida maxima',5,30,1,S.max_dev,' %')}}</div><div id="sig_out"></div>`],
   ['scr', '🔍 Screening', () => `<div class="controls">${{slider('c_r2','R² minimo',0.5,0.99,0.01,SC.min_r2)}}${{slider('c_sig','Sigma max',2,15,1,SC.max_sigma,' %')}}${{slider('c_gmin','Crecimiento min',-50,30,1,SC.min_growth,' %')}}${{slider('c_gmax','Crecimiento max',5,120,1,SC.max_growth,' %')}}${{slider('c_adr','ADR max',1,10,1,SC.max_adr,' %')}}</div><div id="scr_out"></div>`],
-  ['chart', '📊 Charts', () => `<div class="controls"><div class="ctl"><label>Accion</label><select id="chart_t"></select></div></div><div class="chart" id="chart_box"></div><div id="chart_stats"></div>`],
+  ['chart', '📊 Charts', () => `<div class="controls"><div class="ctl"><label for="chart_q">Buscar (ticker o nombre)</label><input type="search" id="chart_q" list="chart_list" placeholder="p. ej. MRVL o Marvell" autocomplete="off" style="width:100%;font:13px var(--sans);color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:5px 8px"><datalist id="chart_list"></datalist></div><div class="ctl"><label for="chart_t">Accion</label><select id="chart_t"></select></div></div><div class="chart" id="chart_box"></div><div id="chart_stats"></div>`],
   ['proj', '📋 Proyecciones', () => `<div class="controls"><div class="ctl"><label>Acciones</label><select id="proj_t2"></select></div><div class="ctl"><label>Horizonte (dias)</label><select id="proj_days"><option>7</option><option>14</option><option>21</option><option selected>28</option><option>35</option><option>42</option></select></div><div class="ctl"><label>Ordenar por</label><select id="proj_sort"><option value="dev">Dev % (menor primero)</option><option value="fecha">Fecha</option><option value="ticker">Ticker</option></select></div></div><div id="proj_out"></div>`],
   ['pos', '💼 Mis posiciones', () => `<div id="pos_out"></div>`],
   ['bt15', '🧪 Claude · Backtest 15', () => `<div id="paper_bt15"></div>`],
@@ -341,6 +345,16 @@ function show(id) {{
 bindSliders([['s_entry','entry',' %'],['s_exit','exit',' %'],['s_sl','sl',' %'],['s_hold','hold',' d'],['s_maxdev','max_dev',' %']], S, () => {{ renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart(); }});
 bindSliders([['c_r2','min_r2',''],['c_sig','max_sigma',' %'],['c_gmin','min_growth',' %'],['c_gmax','max_growth',' %'],['c_adr','max_adr',' %']], SC, () => {{ renderScreening(); renderSignals(); renderProj(); }});
 document.getElementById('chart_t').onchange = renderChart;
+function findTicker(q) {{
+  q = (q || '').trim().toUpperCase(); if (!q) return null;
+  const all = Object.keys(T).filter(tk => T[tk].fit_d);
+  const tkPart = q.split('·')[0].trim();
+  return all.find(tk => tk === tkPart) || all.find(tk => tk.startsWith(tkPart)) ||
+         all.find(tk => (NM[tk]||'').toUpperCase().includes(q)) || null;
+}}
+const chartQ = document.getElementById('chart_q');
+chartQ.oninput = () => {{ const tk = findTicker(chartQ.value); if (tk) {{ document.getElementById('chart_t').value = tk; renderChart(); }} }};
+chartQ.onkeydown = e => {{ if (e.key === 'Enter') {{ e.preventDefault(); chartQ.oninput(); }} }};
 ['proj_t2','proj_days','proj_sort'].forEach(id => document.getElementById(id).onchange = renderProj);
 renderScreening(); renderSignals(); renderProj(); renderPositions(); renderPaper('bt15'); renderPaper('combo');
 const start = (location.hash||'').replace('#','');

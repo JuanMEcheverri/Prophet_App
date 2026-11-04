@@ -12,6 +12,7 @@ import warnings, logging, json, os, base64
 import requests
 from datetime import date, timedelta
 import paper   # cartera de papel (Prophet_App/paper.py)
+from names import NAMES, label as ticker_label
 
 warnings.filterwarnings("ignore")
 logging.getLogger("prophet").setLevel(logging.ERROR)
@@ -906,6 +907,7 @@ with tab_hoy:
         signal  = classify(dev, entry_dev, exit_dev, max_dev)
         rows.append({
             "Ticker":       t,
+            "Nombre":       NAMES.get(t, ""),
             "Precio Hoy":   px,
             "yhat":         round(yhat_v, 2),
             "Dev%":         round(dev, 2),
@@ -942,6 +944,7 @@ with tab_hoy:
         hide_index=True,
         column_config={
             "Ticker":     st.column_config.TextColumn("Ticker", width=70),
+            "Nombre":     st.column_config.TextColumn("Nombre", width=170),
             "Precio Hoy": st.column_config.NumberColumn("Precio $", format="$%.2f"),
             "yhat":       st.column_config.NumberColumn("yhat $", format="$%.2f"),
             "Dev%":       st.column_config.NumberColumn("Dev%", format="%.1f%%"),
@@ -975,6 +978,7 @@ with tab_screen:
         show_pass = st.checkbox("Solo las que pasan", value=False)
 
     log_show = screen_log.copy()
+    log_show.insert(1, "Nombre", log_show["Ticker"].map(NAMES).fillna(""))
     if show_pass:
         log_show = log_show[log_show["Pass"] == True]
 
@@ -988,6 +992,7 @@ with tab_screen:
         hide_index=True,
         column_config={
             "Ticker":       st.column_config.TextColumn("Ticker", width=70),
+            "Nombre":       st.column_config.TextColumn("Nombre", width=170),
             "Pass":         st.column_config.CheckboxColumn("Pasa"),
             "R2":           st.column_config.ProgressColumn("R²", min_value=0, max_value=1, format="%.3f"),
             "Sigma%":       st.column_config.NumberColumn("Sigma%", format="%.1f%%"),
@@ -1015,7 +1020,7 @@ with tab_chart:
     )
 
     if view_mode == "Una accion":
-        selected_t = st.selectbox("Selecciona accion", sorted(sdata.keys()))
+        selected_t = st.selectbox("Selecciona accion (escribe para buscar)", sorted(sdata.keys()), format_func=ticker_label)
 
     def render_chart(t):
         sd = sdata[t]
@@ -1277,6 +1282,7 @@ with tab_pos:
             pos_rows.append({
                 "#":           i,
                 "Ticker":      t,
+                "Nombre":      NAMES.get(t, ""),
                 "Entrada":     edate,
                 "Precio Ent.": epx,
                 "Prec. Ent. €": pos.get("precio_entrada_eur"),
@@ -1337,7 +1343,7 @@ with tab_pos:
         st.caption("Aun no has registrado ninguna venta.")
     else:
         df_cl = pd.DataFrame([{
-            "Ticker": p["ticker"], "Entrada": pd.Timestamp(p["fecha_entrada"]).date(),
+            "Ticker": p["ticker"], "Nombre": NAMES.get(p["ticker"], ""), "Entrada": pd.Timestamp(p["fecha_entrada"]).date(),
             "Prec. Ent. $": p["precio_entrada"], "Prec. Ent. €": p.get("precio_entrada_eur"),
             "Salida": pd.Timestamp(p["fecha_salida"]).date(),
             "Prec. Sal. $": p["precio_salida"], "Prec. Sal. €": p.get("precio_salida_eur"),
@@ -1448,7 +1454,7 @@ def render_paper(state, key):
             cpx = _all_px.get(p["ticker"], {}).get("px")
             yh = get_yhat_at(sdata[p["ticker"]]["fc_dict"], TODAY_TS) if p["ticker"] in sdata else None
             rows.append({"Slot": i + 1, "Estado": "abierta" + (f" · orden de venta ({o['reason']})" if o and o["side"] == "sell" else ""),
-                         "Ticker": p["ticker"], "Acciones": p["shares"], "Señal": p["signal_date"], "Dev señal%": p["signal_dev"],
+                         "Ticker": p["ticker"], "Nombre": NAMES.get(p["ticker"], ""), "Acciones": p["shares"], "Señal": p["signal_date"], "Dev señal%": p["signal_dev"],
                          "Caida señal%": p.get("signal_drop"), "Compra": p["fill_date"], "Precio compra": p["fill_px"],
                          "Invertido": p.get("cash_in"), "Precio hoy": cpx, "P&L%": ((cpx / p["fill_px"] - 1) * 100 if cpx else None),
                          "P&L $": ((cpx - p["fill_px"]) * p["shares"] if cpx else None),
@@ -1456,11 +1462,11 @@ def render_paper(state, key):
                          "Vender si >=": (yh[0] * (1 + cfg["exit_dev"] / 100) if yh else None),
                          "Stop loss": p["fill_px"] * (1 - cfg["sl"] / 100)})
         elif o:
-            rows.append({"Slot": i + 1, "Estado": "orden de compra pendiente", "Ticker": o["ticker"], "Acciones": None, "Señal": o["signal_date"],
+            rows.append({"Slot": i + 1, "Estado": "orden de compra pendiente", "Ticker": o["ticker"], "Nombre": NAMES.get(o["ticker"], ""), "Acciones": None, "Señal": o["signal_date"],
                          "Dev señal%": o["dev"], "Caida señal%": o.get("drop"), "Compra": None, "Precio compra": None, "Invertido": None,
                          "Precio hoy": _all_px.get(o["ticker"], {}).get("px"), "P&L%": None, "P&L $": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
         else:
-            rows.append({"Slot": i + 1, "Estado": "libre", "Ticker": None, "Acciones": None, "Señal": None, "Dev señal%": None,
+            rows.append({"Slot": i + 1, "Estado": "libre", "Ticker": None, "Nombre": None, "Acciones": None, "Señal": None, "Dev señal%": None,
                          "Caida señal%": None, "Compra": None, "Precio compra": None, "Invertido": None, "Precio hoy": None, "P&L%": None, "P&L $": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
     st.markdown("#### Posiciones abiertas y ordenes")
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, column_config={
@@ -1472,7 +1478,7 @@ def render_paper(state, key):
 
     st.markdown("#### Operaciones cerradas")
     if state["closed"]:
-        df_c = pd.DataFrame([{"Ticker": c["ticker"], "Acciones": c.get("shares"), "Señal": c["signal_date"], "Dev señal%": c["signal_dev"], "Caida señal%": c.get("signal_drop"),
+        df_c = pd.DataFrame([{"Ticker": c["ticker"], "Nombre": NAMES.get(c["ticker"], ""), "Acciones": c.get("shares"), "Señal": c["signal_date"], "Dev señal%": c["signal_dev"], "Caida señal%": c.get("signal_drop"),
                               "Compra": c["fill_date"], "Precio compra": c["fill_px"], "Venta": c["exit_date"], "Precio venta": c["exit_px"],
                               "Motivo": c["exit_reason"], "Dias": c["days"], "P&L%": c["pnl_pct"] * 100, "P&L $": c["pnl_cash"]}
                              for c in state["closed"]]).sort_values("Venta", ascending=False)

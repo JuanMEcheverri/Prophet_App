@@ -145,8 +145,9 @@ def main():
         versions_md = open(os.path.join(os.path.dirname(APP_DIR), "VERSIONES.md"), encoding="utf-8").read()
     except OSError:
         versions_md = ""
+    from names import NAMES
     page_data = dict(
-        D=D.date().isoformat(), version=app_version(), tickers=tick_data,
+        D=D.date().isoformat(), version=app_version(), tickers=tick_data, names=NAMES,
         screening=dict(min_r2=scr_raw["min_r2"], max_sigma=scr_raw["max_sigma_pct"], min_growth=scr_raw["min_growth_pct"],
                        max_growth=scr_raw["max_growth_pct"], max_adr=scr_raw["max_adr_pct"]),
         strategy=dict(entry=est["entry_dev_pct"], exit=est["exit_dev_pct"], sl=est["sl_pct_pct"], hold=est["max_hold"], max_dev=est["max_dev_pct"]),
