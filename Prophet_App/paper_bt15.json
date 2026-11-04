@@ -1,573 +1,640 @@
 {
   "strategy": "bt15",
   "last_date": "2026-11-04",
-  "cash": 127.4098139203142,
+  "cash": 200.78124670419032,
+  "screening": [
+    {
+      "from": "2026-09-01",
+      "name": "perfil previo a la ventana (R2>=0.68, sigma<=6%, crecimiento 2-35%, ADR<=4%)",
+      "min_r2": 0.68,
+      "max_sigma": 0.06,
+      "min_growth": 0.02,
+      "max_growth": 0.35,
+      "max_adr": 0.04
+    },
+    {
+      "from": "2026-11-05",
+      "name": "perfil revisado el 2026-11-04 (ADR<=4%, crecimiento<=20%, sin minimo; R2 y sigma desactivados)",
+      "min_r2": 0.5,
+      "max_sigma": 0.15,
+      "min_growth": -0.5,
+      "max_growth": 0.2,
+      "max_adr": 0.04
+    }
+  ],
+  "oos_from": "2026-11-05",
   "slots": [
     {
       "position": {
-        "ticker": "QCOM",
+        "ticker": "ZBRA",
         "signal_date": "2026-11-03",
-        "signal_close": 164.43,
-        "signal_dev": -5.13,
-        "signal_drop": 1.45,
+        "signal_close": 329.5,
+        "signal_dev": -4.41,
+        "signal_drop": -8.76,
         "fill_date": "2026-11-04",
-        "fill_px": 166.5883,
-        "shares": 2,
-        "cash_in": 334.18
+        "fill_px": 332.9114,
+        "shares": 1,
+        "cash_in": 333.91
       },
       "pending": null
     },
     {
       "position": {
-        "ticker": "BKNG",
-        "signal_date": "2026-10-28",
-        "signal_close": 147.94,
-        "signal_dev": -4.07,
-        "signal_drop": -1.47,
-        "fill_date": "2026-10-29",
-        "fill_px": 150.6753,
+        "ticker": "AMZN",
+        "signal_date": "2026-10-26",
+        "signal_close": 249.09,
+        "signal_dev": -4.48,
+        "signal_drop": 0.44,
+        "fill_date": "2026-10-27",
+        "fill_px": 250.5552,
         "shares": 1,
-        "cash_in": 151.68
+        "cash_in": 251.56
       },
       "pending": {
         "side": "sell",
-        "ticker": "BKNG",
+        "ticker": "AMZN",
         "reason": "yhat +7%",
         "decided": "2026-11-04"
       }
     },
     {
       "position": {
-        "ticker": "PAYX",
-        "signal_date": "2026-09-23",
-        "signal_close": 103.4366,
-        "signal_dev": -6.13,
-        "signal_drop": -8.77,
-        "fill_date": "2026-09-24",
-        "fill_px": 104.4787,
-        "shares": 3,
-        "cash_in": 314.44
+        "ticker": "DLTR",
+        "signal_date": "2026-09-09",
+        "signal_close": 118.39,
+        "signal_dev": -5.56,
+        "signal_drop": -4.55,
+        "fill_date": "2026-09-10",
+        "fill_px": 118.3792,
+        "shares": 2,
+        "cash_in": 237.76
       },
-      "pending": null
+      "pending": {
+        "side": "sell",
+        "ticker": "DLTR",
+        "reason": "yhat +7%",
+        "decided": "2026-11-04"
+      }
     }
   ],
   "closed": [
     {
-      "ticker": "CDNS",
-      "signal_date": "2026-09-02",
-      "signal_close": 306.67,
-      "signal_dev": -4.49,
-      "signal_drop": -2.03,
-      "fill_date": "2026-09-03",
-      "fill_px": 307.7938,
+      "ticker": "SNPS",
+      "signal_date": "2026-09-09",
+      "signal_close": 393.22,
+      "signal_dev": -8.01,
+      "signal_drop": 0.3,
+      "fill_date": "2026-09-10",
+      "fill_px": 396.4981,
       "shares": 1,
-      "cash_in": 308.79,
-      "exit_date": "2026-09-09",
-      "exit_px": 283.7081,
+      "cash_in": 397.5,
+      "exit_date": "2026-09-16",
+      "exit_px": 367.3163,
       "exit_reason": "stop loss 7%",
       "days": 6,
-      "pnl_pct": -0.07825,
-      "pnl_cash": -26.08,
-      "cash_out": 282.71
+      "pnl_pct": -0.0736,
+      "pnl_cash": -31.18,
+      "cash_out": 366.32
     },
     {
-      "ticker": "ADBE",
-      "signal_date": "2026-09-04",
-      "signal_close": 266.51,
-      "signal_dev": -5.81,
-      "signal_drop": -6.73,
-      "fill_date": "2026-09-08",
-      "fill_px": 262.9414,
+      "ticker": "AVGO",
+      "signal_date": "2026-09-16",
+      "signal_close": 338.8929,
+      "signal_dev": -5.0,
+      "signal_drop": 0.07,
+      "fill_date": "2026-09-17",
+      "fill_px": 346.163,
       "shares": 1,
-      "cash_in": 263.94,
-      "exit_date": "2026-09-23",
-      "exit_px": 239.3603,
+      "cash_in": 347.16,
+      "exit_date": "2026-10-26",
+      "exit_px": 324.3677,
       "exit_reason": "stop loss 7%",
-      "days": 15,
-      "pnl_pct": -0.08968,
-      "pnl_cash": -25.58,
-      "cash_out": 238.36
+      "days": 39,
+      "pnl_pct": -0.06296,
+      "pnl_cash": -23.79,
+      "cash_out": 323.37
     },
     {
-      "ticker": "BKNG",
-      "signal_date": "2026-09-09",
-      "signal_close": 173.0122,
-      "signal_dev": -6.54,
-      "signal_drop": -3.81,
-      "fill_date": "2026-09-10",
-      "fill_px": 171.7113,
-      "shares": 2,
-      "cash_in": 344.42,
-      "exit_date": "2026-09-24",
-      "exit_px": 156.9715,
-      "exit_reason": "stop loss 7%",
-      "days": 14,
-      "pnl_pct": -0.08584,
-      "pnl_cash": -31.48,
-      "cash_out": 312.94
-    },
-    {
-      "ticker": "NFLX",
-      "signal_date": "2026-10-01",
-      "signal_close": 67.85,
-      "signal_dev": -4.1,
-      "signal_drop": -2.49,
-      "fill_date": "2026-10-02",
-      "fill_px": 67.6338,
-      "shares": 4,
-      "cash_in": 271.54,
-      "exit_date": "2026-10-28",
-      "exit_px": 61.919,
-      "exit_reason": "stop loss 7%",
-      "days": 26,
-      "pnl_pct": -0.0845,
-      "pnl_cash": -24.86,
-      "cash_out": 246.68
-    },
-    {
-      "ticker": "PYPL",
+      "ticker": "MAR",
       "signal_date": "2026-09-01",
-      "signal_close": 52.2709,
-      "signal_dev": -6.33,
-      "signal_drop": -0.5,
+      "signal_close": 334.55,
+      "signal_dev": -4.23,
+      "signal_drop": -2.11,
       "fill_date": "2026-09-02",
-      "fill_px": 52.4667,
-      "shares": 6,
-      "cash_in": 315.8,
+      "fill_px": 336.208,
+      "shares": 1,
+      "cash_in": 337.21,
       "exit_date": "2026-11-03",
-      "exit_px": 58.7506,
+      "exit_px": 417.1913,
       "exit_reason": "hold 60d",
       "days": 62,
-      "pnl_pct": 0.11977,
-      "pnl_cash": 35.7,
-      "cash_out": 351.5
+      "pnl_pct": 0.24087,
+      "pnl_cash": 78.98,
+      "cash_out": 416.19
     }
   ],
   "equity": [
     {
       "date": "2026-09-01",
-      "equity": 1000.0
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-02",
-      "equity": 1011.41
+      "equity": 995.93,
+      "oos": false
     },
     {
       "date": "2026-09-03",
-      "equity": 1020.37
+      "equity": 998.86,
+      "oos": false
     },
     {
       "date": "2026-09-04",
-      "equity": 997.87
+      "equity": 999.3,
+      "oos": false
     },
     {
       "date": "2026-09-08",
-      "equity": 971.91
+      "equity": 991.58,
+      "oos": false
     },
     {
       "date": "2026-09-09",
-      "equity": 962.05
+      "equity": 994.31,
+      "oos": false
     },
     {
       "date": "2026-09-10",
-      "equity": 966.26
+      "equity": 991.1,
+      "oos": false
     },
     {
       "date": "2026-09-11",
-      "equity": 972.14
+      "equity": 995.95,
+      "oos": false
     },
     {
       "date": "2026-09-14",
-      "equity": 990.23
+      "equity": 987.77,
+      "oos": false
     },
     {
       "date": "2026-09-15",
-      "equity": 973.01
+      "equity": 958.06,
+      "oos": false
     },
     {
       "date": "2026-09-16",
-      "equity": 959.31
+      "equity": 953.62,
+      "oos": false
     },
     {
       "date": "2026-09-17",
-      "equity": 961.1
+      "equity": 956.16,
+      "oos": false
     },
     {
       "date": "2026-09-18",
-      "equity": 948.93
+      "equity": 966.49,
+      "oos": false
     },
     {
       "date": "2026-09-21",
-      "equity": 952.03
+      "equity": 976.67,
+      "oos": false
     },
     {
       "date": "2026-09-22",
-      "equity": 933.78
+      "equity": 989.37,
+      "oos": false
     },
     {
       "date": "2026-09-23",
-      "equity": 914.97
+      "equity": 979.66,
+      "oos": false
     },
     {
       "date": "2026-09-24",
-      "equity": 903.91
+      "equity": 975.56,
+      "oos": false
     },
     {
       "date": "2026-09-25",
-      "equity": 917.9
+      "equity": 979.67,
+      "oos": false
     },
     {
       "date": "2026-09-28",
-      "equity": 907.19
+      "equity": 986.87,
+      "oos": false
     },
     {
       "date": "2026-09-29",
-      "equity": 904.88
+      "equity": 990.01,
+      "oos": false
     },
     {
       "date": "2026-09-30",
-      "equity": 894.32
+      "equity": 981.59,
+      "oos": false
     },
     {
       "date": "2026-10-01",
-      "equity": 904.45
+      "equity": 973.98,
+      "oos": false
     },
     {
       "date": "2026-10-02",
-      "equity": 893.95
+      "equity": 985.11,
+      "oos": false
     },
     {
       "date": "2026-10-05",
-      "equity": 907.86
+      "equity": 991.47,
+      "oos": false
     },
     {
       "date": "2026-10-06",
-      "equity": 917.51
+      "equity": 1016.16,
+      "oos": false
     },
     {
       "date": "2026-10-07",
-      "equity": 925.16
+      "equity": 1012.3,
+      "oos": false
     },
     {
       "date": "2026-10-08",
-      "equity": 941.7
+      "equity": 1005.15,
+      "oos": false
     },
     {
       "date": "2026-10-09",
-      "equity": 938.26
+      "equity": 1011.39,
+      "oos": false
     },
     {
       "date": "2026-10-12",
-      "equity": 944.58
+      "equity": 1005.94,
+      "oos": false
     },
     {
       "date": "2026-10-13",
-      "equity": 949.48
+      "equity": 1008.06,
+      "oos": false
     },
     {
       "date": "2026-10-14",
-      "equity": 955.79
+      "equity": 1008.28,
+      "oos": false
     },
     {
       "date": "2026-10-15",
-      "equity": 977.47
+      "equity": 1025.55,
+      "oos": false
     },
     {
       "date": "2026-10-16",
-      "equity": 968.92
+      "equity": 1011.85,
+      "oos": false
     },
     {
       "date": "2026-10-19",
-      "equity": 962.44
+      "equity": 1018.28,
+      "oos": false
     },
     {
       "date": "2026-10-20",
-      "equity": 967.14
+      "equity": 1028.29,
+      "oos": false
     },
     {
       "date": "2026-10-21",
-      "equity": 952.54
+      "equity": 1039.45,
+      "oos": false
     },
     {
       "date": "2026-10-22",
-      "equity": 981.33
+      "equity": 1028.81,
+      "oos": false
     },
     {
       "date": "2026-10-23",
-      "equity": 971.15
+      "equity": 1009.7,
+      "oos": false
     },
     {
       "date": "2026-10-26",
-      "equity": 947.72
+      "equity": 1014.65,
+      "oos": false
     },
     {
       "date": "2026-10-27",
-      "equity": 929.48
+      "equity": 1009.13,
+      "oos": false
     },
     {
       "date": "2026-10-28",
-      "equity": 925.69
+      "equity": 1021.86,
+      "oos": false
     },
     {
       "date": "2026-10-29",
-      "equity": 930.32
+      "equity": 1026.0,
+      "oos": false
     },
     {
       "date": "2026-10-30",
-      "equity": 936.63
+      "equity": 1025.89,
+      "oos": false
     },
     {
       "date": "2026-11-02",
-      "equity": 962.98
+      "equity": 1057.63,
+      "oos": false
     },
     {
       "date": "2026-11-03",
-      "equity": 964.21
+      "equity": 1053.52,
+      "oos": false
     },
     {
       "date": "2026-11-04",
-      "equity": 1000.89
+      "equity": 1093.25,
+      "oos": false
     }
   ],
   "log": [
     {
       "date": "2026-09-01",
       "events": [
-        "slot 1: orden de COMPRA PYPL (-6.3% bajo yhat, caida del dia -0.5%; cierre 52.27 $) para la apertura siguiente"
-      ]
+        "slot 1: orden de COMPRA MAR (-4.2% bajo yhat, caida del dia -2.1%; cierre 334.55 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-02",
       "events": [
-        "slot 1: COMPRA 6 x PYPL a 52.47 = 315.80 $ (señal 2026-09-01, -6.3% bajo yhat); efectivo 684.20 $",
-        "slot 2: orden de COMPRA CDNS (-4.5% bajo yhat, caida del dia -2.0%; cierre 306.67 $) para la apertura siguiente"
-      ]
+        "slot 1: COMPRA 1 x MAR a 336.21 = 337.21 $ (señal 2026-09-01, -4.2% bajo yhat); efectivo 662.79 $",
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-03",
       "events": [
-        "slot 2: COMPRA 1 x CDNS a 307.79 = 308.79 $ (señal 2026-09-02, -4.5% bajo yhat); efectivo 375.41 $",
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-04",
       "events": [
-        "slot 3: orden de COMPRA ADBE (-5.8% bajo yhat, caida del dia -6.7%; cierre 266.51 $) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-08",
       "events": [
-        "slot 3: COMPRA 1 x ADBE a 262.94 = 263.94 $ (señal 2026-09-04, -5.8% bajo yhat); efectivo 111.46 $",
-        "slot 2: orden de VENTA CDNS (stop loss 7%) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-09",
       "events": [
-        "slot 2: VENTA 1 x CDNS a 283.71 por stop loss 7% (-7.8%, -26.08 $, 6 d); efectivo 394.17 $",
-        "slot 2: orden de COMPRA BKNG (-6.5% bajo yhat, caida del dia -3.8%; cierre 173.01 $) para la apertura siguiente"
-      ]
+        "slot 2: orden de COMPRA SNPS (-8.0% bajo yhat, caida del dia +0.3%; cierre 393.22 $) para la apertura siguiente",
+        "slot 3: orden de COMPRA DLTR (-5.6% bajo yhat, caida del dia -4.6%; cierre 118.39 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-10",
       "events": [
-        "slot 2: COMPRA 2 x BKNG a 171.71 = 344.42 $ (señal 2026-09-09, -6.5% bajo yhat); efectivo 49.75 $"
-      ]
+        "slot 2: COMPRA 1 x SNPS a 396.50 = 397.50 $ (señal 2026-09-09, -8.0% bajo yhat); efectivo 265.29 $",
+        "slot 3: COMPRA 2 x DLTR a 118.38 = 237.76 $ (señal 2026-09-09, -5.6% bajo yhat); efectivo 27.54 $"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-11",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-14",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-15",
-      "events": []
+      "events": [
+        "slot 2: orden de VENTA SNPS (stop loss 7%) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-16",
-      "events": []
+      "events": [
+        "slot 2: VENTA 1 x SNPS a 367.32 por stop loss 7% (-7.4%, -31.18 $, 6 d); efectivo 393.85 $",
+        "slot 2: orden de COMPRA AVGO (-5.0% bajo yhat, caida del dia +0.1%; cierre 338.89 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-17",
-      "events": []
+      "events": [
+        "slot 2: COMPRA 1 x AVGO a 346.16 = 347.16 $ (señal 2026-09-16, -5.0% bajo yhat); efectivo 46.69 $"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-18",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-21",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-22",
-      "events": [
-        "slot 3: orden de VENTA ADBE (stop loss 7%) para la apertura siguiente"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-23",
-      "events": [
-        "slot 3: VENTA 1 x ADBE a 239.36 por stop loss 7% (-9.0%, -25.58 $, 15 d); efectivo 288.11 $",
-        "slot 2: orden de VENTA BKNG (stop loss 7%) para la apertura siguiente",
-        "slot 3: orden de COMPRA PAYX (-6.1% bajo yhat, caida del dia -8.8%; cierre 103.44 $) para la apertura siguiente"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-24",
-      "events": [
-        "slot 2: VENTA 2 x BKNG a 156.97 por stop loss 7% (-8.6%, -31.48 $, 14 d); efectivo 601.05 $",
-        "slot 3: COMPRA 3 x PAYX a 104.48 = 314.44 $ (señal 2026-09-23, -6.1% bajo yhat); efectivo 286.62 $",
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-25",
-      "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-28",
-      "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-29",
-      "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-09-30",
-      "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-01",
-      "events": [
-        "slot 2: orden de COMPRA NFLX (-4.1% bajo yhat, caida del dia -2.5%; cierre 67.85 $) para la apertura siguiente"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-02",
-      "events": [
-        "slot 2: COMPRA 4 x NFLX a 67.63 = 271.54 $ (señal 2026-10-01, -4.1% bajo yhat); efectivo 15.08 $"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-05",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-06",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-07",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-08",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-09",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-12",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-13",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-14",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-15",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-16",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-19",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-20",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-21",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-22",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-23",
-      "events": []
+      "events": [
+        "slot 2: orden de VENTA AVGO (stop loss 7%) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-26",
-      "events": []
+      "events": [
+        "slot 2: VENTA 1 x AVGO a 324.37 por stop loss 7% (-6.3%, -23.79 $, 39 d); efectivo 370.06 $",
+        "slot 2: orden de COMPRA AMZN (-4.5% bajo yhat, caida del dia +0.4%; cierre 249.09 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-27",
       "events": [
-        "slot 2: orden de VENTA NFLX (stop loss 7%) para la apertura siguiente"
-      ]
+        "slot 2: COMPRA 1 x AMZN a 250.56 = 251.56 $ (señal 2026-10-26, -4.5% bajo yhat); efectivo 118.50 $"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-28",
-      "events": [
-        "slot 2: VENTA 4 x NFLX a 61.92 por stop loss 7% (-8.4%, -24.86 $, 26 d); efectivo 261.76 $",
-        "slot 2: orden de COMPRA BKNG (-4.1% bajo yhat, caida del dia -1.5%; cierre 147.94 $) para la apertura siguiente"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-29",
-      "events": [
-        "slot 2: COMPRA 1 x BKNG a 150.68 = 151.68 $ (señal 2026-10-28, -4.1% bajo yhat); efectivo 110.08 $"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-10-30",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-11-02",
       "events": [
-        "slot 1: orden de VENTA PYPL (hold 60d) para la apertura siguiente"
-      ]
+        "slot 1: orden de VENTA MAR (hold 60d) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-11-03",
       "events": [
-        "slot 1: VENTA 6 x PYPL a 58.75 por hold 60d (+12.0%, +35.70 $, 62 d); efectivo 461.59 $",
-        "slot 1: orden de COMPRA QCOM (-5.1% bajo yhat, caida del dia +1.4%; cierre 164.43 $) para la apertura siguiente"
-      ]
+        "slot 1: VENTA 1 x MAR a 417.19 por hold 60d (+24.1%, +78.98 $, 62 d); efectivo 534.69 $",
+        "slot 1: orden de COMPRA ZBRA (-4.4% bajo yhat, caida del dia -8.8%; cierre 329.50 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-11-04",
       "events": [
-        "slot 1: COMPRA 2 x QCOM a 166.59 = 334.18 $ (señal 2026-11-03, -5.1% bajo yhat); efectivo 127.41 $",
-        "slot 2: orden de VENTA BKNG (yhat +7%) para la apertura siguiente"
-      ]
+        "slot 1: COMPRA 1 x ZBRA a 332.91 = 333.91 $ (señal 2026-11-03, -4.4% bajo yhat); efectivo 200.78 $",
+        "slot 2: orden de VENTA AMZN (yhat +7%) para la apertura siguiente",
+        "slot 3: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
+      ],
+      "oos": false
     }
   ]
 }

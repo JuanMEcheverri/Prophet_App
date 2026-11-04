@@ -28,7 +28,9 @@ def build_day_data(wide, cal, bank, meta, D):
             open=(None if op is None or pd.isna(op) else float(op)), close=float(close),
             prev_close=(float(prev.iloc[-1]) if len(prev) else None),
             yhat=(float(row_b[t]) if t in row_b.index else None),
-            screen=bool(m is not None and C.passes_screen(m["r2"], m["sigma"], m["growth"], m["adr"])),
+            # las metricas del ajuste de D; el perfil de screening lo decide paper.step (congelado por fecha)
+            metrics=(None if m is None else dict(r2=float(m["r2"]), sigma=float(m["sigma"]), growth=float(m["growth"]), adr=float(m["adr"]))),
+            screen=False,
         )
     return out
 

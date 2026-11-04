@@ -1,309 +1,308 @@
 {
   "strategy": "combo",
   "last_date": "2026-11-04",
-  "cash": 3.208564161035838,
+  "cash": 1.1122979774475539,
+  "screening": [
+    {
+      "from": "2026-09-01",
+      "name": "perfil previo a la ventana (R2>=0.68, sigma<=6%, crecimiento 2-35%, ADR<=4%)",
+      "min_r2": 0.68,
+      "max_sigma": 0.06,
+      "min_growth": 0.02,
+      "max_growth": 0.35,
+      "max_adr": 0.04
+    },
+    {
+      "from": "2026-11-05",
+      "name": "perfil revisado el 2026-11-04 (ADR<=4%, crecimiento<=20%, sin minimo; R2 y sigma desactivados)",
+      "min_r2": 0.5,
+      "max_sigma": 0.15,
+      "min_growth": -0.5,
+      "max_growth": 0.2,
+      "max_adr": 0.04
+    }
+  ],
+  "oos_from": "2026-11-05",
   "slots": [
     {
       "position": {
-        "ticker": "PAYX",
-        "signal_date": "2026-09-23",
-        "signal_close": 103.4366,
-        "signal_dev": -6.13,
-        "signal_drop": -8.77,
-        "fill_date": "2026-09-24",
-        "fill_px": 104.4787,
+        "ticker": "DLTR",
+        "signal_date": "2026-09-15",
+        "signal_close": 112.79,
+        "signal_dev": -4.77,
+        "signal_drop": -5.35,
+        "fill_date": "2026-09-16",
+        "fill_px": 113.9269,
         "shares": 3,
-        "cash_in": 314.44
+        "cash_in": 342.78
       },
-      "pending": null
+      "pending": {
+        "side": "sell",
+        "ticker": "DLTR",
+        "reason": "yhat +7%",
+        "decided": "2026-11-04"
+      }
     },
     {
       "position": {
-        "ticker": "TMUS",
-        "signal_date": "2026-10-09",
-        "signal_close": 148.58,
-        "signal_dev": -9.01,
-        "signal_drop": -13.27,
-        "fill_date": "2026-10-12",
-        "fill_px": 149.6748,
+        "ticker": "ABNB",
+        "signal_date": "2026-09-23",
+        "signal_close": 149.58,
+        "signal_dev": -6.39,
+        "signal_drop": -7.56,
+        "fill_date": "2026-09-24",
+        "fill_px": 150.7753,
         "shares": 2,
-        "cash_in": 300.35
+        "cash_in": 302.55
       },
       "pending": null
     },
     {
       "position": {
-        "ticker": "GOOG",
-        "signal_date": "2026-10-29",
-        "signal_close": 282.32,
-        "signal_dev": -7.95,
-        "signal_drop": -12.29,
-        "fill_date": "2026-10-30",
-        "fill_px": 279.8298,
-        "shares": 1,
-        "cash_in": 280.83
+        "ticker": "ODFL",
+        "signal_date": "2026-10-28",
+        "signal_close": 173.32,
+        "signal_dev": -5.66,
+        "signal_drop": -7.33,
+        "fill_date": "2026-10-29",
+        "fill_px": 176.2781,
+        "shares": 2,
+        "cash_in": 353.56
       },
       "pending": null
     }
   ],
-  "closed": [
-    {
-      "ticker": "NFLX",
-      "signal_date": "2026-09-04",
-      "signal_close": 78.25,
-      "signal_dev": -4.03,
-      "signal_drop": -5.35,
-      "fill_date": "2026-09-08",
-      "fill_px": 77.5888,
-      "shares": 5,
-      "cash_in": 388.94,
-      "exit_date": "2026-09-21",
-      "exit_px": 71.7841,
-      "exit_reason": "stop loss 7%",
-      "days": 13,
-      "pnl_pct": -0.07481,
-      "pnl_cash": -31.02,
-      "cash_out": 357.92
-    },
-    {
-      "ticker": "ADBE",
-      "signal_date": "2026-09-04",
-      "signal_close": 266.51,
-      "signal_dev": -5.81,
-      "signal_drop": -6.73,
-      "fill_date": "2026-09-08",
-      "fill_px": 262.9414,
-      "shares": 1,
-      "cash_in": 263.94,
-      "exit_date": "2026-09-23",
-      "exit_px": 239.3603,
-      "exit_reason": "stop loss 7%",
-      "days": 15,
-      "pnl_pct": -0.08968,
-      "pnl_cash": -25.58,
-      "cash_out": 238.36
-    },
-    {
-      "ticker": "BKNG",
-      "signal_date": "2026-09-08",
-      "signal_close": 179.8656,
-      "signal_dev": -5.04,
-      "signal_drop": -6.72,
-      "fill_date": "2026-09-09",
-      "fill_px": 176.0331,
-      "shares": 1,
-      "cash_in": 177.03,
-      "exit_date": "2026-09-24",
-      "exit_px": 156.9715,
-      "exit_reason": "stop loss 7%",
-      "days": 15,
-      "pnl_pct": -0.10828,
-      "pnl_cash": -21.06,
-      "cash_out": 155.97
-    },
-    {
-      "ticker": "CEG",
-      "signal_date": "2026-10-14",
-      "signal_close": 279.54,
-      "signal_dev": -5.77,
-      "signal_drop": -5.49,
-      "fill_date": "2026-10-15",
-      "fill_px": 275.3826,
-      "shares": 1,
-      "cash_in": 276.38,
-      "exit_date": "2026-10-23",
-      "exit_px": 253.873,
-      "exit_reason": "stop loss 7%",
-      "days": 8,
-      "pnl_pct": -0.07811,
-      "pnl_cash": -23.51,
-      "cash_out": 252.87
-    }
-  ],
+  "closed": [],
   "equity": [
     {
       "date": "2026-09-01",
-      "equity": 1000.0
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-02",
-      "equity": 1000.0
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-03",
-      "equity": 1000.0
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-04",
-      "equity": 1000.0
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-08",
-      "equity": 988.22
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-09",
-      "equity": 978.1
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-10",
-      "equity": 972.87
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-11",
-      "equity": 983.23
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-14",
-      "equity": 1012.63
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-15",
-      "equity": 988.66
+      "equity": 1000.0,
+      "oos": false
     },
     {
       "date": "2026-09-16",
-      "equity": 974.03
+      "equity": 994.42,
+      "oos": false
     },
     {
       "date": "2026-09-17",
-      "equity": 969.82
+      "equity": 1000.42,
+      "oos": false
     },
     {
       "date": "2026-09-18",
-      "equity": 945.85
+      "equity": 993.1,
+      "oos": false
     },
     {
       "date": "2026-09-21",
-      "equity": 946.04
+      "equity": 994.21,
+      "oos": false
     },
     {
       "date": "2026-09-22",
-      "equity": 930.47
+      "equity": 1002.34,
+      "oos": false
     },
     {
       "date": "2026-09-23",
-      "equity": 922.26
+      "equity": 996.7,
+      "oos": false
     },
     {
       "date": "2026-09-24",
-      "equity": 909.6
+      "equity": 997.95,
+      "oos": false
     },
     {
       "date": "2026-09-25",
-      "equity": 908.94
+      "equity": 1011.82,
+      "oos": false
     },
     {
       "date": "2026-09-28",
-      "equity": 902.79
+      "equity": 1014.89,
+      "oos": false
     },
     {
       "date": "2026-09-29",
-      "equity": 902.82
+      "equity": 1008.49,
+      "oos": false
     },
     {
       "date": "2026-09-30",
-      "equity": 900.42
+      "equity": 1018.03,
+      "oos": false
     },
     {
       "date": "2026-10-01",
-      "equity": 907.37
+      "equity": 1018.9,
+      "oos": false
     },
     {
       "date": "2026-10-02",
-      "equity": 901.73
+      "equity": 1016.01,
+      "oos": false
     },
     {
       "date": "2026-10-05",
-      "equity": 904.22
+      "equity": 1022.38,
+      "oos": false
     },
     {
       "date": "2026-10-06",
-      "equity": 907.9
+      "equity": 1024.02,
+      "oos": false
     },
     {
       "date": "2026-10-07",
-      "equity": 909.48
+      "equity": 1024.83,
+      "oos": false
     },
     {
       "date": "2026-10-08",
-      "equity": 918.12
+      "equity": 1036.99,
+      "oos": false
     },
     {
       "date": "2026-10-09",
-      "equity": 916.69
+      "equity": 1042.33,
+      "oos": false
     },
     {
       "date": "2026-10-12",
-      "equity": 922.04
+      "equity": 1034.5,
+      "oos": false
     },
     {
       "date": "2026-10-13",
-      "equity": 930.54
+      "equity": 1034.67,
+      "oos": false
     },
     {
       "date": "2026-10-14",
-      "equity": 944.96
+      "equity": 1054.07,
+      "oos": false
     },
     {
       "date": "2026-10-15",
-      "equity": 949.21
+      "equity": 1076.46,
+      "oos": false
     },
     {
       "date": "2026-10-16",
-      "equity": 952.25
+      "equity": 1074.61,
+      "oos": false
     },
     {
       "date": "2026-10-19",
-      "equity": 935.44
+      "equity": 1075.04,
+      "oos": false
     },
     {
       "date": "2026-10-20",
-      "equity": 939.96
+      "equity": 1083.43,
+      "oos": false
     },
     {
       "date": "2026-10-21",
-      "equity": 943.5
+      "equity": 1078.49,
+      "oos": false
     },
     {
       "date": "2026-10-22",
-      "equity": 956.79
+      "equity": 1099.31,
+      "oos": false
     },
     {
       "date": "2026-10-23",
-      "equity": 927.67
+      "equity": 1074.62,
+      "oos": false
     },
     {
       "date": "2026-10-26",
-      "equity": 925.0
+      "equity": 1071.53,
+      "oos": false
     },
     {
       "date": "2026-10-27",
-      "equity": 905.48
+      "equity": 1063.26,
+      "oos": false
     },
     {
       "date": "2026-10-28",
-      "equity": 904.83
+      "equity": 1068.3,
+      "oos": false
     },
     {
       "date": "2026-10-29",
-      "equity": 906.73
+      "equity": 1074.8,
+      "oos": false
     },
     {
       "date": "2026-10-30",
-      "equity": 930.67
+      "equity": 1076.62,
+      "oos": false
     },
     {
       "date": "2026-11-02",
-      "equity": 948.02
+      "equity": 1111.59,
+      "oos": false
     },
     {
       "date": "2026-11-03",
-      "equity": 937.25
+      "equity": 1092.6,
+      "oos": false
     },
     {
       "date": "2026-11-04",
-      "equity": 964.98
+      "equity": 1153.63,
+      "oos": false
     }
   ],
   "log": [
@@ -311,262 +310,319 @@
       "date": "2026-09-01",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-02",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-03",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-04",
       "events": [
-        "slot 1: orden de COMPRA ADBE (-5.8% bajo yhat, caida del dia -6.7%; cierre 266.51 $) para la apertura siguiente",
-        "slot 2: orden de COMPRA NFLX (-4.0% bajo yhat, caida del dia -5.3%; cierre 78.25 $) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-08",
       "events": [
-        "slot 1: COMPRA 1 x ADBE a 262.94 = 263.94 $ (señal 2026-09-04, -5.8% bajo yhat); efectivo 736.06 $",
-        "slot 2: COMPRA 5 x NFLX a 77.59 = 388.94 $ (señal 2026-09-04, -4.0% bajo yhat); efectivo 347.11 $",
-        "slot 3: orden de COMPRA BKNG (-5.0% bajo yhat, caida del dia -6.7%; cierre 179.87 $) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-09",
       "events": [
-        "slot 3: COMPRA 1 x BKNG a 176.03 = 177.03 $ (señal 2026-09-08, -5.0% bajo yhat); efectivo 170.08 $"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-10",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-11",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-14",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-15",
-      "events": []
+      "events": [
+        "slot 1: orden de COMPRA DLTR (-4.8% bajo yhat, caida del dia -5.4%; cierre 112.79 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-16",
-      "events": []
+      "events": [
+        "slot 1: COMPRA 3 x DLTR a 113.93 = 342.78 $ (señal 2026-09-15, -4.8% bajo yhat); efectivo 657.22 $",
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-17",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-18",
       "events": [
-        "slot 2: orden de VENTA NFLX (stop loss 7%) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-21",
       "events": [
-        "slot 2: VENTA 5 x NFLX a 71.78 por stop loss 7% (-7.5%, -31.02 $, 13 d); efectivo 528.00 $",
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-22",
       "events": [
-        "slot 1: orden de VENTA ADBE (stop loss 7%) para la apertura siguiente",
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-23",
       "events": [
-        "slot 1: VENTA 1 x ADBE a 239.36 por stop loss 7% (-9.0%, -25.58 $, 15 d); efectivo 766.36 $",
-        "slot 3: orden de VENTA BKNG (stop loss 7%) para la apertura siguiente",
-        "slot 1: orden de COMPRA PAYX (-6.1% bajo yhat, caida del dia -8.8%; cierre 103.44 $) para la apertura siguiente"
-      ]
+        "slot 2: orden de COMPRA ABNB (-6.4% bajo yhat, caida del dia -7.6%; cierre 149.58 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-24",
       "events": [
-        "slot 3: VENTA 1 x BKNG a 156.97 por stop loss 7% (-10.8%, -21.06 $, 15 d); efectivo 922.33 $",
-        "slot 1: COMPRA 3 x PAYX a 104.48 = 314.44 $ (señal 2026-09-23, -6.1% bajo yhat); efectivo 607.90 $",
+        "slot 2: COMPRA 2 x ABNB a 150.78 = 302.55 $ (señal 2026-09-23, -6.4% bajo yhat); efectivo 354.67 $",
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-25",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-28",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-29",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-09-30",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-01",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-02",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-05",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-06",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-07",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-08",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-09",
       "events": [
-        "slot 2: orden de COMPRA TMUS (-9.0% bajo yhat, caida del dia -13.3%; cierre 148.58 $) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-12",
       "events": [
-        "slot 2: COMPRA 2 x TMUS a 149.67 = 300.35 $ (señal 2026-10-09, -9.0% bajo yhat); efectivo 307.55 $",
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-13",
       "events": [
         "sin candidatos que cumplan el criterio"
-      ]
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-14",
       "events": [
-        "slot 3: orden de COMPRA CEG (-5.8% bajo yhat, caida del dia -5.5%; cierre 279.54 $) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-15",
       "events": [
-        "slot 3: COMPRA 1 x CEG a 275.38 = 276.38 $ (señal 2026-10-14, -5.8% bajo yhat); efectivo 31.17 $"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-16",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-19",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-20",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-21",
-      "events": []
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-22",
       "events": [
-        "slot 3: orden de VENTA CEG (stop loss 7%) para la apertura siguiente"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-23",
       "events": [
-        "slot 3: VENTA 1 x CEG a 253.87 por stop loss 7% (-7.8%, -23.51 $, 8 d); efectivo 284.04 $",
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-26",
       "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-27",
       "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+        "sin candidatos que cumplan el criterio"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-28",
       "events": [
-        "sin candidatos que cumplan el criterio (o sin efectivo para una accion entera)"
-      ]
+        "slot 3: orden de COMPRA ODFL (-5.7% bajo yhat, caida del dia -7.3%; cierre 173.32 $) para la apertura siguiente"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-29",
       "events": [
-        "slot 3: orden de COMPRA GOOG (-7.9% bajo yhat, caida del dia -12.3%; cierre 282.32 $) para la apertura siguiente"
-      ]
+        "slot 3: COMPRA 2 x ODFL a 176.28 = 353.56 $ (señal 2026-10-28, -5.7% bajo yhat); efectivo 1.11 $"
+      ],
+      "oos": false
     },
     {
       "date": "2026-10-30",
-      "events": [
-        "slot 3: COMPRA 1 x GOOG a 279.83 = 280.83 $ (señal 2026-10-29, -8.0% bajo yhat); efectivo 3.21 $"
-      ]
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-11-02",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-11-03",
-      "events": []
+      "events": [],
+      "oos": false
     },
     {
       "date": "2026-11-04",
-      "events": []
+      "events": [
+        "slot 1: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
+      ],
+      "oos": false
     }
   ]
 }

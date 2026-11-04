@@ -1397,12 +1397,17 @@ _all_px = {**cur_prices, **(get_prices(_extra, _buster=px_buster) if _extra else
 _paper_msgs = []
 if _last_bar and _last_bar < TODAY:
     _day = {}
+    _met = screen_log.set_index("Ticker") if "Ticker" in screen_log.columns else pd.DataFrame()
     for _t, _info in _all_px.items():
         if _info["date"] != _last_bar:
             continue
         _yh = get_yhat_at(sdata[_t]["fc_dict"], pd.Timestamp(_last_bar)) if _t in sdata else None
+        _m = None
+        if _t in _met.index and pd.notna(_met.loc[_t].get("R2")):
+            _r = _met.loc[_t]
+            _m = dict(r2=float(_r["R2"]), sigma=float(_r["Sigma%"]) / 100, growth=float(_r["Growth%/yr"]) / 100, adr=float(_r["ADR%"]) / 100)
         _day[_t] = dict(open=_info.get("open"), close=_info["px"], prev_close=_info.get("prev_px"),
-                        yhat=(_yh[0] if _yh else None), screen=(_t in sdata))
+                        yhat=(_yh[0] if _yh else None), screen=(_t in sdata), metrics=_m)
     for _k, _state in st.session_state.paper.items():
         if _state["last_date"] is None or date.fromisoformat(_state["last_date"]) < _last_bar:
             paper.step(_state, _last_bar, _day)
@@ -1421,7 +1426,9 @@ def render_paper(state, key):
         f"Capital {paper.CAPITAL:.0f} $ en una bolsa comun, hasta {paper.SLOTS} posiciones, ACCIONES ENTERAS "
         f"(objetivo por compra = efectivo / huecos libres, redondeado al entero mas cercano), {paper.FEE:.0f} $ por operacion. "
         "Cada decision usa solo los datos de ese dia y se ejecuta a la apertura del dia siguiente; "
-        "la app avanza un dia cada vez que se abre con una sesion nueva completa."
+        "la app avanza un dia cada vez que se abre con una sesion nueva completa. "
+        "Screening congelado por fechas: " + " · ".join(f"desde {p['from']}: {p['name']}" for p in state.get("screening", []))
+        + f". Fuera de muestra desde {state.get('oos_from', '—')} (antes, el perfil de screening se eligio con datos que incluian la ventana)."
     )
     if _paper_msgs:
         st.info(" · ".join(_paper_msgs))

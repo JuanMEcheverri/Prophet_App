@@ -178,14 +178,22 @@ function renderScreening() {{
   fillTickerSelects();
 }}
 function fillTickerSelects() {{
-  const ok = Object.keys(T).filter(tk => passes(T[tk], SC)).sort();
-  ['chart_t', 'proj_t', 'proj_t2'].forEach(id => {{
-    const sel = document.getElementById(id); if (!sel) return;
+  const all = Object.keys(T).filter(tk => T[tk].fit_d).sort();
+  const ok = all.filter(tk => passes(T[tk], SC));
+  // Charts: todas las acciones (las que no pasan el screening, marcadas); Proyecciones: solo las que pasan
+  const sel = document.getElementById('chart_t');
+  if (sel) {{
     const cur = sel.value;
-    const opts = (id === 'proj_t2' ? ['(todas)'] : []).concat(ok);
-    sel.innerHTML = opts.map(o => `<option value="${{o}}">${{o}}</option>`).join('');
-    sel.value = opts.includes(cur) ? cur : opts[0];
-  }});
+    sel.innerHTML = ok.map(o => `<option value="${{o}}">${{o}}</option>`).join('') +
+      all.filter(tk => !ok.includes(tk)).map(o => `<option value="${{o}}">${{o}} (no pasa screening)</option>`).join('');
+    sel.value = all.includes(cur) ? cur : ok[0] || all[0];
+  }}
+  const sel2 = document.getElementById('proj_t2');
+  if (sel2) {{
+    const cur = sel2.value, opts = ['(todas)'].concat(ok);
+    sel2.innerHTML = opts.map(o => `<option value="${{o}}">${{o}}</option>`).join('');
+    sel2.value = opts.includes(cur) ? cur : opts[0];
+  }}
 }}
 // ---------- Charts ----------
 function renderChart() {{
@@ -291,9 +299,11 @@ function renderPaper(key) {{
     return [i+1, 'libre', '—','—','—','—','—','—','—','—','—','—','—','—','—','—'];
   }});
   const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [c.ticker, c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
-  const log = st.log.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b><ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
+  const log = st.log.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b>${{e.oos ? ' <span class="pill buy">fuera de muestra</span>' : ''}}<ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
+  const scr = (st.screening||[]).map(p => `desde ${{p.from}}: ${{esc(p.name)}}`).join(' · ');
   document.getElementById('paper_'+key).innerHTML = `
     <p class="note">Entrada: precio entre ${{cfg.entry_dev}} % y ${{cfg.max_dev}} % bajo yhat${{cfg.drop ? ` <b>y</b> caida del dia ≥ ${{cfg.drop}} %` : ''}}, con screening. Salida (en este orden): ${{cfg.hold}} dias → stop loss ${{cfg.sl}} % → precio ≥ yhat +${{cfg.exit_dev}} %. 1.000 $ en una bolsa comun, hasta 3 posiciones, <b>acciones enteras</b> (objetivo por compra = efectivo / huecos libres, redondeado al entero mas cercano), 1 $ por operacion. Cada decision usa solo los datos de ese dia y se ejecuta a la apertura siguiente.</p>
+    <p class="note"><b>Screening congelado por fechas</b> (no cambia aunque muevas los sliders): ${{scr}}. <b>Fuera de muestra desde ${{st.oos_from||'—'}}</b>: antes de esa fecha el perfil de screening se habia elegido con datos que incluian la ventana simulada (hallazgo de la auditoria del 4-nov), por lo que sep-nov se regenero con el perfil previo a la ventana.</p>
     <div class="kpis"><div class="kpi"><div class="l">Valor cartera</div><div class="v ${{ret>0?'good':ret<0?'poor':''}}">${{usd(eq)}}</div><div class="n">${{pct(ret)}} desde el inicio</div></div>
       <div class="kpi"><div class="l">Efectivo</div><div class="v">${{usd(st.cash)}}</div></div>
       <div class="kpi"><div class="l">Ultima sesion</div><div class="v" style="font-size:16px">${{st.last_date||'—'}}</div></div>

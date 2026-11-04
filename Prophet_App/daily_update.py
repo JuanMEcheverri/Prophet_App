@@ -103,7 +103,8 @@ def main():
         o = opn[t].get(D)
         prev = cl.iloc[:-1]
         day_data[t] = dict(open=(None if o is None or pd.isna(o) else float(o)), close=float(cl.iloc[-1]),
-                           prev_close=(float(prev.iloc[-1]) if len(prev) else None), yhat=yhat, screen=bool(screen))
+                           prev_close=(float(prev.iloc[-1]) if len(prev) else None), yhat=yhat, screen=bool(screen),
+                           metrics=(None if r2 is None else dict(r2=float(r2), sigma=float(sigma), growth=float(growth), adr=float(adr))))
         td = dict(close=round(float(cl.iloc[-1]), 4), prev=(round(float(prev.iloc[-1]), 4) if len(prev) else None), yhat=yhat,
                   r2=(None if r2 is None else round(r2, 4)), sigma=(None if sigma is None else round(sigma, 5)),
                   growth=(None if growth is None else round(growth, 4)), adr=(None if adr is None else round(adr, 5)),

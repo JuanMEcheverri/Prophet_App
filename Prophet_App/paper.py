@@ -30,22 +30,55 @@ SLOTS = 3
 FEE = 1.0
 SLIP = 0.0005
 
+# Screening CONGELADO por fechas dentro del estado, para que un cambio posterior de umbrales no
+# reescriba la elegibilidad del pasado (hallazgo de la auditoria del 2026-11-04): hasta el 4-nov se
+# aplica el perfil que estaba en vigor antes de la ventana simulada; desde el 5-nov, el perfil
+# revisado (elegido con datos hasta el 4-nov). Lo verdaderamente fuera de muestra empieza el 5-nov.
+SCREEN_PROFILES = [
+    {"from": "2026-09-01", "name": "perfil previo a la ventana (R2>=0.68, sigma<=6%, crecimiento 2-35%, ADR<=4%)",
+     "min_r2": 0.68, "max_sigma": 0.06, "min_growth": 0.02, "max_growth": 0.35, "max_adr": 0.04},
+    {"from": "2026-11-05", "name": "perfil revisado el 2026-11-04 (ADR<=4%, crecimiento<=20%, sin minimo; R2 y sigma desactivados)",
+     "min_r2": 0.50, "max_sigma": 0.15, "min_growth": -0.50, "max_growth": 0.20, "max_adr": 0.04},
+]
+OOS_FROM = "2026-11-05"
+
 
 def new_state(strategy):
     return {
         "strategy": strategy, "last_date": None, "cash": CAPITAL,
+        "screening": [dict(p) for p in SCREEN_PROFILES], "oos_from": OOS_FROM,
         "slots": [{"position": None, "pending": None} for _ in range(SLOTS)],
         "closed": [], "equity": [], "log": [],
     }
 
 
 def _migrate(state):
-    """Estados antiguos (efectivo por slot, acciones fraccionadas) -> bolsa comun."""
+    """Estados antiguos (efectivo por slot, acciones fraccionadas, sin screening congelado)."""
     if "cash" not in state:
         state["cash"] = sum(s.pop("cash", 0.0) for s in state["slots"])
     for s in state["slots"]:
         s.pop("cash", None)
+    state.setdefault("screening", [dict(p) for p in SCREEN_PROFILES])
+    state.setdefault("oos_from", OOS_FROM)
     return state
+
+
+def screen_profile(state, date):
+    """Perfil de screening vigente en `date` (el ultimo cuyo 'from' <= date)."""
+    date_s = date if isinstance(date, str) else date.isoformat()
+    prof = state["screening"][0]
+    for p in state["screening"]:
+        if p["from"] <= date_s:
+            prof = p
+    return prof
+
+
+def passes_screen(m, prof):
+    """m: dict con r2, sigma, growth, adr (fracciones). None -> no pasa."""
+    if m is None or any(m.get(k) is None for k in ("r2", "sigma", "growth", "adr")):
+        return False
+    return (m["r2"] >= prof["min_r2"] and m["sigma"] <= prof["max_sigma"]
+            and prof["min_growth"] <= m["growth"] <= prof["max_growth"] and m["adr"] <= prof["max_adr"])
 
 
 def _d(s):
@@ -121,8 +154,9 @@ def step(state, date, day_data):
             dd = day_data.get(slot["position"]["ticker"])
             px = dd["close"] if dd and dd.get("close") is not None else slot["position"]["fill_px"]
             eq += slot["position"]["shares"] * px
-    state["equity"].append({"date": date_s, "equity": round(eq, 2)})
+    state["equity"].append({"date": date_s, "equity": round(eq, 2), "oos": date_s >= state["oos_from"]})
     # 3) decisiones con el cierre de hoy -> ordenes para la apertura de mañana
+    prof = screen_profile(state, date_s)
     held = set()
     for i, slot in enumerate(state["slots"]):
         p = slot["position"]
@@ -148,7 +182,11 @@ def step(state, date, day_data):
     if free:
         cands = []
         for t, dd in day_data.items():
-            if t in held or not dd.get("screen") or dd.get("close") is None or not dd.get("yhat"):
+            if t in held or dd.get("close") is None or not dd.get("yhat"):
+                continue
+            # elegibilidad con el perfil congelado para esta fecha (si vienen metricas); si no, la bandera externa
+            eligible = passes_screen(dd.get("metrics"), prof) if dd.get("metrics") is not None else bool(dd.get("screen"))
+            if not eligible:
                 continue
             dev = (dd["close"] / dd["yhat"] - 1) * 100
             if not (-cfg["max_dev"] < dev <= -cfg["entry_dev"]):
@@ -175,7 +213,7 @@ def step(state, date, day_data):
             log.append(f"slot {i+1}: orden de COMPRA {t} ({dev:+.1f}% bajo yhat" + (f", caida del dia {drop:+.1f}%" if drop is not None else "") + f"; cierre {close:.2f} $) para la apertura siguiente")
         if not cands:
             log.append("sin candidatos que cumplan el criterio" + (" (o sin efectivo para una accion entera)" if state["cash"] < 300 else ""))
-    state["log"].append({"date": date_s, "events": log})
+    state["log"].append({"date": date_s, "events": log, "oos": date_s >= state["oos_from"]})
     state["log"] = state["log"][-400:]
     state["last_date"] = date_s
     return state
