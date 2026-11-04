@@ -1,161 +1,338 @@
-"""Genera paper_page.html: pagina publica (artifact) con las dos carteras de papel y las señales del dia."""
-import html, json
-from datetime import date
+"""Genera paper_page.html: replica publica de la app (artifact) con todas las pestañas.
+
+Los datos (ajustes Prophet, bandas, proyecciones, metricas de screening, posiciones, carteras de
+papel) se precomputan en daily_update.py y se embeben en la pagina; los sliders de estrategia y
+screening recalculan en el navegador sobre esos datos. Plotly (cdnjs) dibuja las graficas.
+"""
+import html, json, re
 
 
-def _fmt_pct(x, d=1):
-    return "—" if x is None else f"{x*100:+.{d}f} %".replace(".", ",")
-
-
-def _fmt_usd(x):
-    return "—" if x is None else f"{x:,.2f} $".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
-def _sparkline(points, w=320, h=70, base=1000.0):
-    if len(points) < 2:
-        return ""
-    ys = [p["equity"] for p in points]
-    lo, hi = min(ys + [base]), max(ys + [base])
-    if hi == lo:
-        hi = lo + 1
-    def X(i): return 4 + i * (w - 8) / (len(ys) - 1)
-    def Y(v): return 4 + (hi - v) * (h - 8) / (hi - lo)
-    path = " ".join(f"{'M' if i == 0 else 'L'}{X(i):.1f},{Y(v):.1f}" for i, v in enumerate(ys))
-    area = path + f" L{X(len(ys)-1):.1f},{h-4} L4,{h-4} Z"
-    color = "var(--ok)" if ys[-1] >= base else "var(--bad)"
-    return (f'<svg viewBox="0 0 {w} {h}" width="100%" height="{h}" role="img" aria-label="Evolucion de la cartera">'
-            f'<path d="{area}" fill="{color}" opacity="0.12"/>'
-            f'<line x1="4" x2="{w-4}" y1="{Y(base):.1f}" y2="{Y(base):.1f}" stroke="var(--muted)" stroke-dasharray="3 3" stroke-width="1"/>'
-            f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2"/>'
-            f'<circle cx="{X(len(ys)-1):.1f}" cy="{Y(ys[-1]):.1f}" r="3" fill="{color}"/></svg>')
-
-
-def _table(headers, rows, cls=""):
+def _versions_html(md):
+    if not md:
+        return "<p class='muted'>Sin VERSIONES.md</p>"
+    rows = [l for l in md.splitlines() if l.startswith("|") and not l.startswith("|---")]
     if not rows:
-        return '<p class="muted">Nada que mostrar todavia.</p>'
-    th = "".join(f"<th{' class=\"num\"' if h[1] else ''}>{html.escape(h[0])}</th>" for h in headers)
-    trs = []
-    for r in rows:
-        tds = []
-        for (hname, num), v in zip(headers, r):
-            cls_td = []
-            if num: cls_td.append("num")
-            if isinstance(v, tuple):   # (texto, clase)
-                v, extra = v; cls_td.append(extra)
-            tds.append(f"<td class=\"{' '.join(cls_td)}\">{html.escape(str(v))}</td>")
-        trs.append("<tr>" + "".join(tds) + "</tr>")
-    return f'<div class="tbl {cls}"><table><thead><tr>{th}</tr></thead><tbody>{"".join(trs)}</tbody></table></div>'
+        return "<pre>" + html.escape(md) + "</pre>"
+    head = [c.strip() for c in rows[0].strip("|").split("|")]
+    body = []
+    for r in rows[1:]:
+        cells = [c.strip() for c in r.strip("|").split("|")]
+        cells = [re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(c)).replace("`", "") for c in cells]
+        body.append("<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
+    return ("<div class='tbl'><table><thead><tr>" + "".join(f"<th>{html.escape(h)}</th>" for h in head) +
+            "</tr></thead><tbody>" + "".join(body) + "</tbody></table></div>")
 
 
-def _pnl_cls(x):
-    return "" if x is None else ("good" if x > 0 else "poor" if x < 0 else "")
+DOCS_HTML = """
+<h3>1. El modelo</h3><p>Prophet es un modelo de regresion aditivo (o multiplicativo): descompone el precio en tendencia g(t) + estacionalidad s(t) + error. El <b>yhat</b> que ves es g(t)+s(t): la "linea justa" que el modelo cree que deberia tener el precio ese dia, sin el ruido diario.</p>
+<h3>2. Tendencia: lineal a trozos con changepoints</h3><p>Prophet coloca ~25 puntos de quiebre potenciales en el primer 80 % de los datos donde la pendiente puede cambiar. Cuanto puede doblarse se controla con <code>changepoint_prior_scale</code> (0,03 aqui): alto = tendencia pegada al precio (sobreajuste), bajo = tendencia rigida.</p>
+<h3>3. Estacionalidad: series de Fourier</h3><p>La estacionalidad anual se modela como suma de senos y cosenos. En modo <b>multiplicative</b> el efecto estacional es un porcentaje de la tendencia, coherente con precios que se mueven en %.</p>
+<h3>4. La banda sombreada</h3><p>Prophet simula futuros con cambios de tendencia parecidos a los del pasado y dibuja los percentiles (IC 95 %). Es solo visual: las señales dependen solo de la desviacion del precio respecto a yhat.</p>
+<h3>5. Metricas de esta app (no son de Prophet)</h3><p><b>R²</b>: correlacion al cuadrado entre precio y yhat en el entrenamiento. <b>Sigma</b>: desviacion estandar de (precio − yhat)/yhat. <b>Crecimiento</b>: tasa anual implicita en yhat. <b>ADR</b>: (maximo − minimo)/cierre medio de 90 dias. La estrategia es de reversion a la media: compra cuando el precio cae bajo yhat y vende cuando vuelve.</p>
+<h3>6. Lo que dice el backtest 15 (2021-2026)</h3><p>Ni la config antigua (3 / TP 20 / SL 15 / 15 d) ni la actual (4 / yhat +7 / SL 7 / 60 d) baten a QQQ de forma clara en cartera con 1.000 $: la ventaja por operacion es de decimas y las comisiones la consumen. Las carteras de papel de las pestañas 🧪 sirven para comprobarlo en tiempo real, sin trampas.</p>
+"""
 
 
-def build(states, day_data, D, prices_now, cfgs, version, screening):
-    """states: {key: state}; day_data: {ticker: {...}} de la sesion D; prices_now: {ticker: close}."""
-    import paper
-    sections = []
-    for key, state in states.items():
-        cfg = cfgs[key]
-        s = paper.summary(state)
-        rows = []
-        for i, slot in enumerate(state["slots"]):
-            p, o = slot["position"], slot["pending"]
-            if p:
-                cpx = prices_now.get(p["ticker"])
-                pnl = (cpx / p["fill_px"] - 1) if cpx else None
-                yh = day_data.get(p["ticker"], {}).get("yhat")
-                rows.append([i + 1, "abierta" + (f" · venta pendiente ({o['reason']})" if o and o["side"] == "sell" else ""),
-                             p["ticker"], p["signal_date"], f"{p['signal_dev']:+.1f} %",
-                             (f"{p['signal_drop']:+.1f} %" if p.get("signal_drop") is not None else "—"),
-                             p["fill_date"], _fmt_usd(p["fill_px"]), _fmt_usd(cpx), (_fmt_pct(pnl), _pnl_cls(pnl)),
-                             (date.fromisoformat(D) - date.fromisoformat(p["fill_date"])).days,
-                             _fmt_usd(yh * (1 + cfg["exit_dev"] / 100) if yh else None), _fmt_usd(p["fill_px"] * (1 - cfg["sl"] / 100))])
-            elif o:
-                rows.append([i + 1, "compra pendiente (apertura siguiente)", o["ticker"], o["signal_date"], f"{o['dev']:+.1f} %",
-                             (f"{o['drop']:+.1f} %" if o.get("drop") is not None else "—"), "—", "—", _fmt_usd(prices_now.get(o["ticker"])), "—", "—", "—", "—"])
-            else:
-                rows.append([i + 1, f"libre · {_fmt_usd(slot['cash'])}", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"])
-        open_tbl = _table([("Slot", 1), ("Estado", 0), ("Ticker", 0), ("Señal", 0), ("Bajo yhat", 1), ("Caida dia", 1), ("Compra", 0),
-                           ("Precio compra", 1), ("Precio hoy", 1), ("P&L", 1), ("Dias", 1), ("Vender si ≥", 1), ("Stop loss", 1)], rows)
-        closed_rows = []
-        for c in sorted(state["closed"], key=lambda c: c["exit_date"], reverse=True):
-            closed_rows.append([c["ticker"], c["signal_date"], f"{c['signal_dev']:+.1f} %", c["fill_date"], _fmt_usd(c["fill_px"]),
-                                c["exit_date"], _fmt_usd(c["exit_px"]), c["exit_reason"], c["days"],
-                                (_fmt_pct(c["pnl_pct"]), _pnl_cls(c["pnl_pct"])), (_fmt_usd(c["pnl_cash"]), _pnl_cls(c["pnl_cash"]))])
-        closed_tbl = _table([("Ticker", 0), ("Señal", 0), ("Bajo yhat", 1), ("Compra", 0), ("Precio", 1), ("Venta", 0), ("Precio", 1),
-                             ("Motivo", 0), ("Dias", 1), ("P&L", 1), ("P&L $", 1)], closed_rows)
-        log_html = "".join(
-            f"<div class=\"day\"><b>{html.escape(e['date'])}</b><ul>" + "".join(f"<li>{html.escape(x)}</li>" for x in e["events"]) + "</ul></div>"
-            for e in reversed(state["log"][-8:]))
-        entry_txt = (f"precio entre {cfg['entry_dev']:.0f} % y {cfg['max_dev']:.0f} % por debajo de yhat"
-                     + (f" <b>y</b> caida del dia ≥ {cfg['drop']:.0f} %" if cfg["drop"] else ""))
-        sections.append(f"""
-  <section class="strat">
-    <h2>{html.escape(cfg['name'])}</h2>
-    <p class="rule">Entrada: {entry_txt}. Salida (en este orden): {cfg['hold']} dias → stop loss {cfg['sl']:.0f} % → precio ≥ yhat +{cfg['exit_dev']:.0f} %. {paper.CAPITAL:.0f} $ en {paper.SLOTS} slots, {paper.FEE:.0f} $ por operacion.</p>
-    <div class="kpis">
-      <div class="kpi"><div class="l">Valor cartera</div><div class="v {_pnl_cls(s['ret'])}">{_fmt_usd(s['equity'])}</div><div class="n">{_fmt_pct(s['ret'])} desde el inicio</div></div>
-      <div class="kpi"><div class="l">Operaciones cerradas</div><div class="v">{s['n_closed']}</div><div class="n">acierto {('—' if s['win_rate'] is None else f"{s['win_rate']*100:.0f} %")}</div></div>
-      <div class="kpi"><div class="l">P&amp;L cerrado</div><div class="v {_pnl_cls(s['pnl_closed'])}">{_fmt_usd(s['pnl_closed'])}</div><div class="n">comisiones pagadas {_fmt_usd(s['fees'])}</div></div>
-      <div class="kpi spark"><div class="l">Evolucion</div>{_sparkline(state['equity'])}</div>
-    </div>
-    <h3>Posiciones y ordenes</h3>{open_tbl}
-    <h3>Operaciones cerradas</h3>{closed_tbl}
-    <details><summary>Diario de decisiones (ultimos dias)</summary>{log_html}</details>
-  </section>""")
-
-    # señales del dia: candidatos por debajo de yhat, ordenados por desviacion
-    cands = []
-    for t, dd in day_data.items():
-        if dd.get("yhat") and dd.get("close"):
-            dev = (dd["close"] / dd["yhat"] - 1) * 100
-            drop = ((dd["close"] / dd["prev_close"] - 1) * 100) if dd.get("prev_close") else None
-            cands.append((dev, t, drop, dd["close"], dd["yhat"], dd.get("screen")))
-    cands.sort()
-    sig_rows = []
-    for dev, t, drop, close, yh, scr in cands[:25]:
-        tag = "🟢 compra" if (scr and -15 < dev <= -4) else ("⚠️ muy bajo" if dev <= -15 else "")
-        sig_rows.append([t, _fmt_usd(close), _fmt_usd(yh), (f"{dev:+.1f} %", _pnl_cls(dev)), (f"{drop:+.1f} %" if drop is not None else "—"),
-                         "sí" if scr else "no", tag])
-    sig_tbl = _table([("Ticker", 0), ("Cierre", 1), ("yhat", 1), ("Bajo/sobre yhat", 1), ("Caida del dia", 1), ("Pasa screening", 0), ("Señal", 0)], sig_rows)
-    n_pass = sum(1 for dd in day_data.values() if dd.get("screen"))
-
-    return f"""<title>Prophet Trader · Cartera de papel</title>
+def build(data):
+    """data: dict con D, version, tickers{...}, screening, strategy, capital, positions, paper{bt15,combo}, cfgs, versions_md."""
+    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    D = data["D"]
+    versions_html = _versions_html(data.get("versions_md", ""))
+    return f"""<title>Prophet Trader</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
 <style>
-:root {{ --bg:#f3f4f1; --panel:#fff; --fg:#1d2229; --muted:#5d6673; --line:#d9dcd6; --accent:#b86a00; --ok:#2c7a4b; --bad:#b23a3a;
+:root {{ --bg:#f3f4f1; --panel:#fff; --fg:#1d2229; --muted:#5d6673; --line:#d9dcd6; --accent:#b86a00; --accent-soft:#fff1dc; --ok:#2c7a4b; --ok-soft:#e2f1e7; --bad:#b23a3a; --bad-soft:#f7e2e2; --blue:#2f7fb8;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; }}
-@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --bg:#15181c; --panel:#1d2127; --fg:#e6e8e3; --muted:#9aa3ad; --line:#2c3139; --accent:#f0a23a; --ok:#6fcf93; --bad:#ef8a8a; color-scheme:dark; }} }}
-:root[data-theme="dark"] {{ --bg:#15181c; --panel:#1d2127; --fg:#e6e8e3; --muted:#9aa3ad; --line:#2c3139; --accent:#f0a23a; --ok:#6fcf93; --bad:#ef8a8a; color-scheme:dark; }}
-body {{ background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:15px; line-height:1.5; padding-block:24px 48px;
+@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{ --bg:#15181c; --panel:#1d2127; --fg:#e6e8e3; --muted:#9aa3ad; --line:#2c3139; --accent:#f0a23a; --accent-soft:#3a2a12; --ok:#6fcf93; --ok-soft:#173422; --bad:#ef8a8a; --bad-soft:#3d1c1c; --blue:#4facde; color-scheme:dark; }} }}
+:root[data-theme="dark"] {{ --bg:#15181c; --panel:#1d2127; --fg:#e6e8e3; --muted:#9aa3ad; --line:#2c3139; --accent:#f0a23a; --accent-soft:#3a2a12; --ok:#6fcf93; --ok-soft:#173422; --bad:#ef8a8a; --bad-soft:#3d1c1c; --blue:#4facde; color-scheme:dark; }}
+body {{ background:var(--bg); color:var(--fg); font-family:var(--sans); font-size:14px; line-height:1.45; padding-block:16px 48px;
   padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }}
-.wrap {{ max-width:960px; margin:0 auto; }}
-h1 {{ font-family:var(--mono); font-size:22px; font-weight:600; margin:0 0 4px; }}
-h2 {{ font-size:18px; margin:32px 0 4px; }} h3 {{ font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:20px 0 8px; }}
-.sub, .muted, .rule, .n {{ color:var(--muted); }} .sub {{ margin:0 0 18px; font-size:14px; }} .rule {{ font-size:14px; margin:0 0 12px; max-width:75ch; }}
-.kpis {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }}
-.kpi {{ background:var(--panel); border:1px solid var(--line); padding:12px 14px; min-width:0; }}
-.kpi .l {{ font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }}
-.kpi .v {{ font-family:var(--mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }} .kpi .n {{ font-size:12px; }}
-.kpi.spark {{ grid-column: span 2; }}
-.tbl {{ overflow-x:auto; background:var(--panel); border:1px solid var(--line); }}
-table {{ border-collapse:collapse; width:100%; font-size:13px; }} th, td {{ padding:7px 10px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap; }}
-th {{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }} td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }}
-tr:last-child td {{ border-bottom:0; }} .good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }}
-details {{ margin-top:12px; }} summary {{ cursor:pointer; color:var(--muted); font-size:14px; }} .day {{ font-size:13px; margin:8px 0; }} .day ul {{ margin:2px 0 0 18px; padding:0; }}
-.note {{ font-size:13px; color:var(--muted); max-width:70ch; }} .foot {{ margin-top:28px; font-family:var(--mono); font-size:12px; color:var(--muted); }}
-.strat {{ background:transparent; }}
+.wrap {{ max-width:1100px; margin:0 auto; }}
+h1 {{ font-family:var(--mono); font-size:20px; font-weight:600; margin:0; }} .sub {{ color:var(--muted); font-size:13px; margin:2px 0 12px; }}
+h2 {{ font-size:17px; margin:18px 0 6px; }} h3 {{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:16px 0 6px; }}
+.muted, .n {{ color:var(--muted); }} .note {{ font-size:13px; color:var(--muted); max-width:75ch; margin:8px 0; }}
+.tabs {{ display:flex; flex-wrap:wrap; gap:4px; border-bottom:1px solid var(--line); position:sticky; top:env(safe-area-inset-top, 0px); background:var(--bg); z-index:5; padding:6px 0; }}
+.tab {{ font:600 13px var(--sans); color:var(--muted); background:transparent; border:0; border-bottom:3px solid transparent; padding:6px 10px; cursor:pointer; }}
+.tab[aria-selected="true"] {{ color:var(--fg); border-bottom-color:var(--blue); }} .tab:focus-visible {{ outline:2px solid var(--blue); outline-offset:2px; }}
+.panel {{ padding-top:8px; }}
+.kpis {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin:8px 0; }}
+.kpi {{ background:var(--panel); border:1px solid var(--line); padding:10px 12px; min-width:0; }}
+.kpi .l {{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }} .kpi .v {{ font-family:var(--mono); font-size:20px; font-weight:600; font-variant-numeric:tabular-nums; }} .kpi .n {{ font-size:12px; }}
+.kpi.spark {{ grid-column:span 2; }}
+.controls {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:8px 16px; background:var(--panel); border:1px solid var(--line); padding:10px 12px; margin:8px 0; }}
+.ctl label {{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); }} .ctl label b {{ color:var(--fg); font-family:var(--mono); }}
+.ctl input[type=range] {{ width:100%; accent-color:var(--blue); }} select, input[type=date] {{ font:13px var(--sans); color:var(--fg); background:var(--panel); border:1px solid var(--line); padding:5px 8px; }}
+.tbl {{ overflow-x:auto; background:var(--panel); border:1px solid var(--line); max-height:70vh; }}
+table {{ border-collapse:collapse; width:100%; font-size:13px; }} th, td {{ padding:6px 9px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap; }}
+th {{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); position:sticky; top:0; background:var(--panel); cursor:pointer; }}
+td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }} tr:last-child td {{ border-bottom:0; }}
+.good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }} .warn {{ color:var(--accent); font-weight:500; }}
+.pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }}
+.banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
+.chart {{ background:var(--panel); border:1px solid var(--line); min-height:420px; }}
+details {{ margin-top:10px; }} summary {{ cursor:pointer; color:var(--muted); font-size:13px; }} .day {{ font-size:13px; margin:8px 0; }} .day ul {{ margin:2px 0 0 18px; padding:0; }}
+.docs p {{ max-width:75ch; }} code {{ font-family:var(--mono); font-size:12px; }}
+.foot {{ margin-top:24px; font-family:var(--mono); font-size:12px; color:var(--muted); }}
 </style>
 <div class="wrap">
-  <h1>Prophet Trader · Cartera de papel</h1>
-  <p class="sub">Ultima sesion procesada: <b>{html.escape(D)}</b> · app v{html.escape(str(version))} · se actualiza cada dia laborable tras el cierre de EE.UU. Cada decision usa solo los datos de ese dia y se ejecuta a la apertura siguiente.</p>
-  {"".join(sections)}
-  <h2>Señales de la sesion {html.escape(D)}</h2>
-  <p class="rule">Las 25 acciones mas por debajo de su precio justo (yhat). Pasan el screening {n_pass} de {len(day_data)} (ADR ≤ {screening['max_adr_pct']} %, crecimiento {screening['min_growth_pct']}..{screening['max_growth_pct']} %/año).</p>
-  {sig_tbl}
-  <p class="note">Esto es una simulacion con 1.000 $ ficticios para comprobar en tiempo real, sin trampas, si las reglas funcionan. No es una recomendacion de compra. En el backtest de 5 años ninguna de las dos estrategias batio a QQQ de forma clara.</p>
-  <div class="foot">Fuente: Yahoo Finance (cierres ajustados), Prophet con ventana de 1 año. Repositorio: JuanMEcheverri/Prophet_App.</div>
+  <h1>📈 Prophet Trader</h1>
+  <p class="sub">Replica publica de la app · ultima sesion <b>{html.escape(D)}</b> · v{html.escape(str(data.get('version', '?')))} · se actualiza cada dia laborable tras el cierre de EE.UU. Ventana de entrenamiento 1 año, changepoint 0,03, multiplicative (fijos; el resto de controles recalcula aqui mismo).</p>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="panels"></div>
+  <div class="foot">Fuente: Yahoo Finance (cierres ajustados). Repositorio: JuanMEcheverri/Prophet_App. Simulacion sin dinero real; no es una recomendacion de inversion.</div>
 </div>
+<script id="data" type="application/json">{payload.replace("</", "<\\/")}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const VERSIONS_HTML = {json.dumps(versions_html)};
+const DOCS_HTML = {json.dumps(DOCS_HTML)};
+const T = DATA.tickers, D = DATA.D;
+const S = {{...DATA.strategy}};      // entry, exit, sl, hold, max_dev (en %)
+const SC = {{...DATA.screening}};    // min_r2, max_sigma, min_growth, max_growth, max_adr
+const fmt = (x, d=2) => (x==null||isNaN(x)) ? '—' : x.toLocaleString('es-ES', {{minimumFractionDigits:d, maximumFractionDigits:d}});
+const pct = (x, d=1) => (x==null||isNaN(x)) ? '—' : (x>0?'+':'') + fmt(x, d) + ' %';
+const usd = x => (x==null||isNaN(x)) ? '—' : fmt(x, 2) + ' $';
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]));
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function screenReason(t, sc) {{
+  const f = [];
+  if (t.r2 == null) return 'sin ajuste';
+  if (t.r2 < sc.min_r2) f.push(`R² ${{fmt(t.r2,2)}} < ${{sc.min_r2}}`);
+  if (t.sigma*100 > sc.max_sigma) f.push(`sigma ${{fmt(t.sigma*100,1)}} % > ${{sc.max_sigma}} %`);
+  if (t.growth*100 < sc.min_growth) f.push(`crecimiento ${{fmt(t.growth*100,0)}} % < ${{sc.min_growth}} %`);
+  if (t.growth*100 > sc.max_growth) f.push(`crecimiento ${{fmt(t.growth*100,0)}} % > ${{sc.max_growth}} %`);
+  if (t.adr*100 > sc.max_adr) f.push(`ADR ${{fmt(t.adr*100,1)}} % > ${{sc.max_adr}} %`);
+  return f.length ? f.join('; ') : 'OK';
+}}
+const passes = (t, sc) => screenReason(t, sc) === 'OK';
+function classify(dev, s) {{
+  if (dev <= -s.max_dev) return ['⚠️ MUY BAJO', 'low'];
+  if (dev <= -s.entry) return ['🟢 COMPRAR', 'buy'];
+  if (dev >= s.exit) return ['🔴 SOBRE COMPRADO', 'sell'];
+  return ['⚪ NEUTRAL', 'neu'];
+}}
+function slider(id, label, min, max, step, val, suffix='') {{
+  return `<div class="ctl"><label for="${{id}}">${{label}} <b id="${{id}}_v">${{val}}${{suffix}}</b></label><input type="range" id="${{id}}" min="${{min}}" max="${{max}}" step="${{step}}" value="${{val}}"></div>`;
+}}
+function table(id, headers, rows) {{
+  const th = headers.map(h => `<th class="${{h[1]?'num':''}}" data-k="${{h[2]||''}}">${{esc(h[0])}}</th>`).join('');
+  const body = rows.map(r => '<tr>' + r.map((c, i) => {{
+    let v = c, cls = headers[i][1] ? 'num' : '';
+    if (Array.isArray(c)) {{ v = c[0]; cls += ' ' + (c[1]||''); }}
+    return `<td class="${{cls}}">${{v}}</td>`;
+  }}).join('') + '</tr>').join('');
+  return `<div class="tbl" id="${{id}}"><table><thead><tr>${{th}}</tr></thead><tbody>${{body}}</tbody></table></div>`;
+}}
+function bindSliders(ids, obj, onchange) {{
+  ids.forEach(([id, key, suffix]) => {{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.oninput = () => {{ obj[key] = parseFloat(el.value); document.getElementById(id+'_v').textContent = el.value + (suffix||''); onchange(); }};
+  }});
+}}
+
+// ---------- Señales ----------
+function renderSignals() {{
+  const rows = [];
+  let nBuy = 0, nSell = 0, nAll = 0;
+  const buyList = [];
+  for (const [tk, t] of Object.entries(T)) {{
+    if (!passes(t, SC) || t.yhat == null || t.close == null) continue;
+    nAll++;
+    const dev = (t.close / t.yhat - 1) * 100;
+    const [sig, cls] = classify(dev, S);
+    if (cls === 'buy') {{ nBuy++; buyList.push(`<b>${{tk}}</b> ${{pct(dev)}}`); }}
+    if (cls === 'sell') nSell++;
+    const drop = t.prev ? (t.close / t.prev - 1) * 100 : null;
+    const thrB = t.yhat * (1 - S.entry/100), thrS = t.yhat * (1 + S.exit/100), slp = t.close * (1 - S.sl/100);
+    rows.push({{dev, cells: [tk, usd(t.close), usd(t.yhat), [pct(dev), dev<0?'poor':'good'], [pct(drop), drop!=null&&drop<=-5?'warn':''],
+      `<span class="pill ${{cls}}">${{sig}}</span>`, usd(thrB), usd(thrS), usd(slp), pct((thrS/t.close-1)*100), pct((slp/t.close-1)*100), fmt(t.r2,2)]}});
+  }}
+  rows.sort((a,b) => a.dev - b.dev);
+  const el = document.getElementById('sig_out');
+  el.innerHTML = `<div class="kpis">
+    <div class="kpi"><div class="l">Acciones analizadas</div><div class="v">${{nAll}}</div></div>
+    <div class="kpi"><div class="l">En zona de compra 🟢</div><div class="v good">${{nBuy}}</div></div>
+    <div class="kpi"><div class="l">Sobre compradas 🔴</div><div class="v poor">${{nSell}}</div></div>
+    <div class="kpi"><div class="l">Neutras ⚪</div><div class="v">${{nAll-nBuy-nSell}}</div></div></div>` +
+    (buyList.length ? `<div class="banner">${{buyList.length}} acciones en zona de compra: ${{buyList.join(' · ')}}</div>` : '') +
+    table('sig_tbl', [['Ticker',0],['Precio',1],['yhat',1],['Dev %',1],['Caida dia',1],['Señal',0],['Thr compra',1],['Thr venta',1],['SL ref',1],['Dist TP',1],['Dist SL',1],['R²',1]], rows.map(r=>r.cells)) +
+    `<p class="note">Dev % = precio / yhat − 1. Señal de compra si Dev entre −${{S.max_dev}} % y −${{S.entry}} %. Caida del dia = cierre vs cierre anterior; la estrategia combinada exige ademas ≤ −5 %.</p>`;
+}}
+// ---------- Screening ----------
+function renderScreening() {{
+  const rows = [];
+  let nPass = 0;
+  for (const [tk, t] of Object.entries(T)) {{
+    const r = screenReason(t, SC), ok = r === 'OK';
+    if (ok) nPass++;
+    rows.push({{ok, r2: t.r2||0, cells: [tk, ok ? '<span class="pill buy">pasa</span>' : '<span class="pill neu">no</span>', fmt(t.r2,3), pct(t.sigma==null?null:t.sigma*100), pct(t.growth==null?null:t.growth*100), pct(t.adr==null?null:t.adr*100), r]}});
+  }}
+  rows.sort((a,b) => (b.ok - a.ok) || (b.r2 - a.r2));
+  document.getElementById('scr_out').innerHTML = `<p class="note">✅ ${{nPass}} pasan · ❌ ${{rows.length-nPass}} no pasan · ${{rows.length}} en total. Las señales, graficas y proyecciones usan solo las que pasan.</p>` +
+    table('scr_tbl', [['Ticker',0],['Pasa',0],['R²',1],['Sigma',1],['Crec./año',1],['ADR',1],['Motivo',0]], rows.map(r=>r.cells));
+  // refrescar selects dependientes
+  fillTickerSelects();
+}}
+function fillTickerSelects() {{
+  const ok = Object.keys(T).filter(tk => passes(T[tk], SC)).sort();
+  ['chart_t', 'proj_t', 'proj_t2'].forEach(id => {{
+    const sel = document.getElementById(id); if (!sel) return;
+    const cur = sel.value;
+    const opts = (id === 'proj_t2' ? ['(todas)'] : []).concat(ok);
+    sel.innerHTML = opts.map(o => `<option value="${{o}}">${{o}}</option>`).join('');
+    sel.value = opts.includes(cur) ? cur : opts[0];
+  }});
+}}
+// ---------- Charts ----------
+function renderChart() {{
+  const tk = document.getElementById('chart_t').value, t = T[tk];
+  const box = document.getElementById('chart_box');
+  if (!t || !t.fit_d) {{ box.innerHTML = '<p class="note">Sin ajuste para esta accion.</p>'; return; }}
+  const iD = t.fit_d.indexOf(D);
+  const hd = t.fit_d.slice(0, iD+1), fd = t.fit_d.slice(iD+1);
+  const yh = t.yhat_s.slice(0, iD+1), yf = t.yhat_s.slice(iD+1);
+  const lo = t.lo, hi = t.hi;
+  const fg = cssVar('--fg'), grid = cssVar('--line'), muted = cssVar('--muted');
+  const traces = [
+    {{x: hd.concat(hd.slice().reverse()), y: hi.slice(0,iD+1).concat(lo.slice(0,iD+1).reverse()), fill:'toself', fillcolor:'rgba(79,172,222,0.10)', line:{{width:0}}, hoverinfo:'skip', showlegend:false, type:'scatter'}},
+    {{x: fd.concat(fd.slice().reverse()), y: hi.slice(iD+1).concat(lo.slice(iD+1).reverse()), fill:'toself', fillcolor:'rgba(79,172,222,0.18)', line:{{width:0}}, hoverinfo:'skip', name:'IC 95 %', type:'scatter'}},
+    {{x: fd, y: yf.map(v => v*(1-S.entry/100)), line:{{color:'#27ae60', dash:'dash', width:1.2}}, name:`Umbral compra −${{S.entry}} %`, hoverinfo:'skip'}},
+    {{x: fd, y: yf.map(v => v*(1+S.exit/100)), line:{{color:'#e74c3c', dash:'dash', width:1.2}}, name:`Umbral venta +${{S.exit}} %`, hoverinfo:'skip'}},
+    {{x: fd, y: yf, line:{{color:'#4facde', width:2}}, name:'Prophet yhat (proyeccion)'}},
+    {{x: hd, y: yh, line:{{color:'#4facde', width:1.5, dash:'dot'}}, name:'Prophet yhat (ajustado)'}},
+    {{x: t.hist_d, y: t.hist_y, line:{{color:'#4b6584', width:1.5}}, name:'Precio historico'}},
+  ];
+  if (t.close != null && t.yhat != null) {{
+    const dev = (t.close/t.yhat-1)*100, c = dev <= -S.entry ? '#27ae60' : dev >= S.exit ? '#e74c3c' : '#f0a500';
+    traces.push({{x:[D], y:[t.close], mode:'markers+text', marker:{{size:11, color:c, line:{{width:2, color:'white'}}}}, text:[`Hoy ${{fmt(t.close)}} $ (${{pct(dev)}})`], textposition:'top center', textfont:{{size:10, color:c}}, name:`Precio hoy ${{pct(dev)}} yhat`}});
+  }}
+  Plotly.newPlot(box, traces, {{
+    title: {{text: `<b>${{tk}}</b> — R²=${{fmt(t.r2,2)}}  σ=${{fmt(t.sigma*100,1)}} %  g=${{fmt(t.growth*100,1)}} %/año  ADR=${{fmt(t.adr*100,1)}} %`, font:{{size:13, color:fg}}}},
+    height: 480, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{{color:fg}},
+    legend:{{orientation:'h', y:1.02, yanchor:'bottom', x:0, font:{{size:10}}, bgcolor:'rgba(0,0,0,0)'}},
+    xaxis:{{gridcolor:grid, showspikes:true}}, yaxis:{{gridcolor:grid, tickprefix:'$'}}, margin:{{l:50, r:20, t:70, b:40}}, hovermode:'x unified',
+    shapes:[{{type:'line', x0:D, x1:D, y0:0, y1:1, yref:'paper', line:{{dash:'dash', color:'rgba(79,172,222,0.5)'}}}}],
+  }}, {{displayModeBar:false, responsive:true}});
+  const dev = (t.close/t.yhat-1)*100;
+  document.getElementById('chart_stats').innerHTML = `<div class="kpis">
+    <div class="kpi"><div class="l">Precio actual</div><div class="v">${{usd(t.close)}}</div></div>
+    <div class="kpi"><div class="l">yhat hoy</div><div class="v">${{usd(t.yhat)}}</div></div>
+    <div class="kpi"><div class="l">Desviacion</div><div class="v ${{dev<0?'poor':'good'}}">${{pct(dev)}}</div></div>
+    <div class="kpi"><div class="l">Umbral compra</div><div class="v">${{usd(t.yhat*(1-S.entry/100))}}</div></div>
+    <div class="kpi"><div class="l">Umbral venta</div><div class="v">${{usd(t.yhat*(1+S.exit/100))}}</div></div></div>`;
+}}
+// ---------- Proyecciones ----------
+function renderProj() {{
+  const sel = document.getElementById('proj_t2').value;
+  const days = parseInt(document.getElementById('proj_days').value, 10);
+  const tks = sel === '(todas)' ? Object.keys(T).filter(tk => passes(T[tk], SC)).sort() : [sel];
+  const rows = [];
+  for (const tk of tks) {{
+    const t = T[tk]; if (!t.fit_d) continue;
+    const iD = t.fit_d.indexOf(D);
+    for (let i = iD+1; i < t.fit_d.length; i++) {{
+      const d = t.fit_d[i], dd = Math.round((new Date(d) - new Date(D)) / 86400000);
+      if (dd > days) break;
+      const y = t.yhat_s[i], dev = t.close ? (t.close/y-1)*100 : null;
+      const [sig, cls] = dev==null ? ['—','neu'] : classify(dev, S);
+      rows.push({{dev: dev==null?0:dev, cells: [tk, d, dd, usd(y), usd(t.lo[i]), usd(t.hi[i]), usd(y*(1-S.entry/100)), usd(y*(1+S.exit/100)), usd(t.close), [pct(dev), dev<0?'poor':'good'], `<span class="pill ${{cls}}">${{sig}}</span>`]}});
+    }}
+  }}
+  const sortBy = document.getElementById('proj_sort').value;
+  if (sortBy === 'dev') rows.sort((a,b)=>a.dev-b.dev); else if (sortBy === 'fecha') rows.sort((a,b)=>a.cells[1].localeCompare(b.cells[1])||a.cells[0].localeCompare(b.cells[0]));
+  document.getElementById('proj_out').innerHTML = `<p class="note">${{rows.length}} filas · ${{tks.length}} acciones · Dev % = como estaria el precio de hoy frente al yhat de ese dia futuro.</p>` +
+    table('proj_tbl', [['Ticker',0],['Fecha',0],['Dias',1],['yhat',1],['yhat lo',1],['yhat hi',1],['Thr compra',1],['Thr venta',1],['Precio hoy',1],['Dev %',1],['Señal',0]], rows.map(r=>r.cells));
+}}
+// ---------- Posiciones ----------
+function renderPositions() {{
+  const open = DATA.positions.filter(p => !p.cerrada), closed = DATA.positions.filter(p => p.cerrada);
+  let h = '';
+  if (!open.length) h += '<p class="note">No hay posiciones abiertas registradas en la app.</p>';
+  else {{
+    const rows = open.map(p => {{
+      const t = T[p.ticker] || {{}}, cpx = t.close, epx = p.precio_entrada, yh = t.yhat;
+      const pnl = cpx ? (cpx/epx-1)*100 : null, days = Math.round((new Date(D)-new Date(p.fecha_entrada))/86400000);
+      const slp = epx*(1-S.sl/100), tpp = yh ? yh*(1+S.exit/100) : null;
+      const est = days >= S.hold ? '⏰ VENCER PRONTO' : (cpx && cpx <= slp) ? '🛑 SL ACTIVADO' : (tpp && cpx && cpx >= tpp) ? '✅ TP ALCANZADO' : '⏳ Activa';
+      return [p.ticker, p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], pnl==null?'—':fmt(p.capital*pnl/100)+' €', days, usd(slp), usd(tpp), est, esc(p.nota||'')];
+    }});
+    h += table('pos_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Prec. hoy $',1],['P&L %',1],['P&L €',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]], rows);
+  }}
+  h += '<h3>Mis salidas</h3>';
+  if (!closed.length) h += '<p class="note">Sin ventas registradas.</p>';
+  else h += table('cl_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Salida',0],['Prec. sal. $',1],['Dias',1],['Capital €',1],['P&L %',1],['P&L €',1],['Motivo',0]],
+    closed.map(p => [p.ticker, p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
+  h += '<p class="note">Las entradas y salidas se registran desde la app de Streamlit; aqui se muestran en solo lectura.</p>';
+  document.getElementById('pos_out').innerHTML = h;
+}}
+// ---------- Carteras de papel ----------
+function spark(points, base=1000) {{
+  if (!points || points.length < 2) return '';
+  const ys = points.map(p=>p.equity), w=320, h=70, lo=Math.min(...ys, base), hi0=Math.max(...ys, base), hi = hi0===lo ? lo+1 : hi0;
+  const X = i => 4 + i*(w-8)/(ys.length-1), Y = v => 4 + (hi-v)*(h-8)/(hi-lo);
+  const path = ys.map((v,i)=>`${{i?'L':'M'}}${{X(i).toFixed(1)}},${{Y(v).toFixed(1)}}`).join(' ');
+  const c = ys[ys.length-1] >= base ? 'var(--ok)' : 'var(--bad)';
+  return `<svg viewBox="0 0 ${{w}} ${{h}}" width="100%" height="${{h}}"><path d="${{path}} L${{X(ys.length-1).toFixed(1)}},${{h-4}} L4,${{h-4}} Z" fill="${{c}}" opacity="0.12"/><line x1="4" x2="${{w-4}}" y1="${{Y(base).toFixed(1)}}" y2="${{Y(base).toFixed(1)}}" stroke="var(--muted)" stroke-dasharray="3 3"/><path d="${{path}}" fill="none" stroke="${{c}}" stroke-width="2"/></svg>`;
+}}
+function renderPaper(key) {{
+  const st = DATA.paper[key], cfg = DATA.cfgs[key];
+  const closed = st.closed, n = closed.length, wins = closed.filter(c=>c.pnl_cash>0).length;
+  const eq = st.equity.length ? st.equity[st.equity.length-1].equity : 1000, ret = (eq/1000-1)*100;
+  const pnlC = closed.reduce((a,c)=>a+c.pnl_cash,0);
+  const rows = st.slots.map((slot,i) => {{
+    const p = slot.position, o = slot.pending;
+    if (p) {{ const t = T[p.ticker]||{{}}, cpx = t.close, pnl = cpx ? (cpx/p.fill_px-1)*100 : null, yh = t.yhat;
+      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), p.ticker, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
+    if (o) return [i+1, 'compra pendiente (apertura siguiente)', o.ticker, o.signal_date, pct(o.dev), pct(o.drop), '—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—'];
+    return [i+1, `libre · ${{usd(slot.cash)}}`, '—','—','—','—','—','—','—','—','—','—','—'];
+  }});
+  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [c.ticker, c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
+  const log = st.log.slice(-8).reverse().map(e => `<div class="day"><b>${{e.date}}</b><ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
+  document.getElementById('paper_'+key).innerHTML = `
+    <p class="note">Entrada: precio entre ${{cfg.entry_dev}} % y ${{cfg.max_dev}} % bajo yhat${{cfg.drop ? ` <b>y</b> caida del dia ≥ ${{cfg.drop}} %` : ''}}, con screening. Salida (en este orden): ${{cfg.hold}} dias → stop loss ${{cfg.sl}} % → precio ≥ yhat +${{cfg.exit_dev}} %. 1.000 $ en 3 slots, 1 $ por operacion. Cada decision usa solo los datos de ese dia y se ejecuta a la apertura siguiente.</p>
+    <div class="kpis"><div class="kpi"><div class="l">Valor cartera</div><div class="v ${{ret>0?'good':ret<0?'poor':''}}">${{usd(eq)}}</div><div class="n">${{pct(ret)}} desde el inicio</div></div>
+      <div class="kpi"><div class="l">Ultima sesion</div><div class="v" style="font-size:16px">${{st.last_date||'—'}}</div></div>
+      <div class="kpi"><div class="l">Cerradas</div><div class="v">${{n}}</div><div class="n">acierto ${{n?Math.round(100*wins/n)+' %':'—'}}</div></div>
+      <div class="kpi"><div class="l">P&amp;L cerrado</div><div class="v ${{pnlC>0?'good':pnlC<0?'poor':''}}">${{usd(pnlC)}}</div></div>
+      <div class="kpi spark"><div class="l">Evolucion</div>${{spark(st.equity)}}</div></div>
+    <h3>Posiciones y ordenes</h3>${{table('pp_'+key, [['Slot',1],['Estado',0],['Ticker',0],['Señal',0],['Bajo yhat',1],['Caida dia',1],['Compra',0],['Precio compra',1],['Precio hoy',1],['P&L',1],['Dias',1],['Vender si ≥',1],['Stop loss',1]], rows)}}
+    <h3>Operaciones cerradas</h3>${{crow.length ? table('pc_'+key, [['Ticker',0],['Señal',0],['Bajo yhat',1],['Compra',0],['Precio',1],['Venta',0],['Precio',1],['Motivo',0],['Dias',1],['P&L',1],['P&L $',1]], crow) : '<p class="note">Todavia no hay operaciones cerradas.</p>'}}
+    <details><summary>Diario de decisiones (ultimos dias)</summary>${{log}}</details>`;
+}}
+// ---------- Montaje ----------
+const TABS = [
+  ['hoy', '🚨 Señales de hoy', () => `<div class="controls">${{slider('s_entry','Entrada: caida bajo yhat',1,12,1,S.entry,' %')}}${{slider('s_exit','Salida: subida sobre yhat',3,30,1,S.exit,' %')}}${{slider('s_sl','Stop loss',3,20,1,S.sl,' %')}}${{slider('s_hold','Dias max en posicion',5,90,1,S.hold,' d')}}${{slider('s_maxdev','Cap caida maxima',5,30,1,S.max_dev,' %')}}</div><div id="sig_out"></div>`],
+  ['scr', '🔍 Screening', () => `<div class="controls">${{slider('c_r2','R² minimo',0.5,0.99,0.01,SC.min_r2)}}${{slider('c_sig','Sigma max',2,15,1,SC.max_sigma,' %')}}${{slider('c_gmin','Crecimiento min',-50,30,1,SC.min_growth,' %')}}${{slider('c_gmax','Crecimiento max',5,120,1,SC.max_growth,' %')}}${{slider('c_adr','ADR max',1,10,1,SC.max_adr,' %')}}</div><div id="scr_out"></div>`],
+  ['chart', '📊 Charts', () => `<div class="controls"><div class="ctl"><label>Accion</label><select id="chart_t"></select></div></div><div class="chart" id="chart_box"></div><div id="chart_stats"></div>`],
+  ['proj', '📋 Proyecciones', () => `<div class="controls"><div class="ctl"><label>Acciones</label><select id="proj_t2"></select></div><div class="ctl"><label>Horizonte (dias)</label><select id="proj_days"><option>7</option><option>14</option><option>21</option><option selected>28</option><option>35</option><option>42</option></select></div><div class="ctl"><label>Ordenar por</label><select id="proj_sort"><option value="dev">Dev % (menor primero)</option><option value="fecha">Fecha</option><option value="ticker">Ticker</option></select></div></div><div id="proj_out"></div>`],
+  ['pos', '💼 Mis posiciones', () => `<div id="pos_out"></div>`],
+  ['bt15', '🧪 Claude · Backtest 15', () => `<div id="paper_bt15"></div>`],
+  ['combo', '🧪 Claude · Combinado', () => `<div id="paper_combo"></div>`],
+  ['docs', '📚 Como funciona Prophet', () => `<div class="docs">${{DOCS_HTML}}</div>`],
+  ['ver', 'ℹ️ Versiones', () => VERSIONS_HTML],
+];
+const tabsEl = document.getElementById('tabs'), panelsEl = document.getElementById('panels');
+TABS.forEach(([id, label, render]) => {{
+  const b = document.createElement('button'); b.className = 'tab'; b.role = 'tab'; b.id = 'tab_'+id; b.textContent = label; b.setAttribute('aria-selected', 'false');
+  b.onclick = () => show(id); tabsEl.appendChild(b);
+  const p = document.createElement('div'); p.className = 'panel'; p.id = 'panel_'+id; p.hidden = true; p.innerHTML = render(); panelsEl.appendChild(p);
+}});
+function show(id) {{
+  TABS.forEach(([k]) => {{ document.getElementById('panel_'+k).hidden = k !== id; document.getElementById('tab_'+k).setAttribute('aria-selected', String(k === id)); }});
+  try {{ location.hash = id; }} catch (e) {{}}
+  if (id === 'chart') renderChart();
+}}
+bindSliders([['s_entry','entry',' %'],['s_exit','exit',' %'],['s_sl','sl',' %'],['s_hold','hold',' d'],['s_maxdev','max_dev',' %']], S, () => {{ renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart(); }});
+bindSliders([['c_r2','min_r2',''],['c_sig','max_sigma',' %'],['c_gmin','min_growth',' %'],['c_gmax','max_growth',' %'],['c_adr','max_adr',' %']], SC, () => {{ renderScreening(); renderSignals(); renderProj(); }});
+document.getElementById('chart_t').onchange = renderChart;
+['proj_t2','proj_days','proj_sort'].forEach(id => document.getElementById(id).onchange = renderProj);
+renderScreening(); renderSignals(); renderProj(); renderPositions(); renderPaper('bt15'); renderPaper('combo');
+const start = (location.hash||'').replace('#','');
+show(TABS.some(t=>t[0]===start) ? start : 'hoy');
+window.addEventListener('hashchange', () => {{ const h = location.hash.replace('#',''); if (TABS.some(t=>t[0]===h)) show(h); }});
+</script>
 """

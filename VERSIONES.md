@@ -4,7 +4,8 @@ Registro de lo que se sube a `master` (y por tanto a laprofecia.streamlit.app). 
 
 | Versión | Fecha | Commit | Resumen |
 |---|---|---|---|
-| **2.6** | 2026-11-04 | — | `daily_update.py`: paso diario de la cartera de papel sin Streamlit (ajusta Prophet, avanza las dos carteras y genera `paper_page.html`, una página pública con carteras y señales). Pensado para una rutina en la nube que lo ejecute cada día laborable tras el cierre de EE.UU. y republique la página. |
+| **2.7** | 2026-11-04 | — | El artifact público replica todas las pestañas de la app (señales, screening, gráficas Plotly, proyecciones, posiciones, carteras de papel, Prophet, versiones) con sliders de estrategia y screening que recalculan en el navegador sobre los ajustes precomputados del día. Rutina en la nube "Prophet Trader · cartera de papel diaria" (L-V 23:30 Madrid) que ejecuta `daily_update.py`, sube el estado y republica la página. |
+| 2.6 | 2026-11-04 | `0be1121` | `daily_update.py`: paso diario de la cartera de papel sin Streamlit (ajusta Prophet, avanza las dos carteras y genera `paper_page.html`, una página pública con carteras y señales). Pensado para una rutina en la nube que lo ejecute cada día laborable tras el cierre de EE.UU. y republique la página. |
 | 2.5 | 2026-11-04 | `e1270e7` | La barra de pestañas pasa a dos filas cuando no cabe (antes se recortaba); la pestaña activa se marca con un borde azul. Reaplicado el screening revisado, que un "Restaurar" desde la versión anterior había devuelto al perfil antiguo. |
 | 2.4 | 2026-11-04 | `9ee67f5` | Pestaña "ℹ️ Versiones" en la app que muestra este registro, y número de versión en la barra lateral. |
 | 2.3 | 2026-11-04 | `9d578b2` | Screening revisado con 5 años de datos: solo ADR ≤ 4 % y crecimiento ≤ 20 %, sin mínimo de crecimiento (R² y sigma desactivados). Pasan 36 de 87 acciones en vez de 21. El slider de crecimiento mínimo admite negativos. Cartera de papel regenerada con el nuevo perfil. |
