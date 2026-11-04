@@ -9,4 +9,4 @@ Set-Location $repo
 git pull --rebase -q origin master *>> $log
 Get-Content (Join-Path $repo "Prophet_App\daily_prompt.md") -Raw |
   & "C:\Users\FEVER\.local\bin\claude.exe" -p `
-    --allowedTools "Bash" "Read" "Write" "Artifact" "ArtifactData" "mcp__claude_ai_Slack__slack_send_message" *>> $log
+    --allowedTools "Bash,Read,Write,Artifact,ArtifactData,mcp__claude_ai_Slack__slack_send_message" *>> $log
