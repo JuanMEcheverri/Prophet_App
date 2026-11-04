@@ -882,8 +882,32 @@ with tab_ver:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — SEÑALES DE HOY
 # ═══════════════════════════════════════════════════════════════════════════════
+def _apply_paper_preset(key):
+    """Pone los sliders de estrategia y screening como la cartera de papel `key` y, en el combinado,
+    exige ademas caida del dia >= 5% para marcar COMPRAR en la tabla de señales."""
+    cfg = paper.STRATEGIES[key]
+    st.session_state.cfg_entry_dev_pct = int(cfg["entry_dev"]); st.session_state.cfg_exit_dev_pct = int(cfg["exit_dev"])
+    st.session_state.cfg_sl_pct_pct = int(cfg["sl"]); st.session_state.cfg_max_hold = int(cfg["hold"]); st.session_state.cfg_max_dev_pct = int(cfg["max_dev"])
+    prof = paper.SCREEN_PROFILES[-1]
+    st.session_state.cfg_min_r2 = float(prof["min_r2"]); st.session_state.cfg_max_sigma_pct = int(round(prof["max_sigma"] * 100))
+    st.session_state.cfg_min_growth_pct = int(round(prof["min_growth"] * 100)); st.session_state.cfg_max_growth_pct = int(round(prof["max_growth"] * 100))
+    st.session_state.cfg_max_adr_pct = int(round(prof["max_adr"] * 100))
+    st.session_state.sig_drop_req = cfg["drop"]
+    st.session_state.sig_preset = key
+
+
 with tab_hoy:
     st.subheader(f"Señales para el {TODAY_STR}")
+    pb1, pb2, pb3 = st.columns([1, 1, 3])
+    pb1.button("Cuadrar con Backtest 15", on_click=_apply_paper_preset, args=("bt15",), use_container_width=True,
+               help="Pone los sliders de estrategia y screening exactamente como la cartera de papel 'Backtest 15'.")
+    pb2.button("Cuadrar con Combinado", on_click=_apply_paper_preset, args=("combo",), use_container_width=True,
+               help="Igual que Backtest 15 y ademas solo marca COMPRAR si la accion cayo >= 5% hoy.")
+    _drop_req = st.session_state.get("sig_drop_req")
+    if st.session_state.get("sig_preset"):
+        pb3.caption(f"Cuadrado con **{paper.STRATEGIES[st.session_state['sig_preset']]['name']}**"
+                    + (f" · COMPRAR solo si la caida del dia es ≤ −{_drop_req:.0f}%" if _drop_req else "")
+                    + ". Si mueves un slider, el preset deja de aplicar.")
     st.caption(
         f"Comprar cuando precio < yhat×{1-entry_dev:.2f}  |  "
         f"Vender cuando > yhat×{1+exit_dev:.2f}  |  "
@@ -905,10 +929,15 @@ with tab_hoy:
         dist_tp = (thr_sel / px - 1) * 100
         dist_sl = (sl_px / px - 1) * 100
         signal  = classify(dev, entry_dev, exit_dev, max_dev)
+        prev_px = info.get("prev_px")
+        drop    = (px / prev_px - 1) * 100 if prev_px else None
+        if signal == "🟢 COMPRAR" and _drop_req and not (drop is not None and drop <= -_drop_req):
+            signal = f"⚪ NEUTRAL (sin caida ≥{_drop_req:.0f}%)"
         rows.append({
             "Ticker":       t,
             "Nombre":       NAMES.get(t, ""),
             "Precio Hoy":   px,
+            "Caida dia%":   round(drop, 2) if drop is not None else None,
             "yhat":         round(yhat_v, 2),
             "Dev%":         round(dev, 2),
             "Señal":        signal,
@@ -946,6 +975,7 @@ with tab_hoy:
             "Ticker":     st.column_config.TextColumn("Ticker", width=70),
             "Nombre":     st.column_config.TextColumn("Nombre", width=170),
             "Precio Hoy": st.column_config.NumberColumn("Precio $", format="$%.2f"),
+            "Caida dia%": st.column_config.NumberColumn("Caida dia%", format="%.1f%%"),
             "yhat":       st.column_config.NumberColumn("yhat $", format="$%.2f"),
             "Dev%":       st.column_config.NumberColumn("Dev%", format="%.1f%%"),
             "Señal":      st.column_config.TextColumn("Señal", width=140),

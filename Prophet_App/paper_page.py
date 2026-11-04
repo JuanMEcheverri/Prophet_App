@@ -71,6 +71,8 @@ td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeri
 .good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }} .warn {{ color:var(--accent); font-weight:500; }}
 .pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }}
 .banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
+.btn {{ font:600 13px var(--sans); color:var(--fg); background:var(--panel); border:1px solid var(--line); padding:7px 12px; cursor:pointer; white-space:nowrap; }}
+.btn:hover {{ border-color:var(--blue); color:var(--blue); }} .btn:focus-visible {{ outline:2px solid var(--blue); outline-offset:2px; }}
 .chart {{ background:var(--panel); border:1px solid var(--line); min-height:420px; }}
 details {{ margin-top:10px; }} summary {{ cursor:pointer; color:var(--muted); font-size:13px; }} .day {{ font-size:13px; margin:8px 0; }} .day ul {{ margin:2px 0 0 18px; padding:0; }}
 .docs p {{ max-width:75ch; }} code {{ font-family:var(--mono); font-size:12px; }}
@@ -98,6 +100,27 @@ const pct = (x, d=1) => (x==null||isNaN(x)) ? '—' : (x>0?'+':'') + fmt(x, d) +
 const usd = x => (x==null||isNaN(x)) ? '—' : fmt(x, 2) + ' $';
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]));
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let PRESET = 'manual', DROP_REQ = null;   // preset activo en Señales y exigencia de caida del dia (combinado)
+function setSliderUI(id, val, suffix) {{
+  const el = document.getElementById(id); if (!el) return;
+  el.value = val; const v = document.getElementById(id + '_v'); if (v) v.textContent = val + (suffix || '');
+}}
+function applyPreset(key) {{
+  const cfg = DATA.cfgs[key], profs = (DATA.paper[key] && DATA.paper[key].screening) || [];
+  const p = profs.length ? profs[profs.length - 1] : null;      // perfil vigente para la proxima decision
+  S.entry = cfg.entry_dev; S.exit = cfg.exit_dev; S.sl = cfg.sl; S.hold = cfg.hold; S.max_dev = cfg.max_dev;
+  setSliderUI('s_entry', S.entry, ' %'); setSliderUI('s_exit', S.exit, ' %'); setSliderUI('s_sl', S.sl, ' %'); setSliderUI('s_hold', S.hold, ' d'); setSliderUI('s_maxdev', S.max_dev, ' %');
+  if (p) {{
+    SC.min_r2 = p.min_r2; SC.max_sigma = Math.round(p.max_sigma * 100); SC.min_growth = Math.round(p.min_growth * 100); SC.max_growth = Math.round(p.max_growth * 100); SC.max_adr = Math.round(p.max_adr * 100);
+    setSliderUI('c_r2', SC.min_r2, ''); setSliderUI('c_sig', SC.max_sigma, ' %'); setSliderUI('c_gmin', SC.min_growth, ' %'); setSliderUI('c_gmax', SC.max_growth, ' %'); setSliderUI('c_adr', SC.max_adr, ' %');
+  }}
+  DROP_REQ = cfg.drop || null; PRESET = key;
+  renderScreening(); renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart();
+}}
+function presetBadge() {{
+  const b = document.getElementById('preset_badge'); if (!b) return;
+  b.innerHTML = PRESET === 'manual' ? 'Ajuste manual (sliders)' : `Cuadrado con <b>${{esc(DATA.cfgs[PRESET].name)}}</b>` + (DROP_REQ ? ` · compra solo si la caida del dia es ≤ −${{DROP_REQ}} %` : '');
+}}
 
 function screenReason(t, sc) {{
   const f = [];
@@ -145,16 +168,18 @@ function renderSignals() {{
     if (!passes(t, SC) || t.yhat == null || t.close == null) continue;
     nAll++;
     const dev = (t.close / t.yhat - 1) * 100;
-    const [sig, cls] = classify(dev, S);
+    const drop = t.prev ? (t.close / t.prev - 1) * 100 : null;
+    let [sig, cls] = classify(dev, S);
+    if (cls === 'buy' && DROP_REQ != null && !(drop != null && drop <= -DROP_REQ)) {{ sig = '⚪ NEUTRAL (sin caida ≥ ' + DROP_REQ + ' %)'; cls = 'neu'; }}
     if (cls === 'buy') {{ nBuy++; buyList.push(`<b>${{tk}}</b> ${{pct(dev)}}`); }}
     if (cls === 'sell') nSell++;
-    const drop = t.prev ? (t.close / t.prev - 1) * 100 : null;
     const thrB = t.yhat * (1 - S.entry/100), thrS = t.yhat * (1 + S.exit/100), slp = t.close * (1 - S.sl/100);
     rows.push({{dev, cells: [lblHtml(tk), usd(t.close), usd(t.yhat), [pct(dev), dev<0?'poor':'good'], [pct(drop), drop!=null&&drop<=-5?'warn':''],
       `<span class="pill ${{cls}}">${{sig}}</span>`, usd(thrB), usd(thrS), usd(slp), pct((thrS/t.close-1)*100), pct((slp/t.close-1)*100), fmt(t.r2,2)]}});
   }}
   rows.sort((a,b) => a.dev - b.dev);
   const el = document.getElementById('sig_out');
+  presetBadge();
   el.innerHTML = `<div class="kpis">
     <div class="kpi"><div class="l">Acciones analizadas</div><div class="v">${{nAll}}</div></div>
     <div class="kpi"><div class="l">En zona de compra 🟢</div><div class="v good">${{nBuy}}</div></div>
@@ -186,9 +211,9 @@ function fillTickerSelects() {{
   const sel = document.getElementById('chart_t');
   if (sel) {{
     const cur = sel.value;
-    sel.innerHTML = ok.map(o => `<option value="${{o}}">${{lbl(o)}}</option>`).join('') +
-      all.filter(tk => !ok.includes(tk)).map(o => `<option value="${{o}}">${{lbl(o)}} (no pasa screening)</option>`).join('');
-    sel.value = all.includes(cur) ? cur : ok[0] || all[0];
+    // Charts: SIEMPRE todas las acciones, en orden alfabetico; las que no pasan el screening, marcadas
+    sel.innerHTML = all.map(o => `<option value="${{o}}">${{lbl(o)}}${{ok.includes(o) ? '' : ' (no pasa screening)'}}</option>`).join('');
+    sel.value = all.includes(cur) ? cur : all[0];
   }}
   const dl = document.getElementById('chart_list');
   if (dl && !dl.children.length) dl.innerHTML = all.map(o => `<option value="${{lbl(o)}}"></option>`).join('');
@@ -321,7 +346,7 @@ function renderPaper(key) {{
 }}
 // ---------- Montaje ----------
 const TABS = [
-  ['hoy', '🚨 Señales de hoy', () => `<div class="controls">${{slider('s_entry','Entrada: caida bajo yhat',1,12,1,S.entry,' %')}}${{slider('s_exit','Salida: subida sobre yhat',3,30,1,S.exit,' %')}}${{slider('s_sl','Stop loss',3,20,1,S.sl,' %')}}${{slider('s_hold','Dias max en posicion',5,90,1,S.hold,' d')}}${{slider('s_maxdev','Cap caida maxima',5,30,1,S.max_dev,' %')}}</div><div id="sig_out"></div>`],
+  ['hoy', '🚨 Señales de hoy', () => `<div class="controls" style="grid-template-columns:auto auto 1fr;align-items:center"><button type="button" class="btn" id="pre_bt15">Cuadrar con Backtest 15</button><button type="button" class="btn" id="pre_combo">Cuadrar con Combinado</button><span id="preset_badge" class="muted" style="font-size:13px"></span></div><div class="controls">${{slider('s_entry','Entrada: caida bajo yhat',1,12,1,S.entry,' %')}}${{slider('s_exit','Salida: subida sobre yhat',3,30,1,S.exit,' %')}}${{slider('s_sl','Stop loss',3,20,1,S.sl,' %')}}${{slider('s_hold','Dias max en posicion',5,90,1,S.hold,' d')}}${{slider('s_maxdev','Cap caida maxima',5,30,1,S.max_dev,' %')}}</div><div id="sig_out"></div>`],
   ['scr', '🔍 Screening', () => `<div class="controls">${{slider('c_r2','R² minimo',0.5,0.99,0.01,SC.min_r2)}}${{slider('c_sig','Sigma max',2,15,1,SC.max_sigma,' %')}}${{slider('c_gmin','Crecimiento min',-50,30,1,SC.min_growth,' %')}}${{slider('c_gmax','Crecimiento max',5,120,1,SC.max_growth,' %')}}${{slider('c_adr','ADR max',1,10,1,SC.max_adr,' %')}}</div><div id="scr_out"></div>`],
   ['chart', '📊 Charts', () => `<div class="controls"><div class="ctl"><label for="chart_q">Buscar (ticker o nombre)</label><input type="search" id="chart_q" list="chart_list" placeholder="p. ej. MRVL o Marvell" autocomplete="off" style="width:100%;font:13px var(--sans);color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:5px 8px"><datalist id="chart_list"></datalist></div><div class="ctl"><label for="chart_t">Accion</label><select id="chart_t"></select></div></div><div class="chart" id="chart_box"></div><div id="chart_stats"></div>`],
   ['proj', '📋 Proyecciones', () => `<div class="controls"><div class="ctl"><label>Acciones</label><select id="proj_t2"></select></div><div class="ctl"><label>Horizonte (dias)</label><select id="proj_days"><option>7</option><option>14</option><option>21</option><option selected>28</option><option>35</option><option>42</option></select></div><div class="ctl"><label>Ordenar por</label><select id="proj_sort"><option value="dev">Dev % (menor primero)</option><option value="fecha">Fecha</option><option value="ticker">Ticker</option></select></div></div><div id="proj_out"></div>`],
@@ -342,8 +367,10 @@ function show(id) {{
   try {{ location.hash = id; }} catch (e) {{}}
   if (id === 'chart') renderChart();
 }}
-bindSliders([['s_entry','entry',' %'],['s_exit','exit',' %'],['s_sl','sl',' %'],['s_hold','hold',' d'],['s_maxdev','max_dev',' %']], S, () => {{ renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart(); }});
-bindSliders([['c_r2','min_r2',''],['c_sig','max_sigma',' %'],['c_gmin','min_growth',' %'],['c_gmax','max_growth',' %'],['c_adr','max_adr',' %']], SC, () => {{ renderScreening(); renderSignals(); renderProj(); }});
+bindSliders([['s_entry','entry',' %'],['s_exit','exit',' %'],['s_sl','sl',' %'],['s_hold','hold',' d'],['s_maxdev','max_dev',' %']], S, () => {{ PRESET = 'manual'; DROP_REQ = null; renderSignals(); renderProj(); renderPositions(); if (!document.getElementById('panel_chart').hidden) renderChart(); }});
+bindSliders([['c_r2','min_r2',''],['c_sig','max_sigma',' %'],['c_gmin','min_growth',' %'],['c_gmax','max_growth',' %'],['c_adr','max_adr',' %']], SC, () => {{ PRESET = 'manual'; DROP_REQ = null; renderScreening(); renderSignals(); renderProj(); }});
+document.getElementById('pre_bt15').onclick = () => applyPreset('bt15');
+document.getElementById('pre_combo').onclick = () => applyPreset('combo');
 document.getElementById('chart_t').onchange = renderChart;
 function findTicker(q) {{
   q = (q || '').trim().toUpperCase(); if (!q) return null;
