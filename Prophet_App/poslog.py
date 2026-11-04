@@ -44,7 +44,10 @@ def update_log(log, date_s, positions, day_data, cfg):
         if p["fecha_entrada"] == date_s:
             events.append(f"COMPRA registrada: {t} a {p['precio_entrada']:.2f} $"
                           + (f" ({p['precio_entrada_eur']:.2f} €)" if p.get("precio_entrada_eur") else "")
-                          + f", capital {p['capital']:.2f} €" + (f" · {p['nota']}" if p.get("nota") else ""))
+                          + f", capital {p['capital']:.2f} €"
+                          + (f", {p['cantidad']:.4f} acciones" if p.get("cantidad") else "")
+                          + (f" en {p['plataforma']}" if p.get("plataforma") else "")
+                          + (f" · {p['nota']}" if p.get("nota") else ""))
         if p.get("cerrada") and p.get("fecha_salida") == date_s:
             events.append(f"VENTA registrada: {t} a {p['precio_salida']:.2f} $ → P&L {p.get('pnl_eur', 0):+.2f} € ({p.get('pnl_pct', 0):+.1f} %)"
                           + (f" · {p['motivo_salida']}" if p.get("motivo_salida") else ""))

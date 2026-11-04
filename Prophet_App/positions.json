@@ -7,6 +7,8 @@
     "fx_entrada": 1.1232,
     "moneda_entrada": "EUR",
     "capital": 116.61,
-    "nota": "N26, 116.61 EUR a 495 EUR/accion (~0.2356 acciones)"
+    "nota": "",
+    "plataforma": "N26",
+    "cantidad": 0.2356
   }
 ]

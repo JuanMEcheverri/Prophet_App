@@ -239,6 +239,7 @@ const COLHELP = {{
   'Slot': 'Hueco de la cartera (maximo 3 a la vez)', 'Acciones': 'Numero de acciones enteras', 'Compra': 'Fecha de compra (apertura siguiente a la señal)', 'Precio compra': 'Precio de compra por accion (USD, con 0,05 % de deslizamiento)',
   'Invertido': 'Dinero puesto en la posicion, comision incluida', 'Vender si ≥': 'Precio al que la regla vende: yhat × (1 + salida %)', 'Stop loss': 'Precio al que la regla vende por perdida',
   'Dias en zona de compra': 'Cuantos dias del horizonte el precio de hoy quedaria entre −cap y −entrada frente al yhat de ese dia', 'Primer dia': 'Primer dia del horizonte en que entraria en zona de compra', 'Dev % hoy': 'Precio de hoy / yhat de hoy − 1', 'yhat hoy': 'Precio justo estimado para hoy', 'Señal hoy': 'Señal con el yhat de hoy',
+  'Plataforma': 'Broker donde se hizo la operacion (N26, Degiro...)', 'Cantidad': 'Numero de acciones (admite fracciones)',
   'Venta': 'Fecha de venta', 'Salida': 'Fecha de venta', 'Prec. sal. $': 'Precio de venta por accion en USD', 'Capital €': 'Capital invertido en euros', 'Pasa screening': 'Si cumple los filtros del screening', 'Version': 'Version de la app', 'Resumen': 'Que cambio',
 }};
 function parseCell(td) {{
@@ -446,14 +447,14 @@ function renderPositions() {{
       const pnl = cpx ? (cpx/epx-1)*100 : null, days = Math.round((new Date(D)-new Date(p.fecha_entrada))/86400000);
       const slp = epx*(1-S.sl/100), tpp = yh ? yh*(1+S.exit/100) : null;
       const est = days >= S.hold ? '⏰ VENCER PRONTO' : (cpx && cpx <= slp) ? '🛑 SL ACTIVADO' : (tpp && cpx && cpx >= tpp) ? '✅ TP ALCANZADO' : '⏳ Activa';
-      return [lblHtml(p.ticker), p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], pnl==null?'—':fmt(p.capital*pnl/100)+' €', days, usd(slp), usd(tpp), est, esc(p.nota||'')];
+      return [lblHtml(p.ticker), esc(p.plataforma||'—'), p.cantidad!=null ? fmt(p.cantidad, 4) : '—', p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', fmt(p.capital)+' €', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], pnl==null?'—':fmt(p.capital*pnl/100)+' €', days, usd(slp), usd(tpp), est, esc(p.nota||'')];
     }});
-    h += table('pos_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Prec. hoy $',1],['P&L %',1],['P&L €',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]], rows);
+    h += table('pos_tbl', [['Ticker',0],['Plataforma',0],['Cantidad',1],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Capital €',1],['Prec. hoy $',1],['P&L %',1],['P&L €',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]], rows);
   }}
   h += '<h3>Mis salidas</h3>';
   if (!closed.length) h += '<p class="note">Sin ventas registradas.</p>';
-  else h += table('cl_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Salida',0],['Prec. sal. $',1],['Dias',1],['Capital €',1],['P&L %',1],['P&L €',1],['Motivo',0]],
-    closed.map(p => [lblHtml(p.ticker), p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
+  else h += table('cl_tbl', [['Ticker',0],['Plataforma',0],['Cantidad',1],['Entrada',0],['Prec. ent. $',1],['Salida',0],['Prec. sal. $',1],['Dias',1],['Capital €',1],['P&L %',1],['P&L €',1],['Motivo',0]],
+    closed.map(p => [lblHtml(p.ticker), esc(p.plataforma||'—'), p.cantidad!=null ? fmt(p.cantidad, 4) : '—', p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
   h += '<p class="note">Las entradas y salidas se registran desde la app de Streamlit; aqui se muestran en solo lectura.</p>';
   const plog = DATA.positions_log || [];
   h += `<h3>Diario de decisiones de mis posiciones</h3>` + (plog.length ? `<details open><summary>${{plog.length}} sesiones (la mas reciente arriba)</summary>` +

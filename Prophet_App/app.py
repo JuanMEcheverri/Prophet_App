@@ -18,6 +18,7 @@ from names import NAMES, label as ticker_label
 # Explicacion de cada columna (aparece al pasar el raton por la cabecera; las tablas se ordenan al hacer clic)
 COL_HELP = {
     "Ticker": "Simbolo en bolsa", "Nombre": "Nombre de la empresa", "Precio Hoy": "Ultimo cierre en USD",
+    "Plataforma": "Broker donde se hizo la operacion (N26, Degiro...)", "Cantidad": "Numero de acciones (admite fracciones)",
     "Caida dia%": "Cierre de hoy frente al cierre anterior", "yhat": "Precio 'justo' que estima Prophet para hoy",
     "Dev%": "Precio / yhat − 1. Negativo = por debajo del precio justo",
     "Señal": "COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap; CUCHILLO CAYENDO si la caida de HOY supera el stop loss",
@@ -1245,7 +1246,7 @@ with tab_pos:
         with st.form("add_pos", clear_on_submit=True):
             pc1, pc2, pc3, pc4, pc5 = st.columns(5)
             with pc1:
-                pos_ticker = st.selectbox("Ticker", sorted(set(sdata.keys()) | {p["ticker"] for _, p in open_positions}))
+                pos_ticker = st.selectbox("Ticker", sorted(set(sdata.keys()) | {p["ticker"] for _, p in open_positions}), format_func=ticker_label)
             with pc2:
                 pos_date   = st.date_input("Fecha entrada", value=TODAY)
             with pc3:
@@ -1254,13 +1255,21 @@ with tab_pos:
                 pos_px     = st.number_input("Precio por accion", min_value=0.01, value=100.0, step=0.01)
             with pc5:
                 pos_cap    = st.number_input("Capital invertido (EUR)", min_value=1.0, value=float(slot_cap), step=10.0)
-            pos_note = st.text_input("Nota (opcional)")
+            pd1, pd2, pd3 = st.columns([1, 1, 3])
+            with pd1:
+                pos_plat   = st.text_input("Plataforma", value="N26", help="Donde compraste: N26, Degiro, etc.")
+            with pd2:
+                pos_qty    = st.number_input("Cantidad (acciones)", min_value=0.0, value=0.0, step=0.0001, format="%.4f",
+                                             help="Numero de acciones (admite fracciones). Si lo dejas en 0 se calcula como capital / precio.")
+            with pd3:
+                pos_note   = st.text_input("Nota (opcional)")
             submitted = st.form_submit_button("Agregar", type="primary")
             if submitted:
                 usd, eur, fx = _price_both(pos_px, pos_ccy, pos_date)
                 if usd is None:
                     st.error("No pude obtener el EUR/USD de esa fecha; introduce el precio en USD.")
                 else:
+                    qty = pos_qty if pos_qty > 0 else (pos_cap / eur if eur else None)
                     st.session_state.positions.append({
                         "ticker":    pos_ticker,
                         "fecha_entrada": str(pos_date),
@@ -1268,6 +1277,8 @@ with tab_pos:
                         "precio_entrada_eur": (round(eur, 4) if eur is not None else None),
                         "fx_entrada": fx, "moneda_entrada": pos_ccy,
                         "capital":   pos_cap,
+                        "plataforma": pos_plat.strip(),
+                        "cantidad":  (round(qty, 4) if qty else None),
                         "nota":      pos_note,
                     })
                     save_positions(st.session_state.positions)
@@ -1350,6 +1361,8 @@ with tab_pos:
                 "#":           i,
                 "Ticker":      t,
                 "Nombre":      NAMES.get(t, ""),
+                "Plataforma":  pos.get("plataforma", ""),
+                "Cantidad":    pos.get("cantidad"),
                 "Entrada":     edate,
                 "Precio Ent.": epx,
                 "Prec. Ent. €": pos.get("precio_entrada_eur"),
@@ -1386,6 +1399,8 @@ with tab_pos:
             hide_index=True,
             column_config=_with_help({
                 "Ticker":      st.column_config.TextColumn("Ticker", width=70),
+                "Plataforma":  st.column_config.TextColumn("Plataforma", width=90),
+                "Cantidad":    st.column_config.NumberColumn("Cantidad", format="%.4f"),
                 "Entrada":     st.column_config.DateColumn("Entrada", width=95),
                 "Precio Ent.": st.column_config.NumberColumn("Prec. Ent. $", format="$%.2f"),
                 "Prec. Ent. €": st.column_config.NumberColumn("Prec. Ent. €", format="€%.2f"),
@@ -1410,7 +1425,8 @@ with tab_pos:
         st.caption("Aun no has registrado ninguna venta.")
     else:
         df_cl = pd.DataFrame([{
-            "Ticker": p["ticker"], "Nombre": NAMES.get(p["ticker"], ""), "Entrada": pd.Timestamp(p["fecha_entrada"]).date(),
+            "Ticker": p["ticker"], "Nombre": NAMES.get(p["ticker"], ""), "Plataforma": p.get("plataforma", ""), "Cantidad": p.get("cantidad"),
+            "Entrada": pd.Timestamp(p["fecha_entrada"]).date(),
             "Prec. Ent. $": p["precio_entrada"], "Prec. Ent. €": p.get("precio_entrada_eur"),
             "Salida": pd.Timestamp(p["fecha_salida"]).date(),
             "Prec. Sal. $": p["precio_salida"], "Prec. Sal. €": p.get("precio_salida_eur"),
