@@ -61,6 +61,24 @@ GITHUB_SUBDIR = "Prophet_App"   # ubicacion de este script dentro del repo
 GITHUB_API    = "https://api.github.com"
 
 
+VERSIONES_PATH = os.path.join(os.path.dirname(APP_DIR), "VERSIONES.md")
+
+
+def load_versions():
+    """Texto de VERSIONES.md (raiz del repo) y numero de la version actual (primera fila en negrita)."""
+    try:
+        with open(VERSIONES_PATH, "r", encoding="utf-8") as f:
+            txt = f.read()
+    except OSError:
+        return None, None
+    import re
+    m = re.search(r"\*\*(\d+\.\d+)\*\*", txt)
+    return txt, (m.group(1) if m else None)
+
+
+VERSIONES_TXT, APP_VERSION = load_versions()
+
+
 def _get_secret(name):
     try:
         return st.secrets[name]
@@ -285,7 +303,7 @@ def restore_validated_config():
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("📈 Prophet Trader")
-    st.caption(f"Sesion: {TODAY_STR}")
+    st.caption(f"Sesion: {TODAY_STR}" + (f"  ·  v{APP_VERSION}" if APP_VERSION else ""))
     st.caption("💾 Persistencia: " + ("GitHub (cloud) ✅" if USE_GITHUB_STORAGE else "Disco local"))
 
     if st.session_state.pop("_just_restored_config", False):
@@ -833,7 +851,7 @@ px_buster = st.session_state.cache_buster + (1 if refresh_px else 0)
 cur_prices = get_prices(tuple(sorted(sdata.keys())), _buster=px_buster)
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_paper1, tab_paper2, tab_docs = st.tabs([
+tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_paper1, tab_paper2, tab_docs, tab_ver = st.tabs([
     "🚨 Señales de Hoy",
     "🔍 Screening",
     "📊 Charts",
@@ -842,7 +860,15 @@ tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_paper1, tab_paper2, tab_d
     "🧪 Claude · Backtest 15",
     "🧪 Claude · Combinado",
     "📚 Como funciona Prophet",
+    "ℹ️ Versiones",
 ])
+
+with tab_ver:
+    st.subheader("Versiones de la app" + (f" · actual v{APP_VERSION}" if APP_VERSION else ""))
+    if VERSIONES_TXT:
+        st.markdown(VERSIONES_TXT.split("\n", 1)[1] if VERSIONES_TXT.startswith("#") else VERSIONES_TXT)
+    else:
+        st.info("No se encontro VERSIONES.md en la raiz del repositorio.")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — SEÑALES DE HOY
