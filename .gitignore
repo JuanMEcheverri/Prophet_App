@@ -15,3 +15,5 @@ Prophet_App/paper_page.html
 Prophet_App/backtests/results/15/fits/
 Prophet_App/backtests/results/15/*.parquet
 Prophet_App/backtests/results/15/*.json
+Prophet_App/slack_summary.md
+Prophet_App/user_presets.json

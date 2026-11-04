@@ -162,11 +162,93 @@ def main():
         strategy=dict(entry=est["entry_dev_pct"], exit=est["exit_dev_pct"], sl=est["sl_pct_pct"], hold=est["max_hold"], max_dev=est["max_dev_pct"]),
         positions=positions, positions_log=plog, paper=states, cfgs=paper.STRATEGIES, versions_md=versions_md,
     )
+    write_slack_summary(D.date().isoformat(), tick_data, positions, est, states, scr_raw)
     html = paper_page.build(page_data)
     out = os.path.join(APP_DIR, "paper_page.html")
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"[daily] pagina -> {out} ({len(html)//1024} KB) · total {time.time()-t0:.0f}s", flush=True)
+
+
+def _suggest(tick_data, S, SC, drop_req):
+    """Candidatos de compra con un selector. S en % (entry, max_dev); SC en fracciones."""
+    out = []
+    for t, d in tick_data.items():
+        if d.get("yhat") is None or d.get("r2") is None:
+            continue
+        if not (d["r2"] >= SC["min_r2"] and d["sigma"] <= SC["max_sigma"] and SC["min_growth"] <= d["growth"] <= SC["max_growth"] and d["adr"] <= SC["max_adr"]):
+            continue
+        dev = (d["close"] / d["yhat"] - 1) * 100
+        drop = (d["close"] / d["prev"] - 1) * 100 if d.get("prev") else None
+        if not (-S["max_dev"] < dev <= -S["entry"]):
+            continue
+        if drop is not None and drop <= -S["sl"]:
+            continue   # cuchillo cayendo
+        if drop_req and not (drop is not None and drop <= -drop_req):
+            continue
+        out.append((dev, t, drop, d["close"], d["yhat"]))
+    return sorted(out)
+
+
+def write_slack_summary(D, tick_data, positions, est, states, scr_raw):
+    """Escribe slack_summary.md: estado de mi cartera, decisiones segun reglas y sugerencias por selector.
+    Presets del usuario: lee user_presets.json si existe ({"1": {S, SC, drop}, ...}, como en la base de datos del artifact)."""
+    import poslog
+    from names import NAMES
+    nm = lambda t: f"{t} ({NAMES.get(t, t)})"
+    L = [f"*Prophet Trader · sesion {D}*", ""]
+    cfg = dict(sl=est["sl_pct_pct"], exit_dev=est["exit_dev_pct"], hold=est["max_hold"], date=D)
+    L.append("*Mi cartera*")
+    open_p = [p for p in positions if not p.get("cerrada")]
+    if not open_p:
+        L.append("Sin posiciones abiertas.")
+    tot_cap = tot_pnl = 0.0
+    for p in open_p:
+        d = tick_data.get(p["ticker"], {})
+        c, y = d.get("close"), d.get("yhat")
+        pnl = (c / p["precio_entrada"] - 1) * 100 if c else None
+        v, code = poslog.verdict(p, c, y, cfg)
+        tot_cap += p["capital"]; tot_pnl += p["capital"] * (pnl or 0) / 100
+        L.append(f"• {nm(p['ticker'])} · {p.get('plataforma', '')} {p.get('cantidad') or ''} acc. · entrada {p['precio_entrada']:.2f} $ · hoy {c:.2f} $ · "
+                 f"P&L {pnl:+.1f} % ({p['capital'] * (pnl or 0) / 100:+.2f} €)" if c else f"• {nm(p['ticker'])}: sin precio")
+        L.append(f"   → {'*VENDER* ' if code in ('sl', 'tp', 'hold') else ''}{v}")
+    if open_p:
+        L.append(f"Total: {tot_cap:.2f} € invertidos · P&L latente {tot_pnl:+.2f} €")
+    L.append("")
+    selectors = []
+    for key, c in paper.STRATEGIES.items():
+        prof = paper.SCREEN_PROFILES[-1]
+        selectors.append((c["name"], dict(entry=c["entry_dev"], max_dev=c["max_dev"], sl=c["sl"]),
+                          dict(min_r2=prof["min_r2"], max_sigma=prof["max_sigma"], min_growth=prof["min_growth"], max_growth=prof["max_growth"], max_adr=prof["max_adr"]),
+                          c["drop"]))
+    up_path = os.path.join(APP_DIR, "user_presets.json")
+    if os.path.exists(up_path):
+        try:
+            for n, p in sorted(json.load(open(up_path, encoding="utf-8")).items()):
+                S, SC = p["S"], p["SC"]
+                selectors.append((f"Mi preset {n}", dict(entry=S["entry"], max_dev=S["max_dev"], sl=S["sl"]),
+                                  dict(min_r2=SC["min_r2"], max_sigma=SC["max_sigma"] / 100, min_growth=SC["min_growth"] / 100,
+                                       max_growth=SC["max_growth"] / 100, max_adr=SC["max_adr"] / 100), p.get("drop")))
+        except Exception as e:
+            L.append(f"(no pude leer los presets guardados: {e})")
+    L.append("*Sugerencias de compra para la apertura de mañana*")
+    for name, S, SC, drop in selectors:
+        c = _suggest(tick_data, S, SC, drop)
+        L.append(f"_{name}_ (entrada {S['entry']:.0f}-{S['max_dev']:.0f} % bajo yhat{', caida dia ≥ ' + str(drop) + ' %' if drop else ''}): "
+                 + (", ".join(f"{nm(t)} {dev:+.1f} %" + (f" (dia {dr:+.1f} %)" if dr is not None else "") + f" · {cl:.2f} $" for dev, t, dr, cl, yh in c[:6])
+                    if c else "ninguna"))
+    L.append("")
+    L.append("*Carteras de papel de Claude*")
+    for key, st in states.items():
+        s = paper.summary(st)
+        last = [x for x in (st["log"][-1]["events"] if st["log"] else []) if "orden" in x or "COMPRA" in x or "VENTA" in x]
+        L.append(f"• {paper.STRATEGIES[key]['name']}: {s['equity']:.2f} $ ({s['ret']:+.1%}) · " + ("; ".join(last) if last else "sin operaciones hoy"))
+    L.append("")
+    L.append("Pagina: https://claude.ai/artifact/8Qs2ktpg4uhWNx6XmbVcnY · Simulacion y reglas mecanicas, no recomendacion de inversion.")
+    txt = "\n".join(L)
+    with open(os.path.join(APP_DIR, "slack_summary.md"), "w", encoding="utf-8") as f:
+        f.write(txt)
+    print(f"[daily] resumen para Slack -> slack_summary.md ({len(txt)} caracteres)", flush=True)
 
 
 if __name__ == "__main__":
