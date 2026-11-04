@@ -60,10 +60,10 @@ def worker(args):
     return ticker, out, pd.DataFrame(meta), time.time() - t0
 
 
-def run(refit_every=5, workers=8, tickers=None, limit_dates=None):
-    wide = C.load_prices()
+def run(refit_every=5, workers=8, tickers=None, limit_dates=None, start=None, force_prices=False):
+    wide = C.load_prices(force=force_prices)
     cal = C.trading_calendar(wide)
-    dates = C.fit_dates(cal, refit_every)
+    dates = C.fit_dates(cal, refit_every, start=pd.Timestamp(start) if start else C.SIM_START)
     if limit_dates:
         dates = dates[:limit_dates]
     out_dir = C.fit_bank_dir(refit_every)

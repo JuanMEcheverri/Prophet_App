@@ -11,6 +11,7 @@ import plotly.graph_objects as go
 import warnings, logging, json, os, base64
 import requests
 from datetime import date, timedelta
+import paper   # cartera de papel (Prophet_App/paper.py)
 
 warnings.filterwarnings("ignore")
 logging.getLogger("prophet").setLevel(logging.ERROR)
@@ -627,22 +628,41 @@ def train_models(tickers, t_start, t_end, seas_mode, intv_w, chpt_scale,
 
 @st.cache_data(ttl=900, show_spinner=False)
 def get_prices(tickers, _buster=0):
-    """Precios actuales — TTL 15 min."""
+    """Precios actuales — TTL 15 min. Devuelve ultimo cierre, apertura de ese dia y cierre anterior."""
     raw = yf.download(list(tickers), period="5d", auto_adjust=True, progress=False)
     out = {}
     for t in tickers:
         try:
             if isinstance(raw.columns, pd.MultiIndex):
-                cl = raw["Close"][t].dropna()
+                cl = raw["Close"][t].dropna(); op = raw["Open"][t]
             else:
-                cl = raw["Close"].dropna()
+                cl = raw["Close"].dropna(); op = raw["Open"]
             if cl.index.tz is not None:
-                cl.index = cl.index.tz_localize(None)
+                cl.index = cl.index.tz_localize(None); op.index = op.index.tz_localize(None)
             if len(cl):
-                out[t] = {"px": float(cl.iloc[-1]), "date": cl.index[-1].date()}
+                o = op.get(cl.index[-1])
+                out[t] = {"px": float(cl.iloc[-1]), "date": cl.index[-1].date(),
+                          "open": (None if o is None or pd.isna(o) else float(o)),
+                          "prev_px": (float(cl.iloc[-2]) if len(cl) > 1 else None)}
         except:
             pass
     return out
+
+
+@st.cache_data(ttl=86400, show_spinner=False)
+def get_fx_rate(d):
+    """EUR/USD (dolares por euro) al cierre de la fecha d o del ultimo dia anterior con dato."""
+    try:
+        ts = pd.Timestamp(d)
+        raw = yf.download("EURUSD=X", start=(ts - pd.Timedelta(days=10)).strftime("%Y-%m-%d"),
+                          end=(ts + pd.Timedelta(days=1)).strftime("%Y-%m-%d"), auto_adjust=True, progress=False)
+        cl = raw["Close"].squeeze().dropna()
+        if cl.index.tz is not None:
+            cl.index = cl.index.tz_localize(None)
+        cl = cl[cl.index <= ts]
+        return float(cl.iloc[-1]) if len(cl) else None
+    except Exception:
+        return None
 
 
 # ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -802,12 +822,14 @@ px_buster = st.session_state.cache_buster + (1 if refresh_px else 0)
 cur_prices = get_prices(tuple(sorted(sdata.keys())), _buster=px_buster)
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
-tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_docs = st.tabs([
+tab_hoy, tab_screen, tab_chart, tab_proj, tab_pos, tab_paper1, tab_paper2, tab_docs = st.tabs([
     "🚨 Señales de Hoy",
     "🔍 Screening",
     "📊 Charts",
     "📋 Proyecciones",
     "💼 Mis Posiciones",
+    "🧪 Claude · Backtest 15",
+    "🧪 Claude · Combinado",
     "📚 Como funciona Prophet",
 ])
 
@@ -1088,38 +1110,98 @@ with tab_proj:
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab_pos:
     st.subheader("Seguimiento de Posiciones")
+    st.caption("Precios en EUR o USD: la app convierte con el EUR/USD del dia (cierre de Yahoo) y guarda los dos. "
+               "Los calculos de SL / salida se hacen en USD, que es la moneda de la accion.")
 
-    # ── Agregar posicion ─────────────────────────────────────────────────────
-    with st.expander("➕ Agregar nueva posicion", expanded=False):
+    def _price_both(px, ccy, d):
+        """Devuelve (precio_usd, precio_eur, fx) a partir de un precio en la moneda indicada."""
+        fx = get_fx_rate(d)
+        if fx is None:
+            return (px, None, None) if ccy == "USD" else (None, px, None)
+        return (px, px / fx, fx) if ccy == "USD" else (px * fx, px, fx)
+
+    open_positions   = [(i, p) for i, p in enumerate(st.session_state.positions) if not p.get("cerrada")]
+    closed_positions = [(i, p) for i, p in enumerate(st.session_state.positions) if p.get("cerrada")]
+
+    # ── Agregar posicion (entrada) ───────────────────────────────────────────
+    with st.expander("➕ Registrar entrada (compra)", expanded=False):
         with st.form("add_pos", clear_on_submit=True):
-            pc1, pc2, pc3, pc4 = st.columns(4)
+            pc1, pc2, pc3, pc4, pc5 = st.columns(5)
             with pc1:
-                pos_ticker = st.selectbox("Ticker", sorted(sdata.keys()))
+                pos_ticker = st.selectbox("Ticker", sorted(set(sdata.keys()) | {p["ticker"] for _, p in open_positions}))
             with pc2:
                 pos_date   = st.date_input("Fecha entrada", value=TODAY)
             with pc3:
-                pos_px     = st.number_input("Precio entrada ($)", min_value=0.01, value=100.0, step=0.01)
+                pos_ccy    = st.selectbox("Moneda del precio", ["EUR", "USD"])
             with pc4:
+                pos_px     = st.number_input("Precio por accion", min_value=0.01, value=100.0, step=0.01)
+            with pc5:
                 pos_cap    = st.number_input("Capital invertido (EUR)", min_value=1.0, value=float(slot_cap), step=10.0)
             pos_note = st.text_input("Nota (opcional)")
             submitted = st.form_submit_button("Agregar", type="primary")
             if submitted:
-                st.session_state.positions.append({
-                    "ticker":    pos_ticker,
-                    "fecha_entrada": str(pos_date),
-                    "precio_entrada": pos_px,
-                    "capital":   pos_cap,
-                    "nota":      pos_note,
-                })
-                save_positions(st.session_state.positions)
-                st.success(f"Posicion {pos_ticker} agregada y guardada permanentemente.")
+                usd, eur, fx = _price_both(pos_px, pos_ccy, pos_date)
+                if usd is None:
+                    st.error("No pude obtener el EUR/USD de esa fecha; introduce el precio en USD.")
+                else:
+                    st.session_state.positions.append({
+                        "ticker":    pos_ticker,
+                        "fecha_entrada": str(pos_date),
+                        "precio_entrada": round(usd, 4),
+                        "precio_entrada_eur": (round(eur, 4) if eur is not None else None),
+                        "fx_entrada": fx, "moneda_entrada": pos_ccy,
+                        "capital":   pos_cap,
+                        "nota":      pos_note,
+                    })
+                    save_positions(st.session_state.positions)
+                    st.success(f"Entrada {pos_ticker} guardada: {usd:.2f} $" + (f" = {eur:.2f} € (EUR/USD {fx:.4f})" if eur is not None else ""))
 
-    # ── Tabla de posiciones ──────────────────────────────────────────────────
-    if not st.session_state.positions:
-        st.info("No tienes posiciones activas. Usa el formulario de arriba para agregar una.")
+    # ── Registrar salida (venta) ─────────────────────────────────────────────
+    with st.expander("➖ Registrar salida (venta)", expanded=False):
+        if not open_positions:
+            st.info("No hay posiciones abiertas que cerrar.")
+        else:
+            with st.form("close_pos", clear_on_submit=True):
+                sc1, sc2, sc3, sc4 = st.columns(4)
+                with sc1:
+                    sel_i = st.selectbox("Posicion", [i for i, _ in open_positions],
+                                         format_func=lambda i: f"{st.session_state.positions[i]['ticker']} (entrada {st.session_state.positions[i]['fecha_entrada']})")
+                with sc2:
+                    exit_date = st.date_input("Fecha salida", value=TODAY)
+                with sc3:
+                    exit_ccy  = st.selectbox("Moneda del precio", ["EUR", "USD"], key="exit_ccy")
+                with sc4:
+                    exit_px   = st.number_input("Precio de venta por accion", min_value=0.01, value=100.0, step=0.01)
+                exit_note = st.text_input("Motivo (take profit, stop loss, tiempo, otro)")
+                if st.form_submit_button("Cerrar posicion", type="primary"):
+                    usd, eur, fx = _price_both(exit_px, exit_ccy, exit_date)
+                    if usd is None:
+                        st.error("No pude obtener el EUR/USD de esa fecha; introduce el precio en USD.")
+                    else:
+                        p = st.session_state.positions[sel_i]
+                        ent_eur = p.get("precio_entrada_eur")
+                        if ent_eur is None and p.get("precio_entrada"):
+                            fx_e = get_fx_rate(p["fecha_entrada"])
+                            ent_eur = p["precio_entrada"] / fx_e if fx_e else None
+                            p["precio_entrada_eur"] = (round(ent_eur, 4) if ent_eur else None); p["fx_entrada"] = fx_e
+                        ratio_eur = (eur / ent_eur) if (eur is not None and ent_eur) else (usd / p["precio_entrada"])
+                        p.update({
+                            "cerrada": True, "fecha_salida": str(exit_date),
+                            "precio_salida": round(usd, 4), "precio_salida_eur": (round(eur, 4) if eur is not None else None),
+                            "fx_salida": fx, "moneda_salida": exit_ccy, "motivo_salida": exit_note,
+                            "pnl_pct": round((ratio_eur - 1) * 100, 2),
+                            "pnl_eur": round(p["capital"] * (ratio_eur - 1), 2),
+                        })
+                        save_positions(st.session_state.positions)
+                        st.success(f"Salida {p['ticker']} guardada: {usd:.2f} $" + (f" = {eur:.2f} €" if eur is not None else "") + f"  → P&L {p['pnl_eur']:+.2f} € ({p['pnl_pct']:+.1f}%)")
+                        st.rerun()
+
+    # ── Tabla de posiciones abiertas ─────────────────────────────────────────
+    if not open_positions:
+        st.info("No tienes posiciones abiertas. Usa el formulario de arriba para agregar una.")
     else:
         pos_rows = []
-        for i, pos in enumerate(st.session_state.positions):
+        for i, pos in open_positions:
             t     = pos["ticker"]
             epx   = pos["precio_entrada"]
             cap   = pos["capital"]
@@ -1152,6 +1234,7 @@ with tab_pos:
                 "Ticker":      t,
                 "Entrada":     edate,
                 "Precio Ent.": epx,
+                "Prec. Ent. €": pos.get("precio_entrada_eur"),
                 "Precio Hoy":  round(cpx, 2) if cpx else None,
                 "P&L%":        round(pnl_pct, 1) if pnl_pct is not None else None,
                 "P&L EUR":     round(pnl_eur, 2) if pnl_eur is not None else None,
@@ -1167,15 +1250,15 @@ with tab_pos:
 
         df_pos = pd.DataFrame(pos_rows)
 
-        # P&L agregado
-        total_invested = sum(p["capital"] for p in st.session_state.positions)
+        # P&L agregado (solo abiertas)
+        total_invested = sum(p["capital"] for _, p in open_positions)
         total_pnl_eur  = df_pos["P&L EUR"].dropna().sum()
         total_pnl_pct  = total_pnl_eur / total_invested * 100 if total_invested > 0 else 0
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Capital invertido", f"€{total_invested:,.0f}")
-        m2.metric("P&L total", f"€{total_pnl_eur:+,.2f}", f"{total_pnl_pct:+.1f}%")
-        m3.metric("Posiciones activas", len(st.session_state.positions))
+        m2.metric("P&L latente", f"€{total_pnl_eur:+,.2f}", f"{total_pnl_pct:+.1f}%")
+        m3.metric("Posiciones abiertas", len(open_positions))
         m4.metric("Con TP alcanzado", len(df_pos[df_pos["Estado"].str.contains("TP")]))
 
         st.dataframe(
@@ -1187,6 +1270,7 @@ with tab_pos:
                 "Ticker":      st.column_config.TextColumn("Ticker", width=70),
                 "Entrada":     st.column_config.DateColumn("Entrada", width=95),
                 "Precio Ent.": st.column_config.NumberColumn("Prec. Ent. $", format="$%.2f"),
+                "Prec. Ent. €": st.column_config.NumberColumn("Prec. Ent. €", format="€%.2f"),
                 "Precio Hoy":  st.column_config.NumberColumn("Prec. Hoy $", format="$%.2f"),
                 "P&L%":        st.column_config.NumberColumn("P&L%", format="%.1f%%"),
                 "P&L EUR":     st.column_config.NumberColumn("P&L EUR", format="€%.2f"),
@@ -1201,14 +1285,42 @@ with tab_pos:
             },
         )
 
-        # Eliminar posiciones
+    # ── Mis salidas (posiciones cerradas) ────────────────────────────────────
+    st.markdown("---")
+    st.markdown("#### Mis salidas")
+    if not closed_positions:
+        st.caption("Aun no has registrado ninguna venta.")
+    else:
+        df_cl = pd.DataFrame([{
+            "Ticker": p["ticker"], "Entrada": pd.Timestamp(p["fecha_entrada"]).date(),
+            "Prec. Ent. $": p["precio_entrada"], "Prec. Ent. €": p.get("precio_entrada_eur"),
+            "Salida": pd.Timestamp(p["fecha_salida"]).date(),
+            "Prec. Sal. $": p["precio_salida"], "Prec. Sal. €": p.get("precio_salida_eur"),
+            "Dias": (pd.Timestamp(p["fecha_salida"]) - pd.Timestamp(p["fecha_entrada"])).days,
+            "Capital €": p["capital"], "P&L%": p.get("pnl_pct"), "P&L EUR": p.get("pnl_eur"),
+            "Motivo": p.get("motivo_salida", ""), "Nota": p.get("nota", ""),
+        } for _, p in closed_positions]).sort_values("Salida", ascending=False)
+        r1, r2, r3 = st.columns(3)
+        r1.metric("Ventas registradas", len(df_cl))
+        r2.metric("P&L realizado", f"€{df_cl['P&L EUR'].fillna(0).sum():+,.2f}")
+        r3.metric("Acierto", f"{(df_cl['P&L EUR'].fillna(0) > 0).mean()*100:.0f}%")
+        st.dataframe(df_cl, use_container_width=True, hide_index=True, column_config={
+            "Prec. Ent. $": st.column_config.NumberColumn(format="$%.2f"), "Prec. Ent. €": st.column_config.NumberColumn(format="€%.2f"),
+            "Prec. Sal. $": st.column_config.NumberColumn(format="$%.2f"), "Prec. Sal. €": st.column_config.NumberColumn(format="€%.2f"),
+            "Capital €": st.column_config.NumberColumn(format="€%.0f"), "P&L%": st.column_config.NumberColumn(format="%.1f%%"),
+            "P&L EUR": st.column_config.NumberColumn(format="€%.2f"),
+        })
+
+    # Eliminar posiciones (abiertas o cerradas)
+    if st.session_state.positions:
         st.markdown("---")
         with st.form("del_pos"):
             del_idx = st.multiselect(
                 "Eliminar posiciones",
                 options=list(range(len(st.session_state.positions))),
                 format_func=lambda i: (f"{st.session_state.positions[i]['ticker']}  "
-                                       f"(entrada {st.session_state.positions[i]['fecha_entrada']})"),
+                                       f"(entrada {st.session_state.positions[i]['fecha_entrada']}"
+                                       + (", cerrada" if st.session_state.positions[i].get("cerrada") else "") + ")"),
             )
             if st.form_submit_button("Eliminar seleccionadas"):
                 st.session_state.positions = [
@@ -1216,6 +1328,122 @@ with tab_pos:
                 ]
                 save_positions(st.session_state.positions)
                 st.rerun()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TABS 6-7 — CARTERA DE PAPEL DE CLAUDE (dos estrategias, un dia cada vez, sin mirar el futuro)
+# ═══════════════════════════════════════════════════════════════════════════════
+PAPER_FILES = {"bt15": "paper_bt15.json", "combo": "paper_combo.json"}
+if "paper" not in st.session_state:
+    st.session_state.paper = {k: (load_json(f, None) or paper.new_state(k)) for k, f in PAPER_FILES.items()}
+
+# Avance diario: solo con la ultima sesion COMPLETA (fecha < hoy, para no usar una vela intradia),
+# y solo si esa sesion aun no se habia procesado. yhat sale del ajuste de esta sesion, entrenado
+# con cierres hasta esa misma fecha. Las ordenes decididas hoy se ejecutan a la apertura siguiente.
+_last_bar = max((v["date"] for v in cur_prices.values()), default=None)
+_held = set()
+for _st in st.session_state.paper.values():
+    for _s in _st["slots"]:
+        if _s["position"]:
+            _held.add(_s["position"]["ticker"])
+        if _s["pending"]:
+            _held.add(_s["pending"]["ticker"])
+_extra = tuple(sorted(_held - set(sdata.keys())))
+_all_px = {**cur_prices, **(get_prices(_extra, _buster=px_buster) if _extra else {})}
+_paper_msgs = []
+if _last_bar and _last_bar < TODAY:
+    _day = {}
+    for _t, _info in _all_px.items():
+        if _info["date"] != _last_bar:
+            continue
+        _yh = get_yhat_at(sdata[_t]["fc_dict"], pd.Timestamp(_last_bar)) if _t in sdata else None
+        _day[_t] = dict(open=_info.get("open"), close=_info["px"], prev_close=_info.get("prev_px"),
+                        yhat=(_yh[0] if _yh else None), screen=(_t in sdata))
+    for _k, _state in st.session_state.paper.items():
+        if _state["last_date"] is None or date.fromisoformat(_state["last_date"]) < _last_bar:
+            paper.step(_state, _last_bar, _day)
+            save_json(PAPER_FILES[_k], _state, f"Cartera de papel {_k}: sesion {_last_bar}")
+            _paper_msgs.append(f"{_k}: procesada la sesion del {_last_bar}")
+
+
+def render_paper(state, key):
+    cfg = paper.STRATEGIES[key]
+    s = paper.summary(state)
+    st.subheader(f"Cartera de papel · {cfg['name']}")
+    st.caption(
+        f"Entrada: precio entre {cfg['entry_dev']:.0f}% y {cfg['max_dev']:.0f}% por debajo de yhat"
+        + (f" **y** caida del dia >= {cfg['drop']:.0f}%" if cfg["drop"] else "")
+        + f", con screening. Salida (en este orden): {cfg['hold']} dias → stop loss {cfg['sl']:.0f}% → precio >= yhat +{cfg['exit_dev']:.0f}%. "
+        f"Capital {paper.CAPITAL:.0f} $ en {paper.SLOTS} slots, {paper.FEE:.0f} $ por operacion. "
+        "Cada decision usa solo los datos de ese dia y se ejecuta a la apertura del dia siguiente; "
+        "la app avanza un dia cada vez que se abre con una sesion nueva completa."
+    )
+    if _paper_msgs:
+        st.info(" · ".join(_paper_msgs))
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Valor cartera", f"${s['equity']:,.2f}", f"{s['ret']:+.1%}")
+    c2.metric("Ultima sesion", state["last_date"] or "—")
+    c3.metric("Operaciones cerradas", s["n_closed"])
+    c4.metric("Acierto", f"{s['win_rate']*100:.0f}%" if s["win_rate"] is not None else "—")
+    c5.metric("P&L cerrado", f"${s['pnl_closed']:+,.2f}")
+
+    # posiciones abiertas y ordenes pendientes
+    rows = []
+    for i, slot in enumerate(state["slots"]):
+        p, o = slot["position"], slot["pending"]
+        if p:
+            cpx = _all_px.get(p["ticker"], {}).get("px")
+            yh = get_yhat_at(sdata[p["ticker"]]["fc_dict"], TODAY_TS) if p["ticker"] in sdata else None
+            rows.append({"Slot": i + 1, "Estado": "abierta" + (f" · orden de venta ({o['reason']})" if o and o["side"] == "sell" else ""),
+                         "Ticker": p["ticker"], "Señal": p["signal_date"], "Dev señal%": p["signal_dev"],
+                         "Caida señal%": p.get("signal_drop"), "Compra": p["fill_date"], "Precio compra": p["fill_px"],
+                         "Precio hoy": cpx, "P&L%": ((cpx / p["fill_px"] - 1) * 100 if cpx else None),
+                         "Dias": (TODAY - date.fromisoformat(p["fill_date"])).days,
+                         "Vender si >=": (yh[0] * (1 + cfg["exit_dev"] / 100) if yh else None),
+                         "Stop loss": p["fill_px"] * (1 - cfg["sl"] / 100)})
+        elif o:
+            rows.append({"Slot": i + 1, "Estado": "orden de compra pendiente", "Ticker": o["ticker"], "Señal": o["signal_date"],
+                         "Dev señal%": o["dev"], "Caida señal%": o.get("drop"), "Compra": None, "Precio compra": None,
+                         "Precio hoy": _all_px.get(o["ticker"], {}).get("px"), "P&L%": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
+        else:
+            rows.append({"Slot": i + 1, "Estado": f"libre ({slot['cash']:.2f} $)", "Ticker": None, "Señal": None, "Dev señal%": None,
+                         "Caida señal%": None, "Compra": None, "Precio compra": None, "Precio hoy": None, "P&L%": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
+    st.markdown("#### Posiciones abiertas y ordenes")
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, column_config={
+        "Dev señal%": st.column_config.NumberColumn(format="%.1f%%"), "Caida señal%": st.column_config.NumberColumn(format="%.1f%%"),
+        "Precio compra": st.column_config.NumberColumn(format="$%.2f"), "Precio hoy": st.column_config.NumberColumn(format="$%.2f"),
+        "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "Vender si >=": st.column_config.NumberColumn(format="$%.2f"),
+        "Stop loss": st.column_config.NumberColumn(format="$%.2f")})
+
+    st.markdown("#### Operaciones cerradas")
+    if state["closed"]:
+        df_c = pd.DataFrame([{"Ticker": c["ticker"], "Señal": c["signal_date"], "Dev señal%": c["signal_dev"], "Caida señal%": c.get("signal_drop"),
+                              "Compra": c["fill_date"], "Precio compra": c["fill_px"], "Venta": c["exit_date"], "Precio venta": c["exit_px"],
+                              "Motivo": c["exit_reason"], "Dias": c["days"], "P&L%": c["pnl_pct"] * 100, "P&L $": c["pnl_cash"]}
+                             for c in state["closed"]]).sort_values("Venta", ascending=False)
+        st.dataframe(df_c, use_container_width=True, hide_index=True, column_config={
+            "Dev señal%": st.column_config.NumberColumn(format="%.1f%%"), "Caida señal%": st.column_config.NumberColumn(format="%.1f%%"),
+            "Precio compra": st.column_config.NumberColumn(format="$%.2f"), "Precio venta": st.column_config.NumberColumn(format="$%.2f"),
+            "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "P&L $": st.column_config.NumberColumn(format="$%.2f")})
+    else:
+        st.caption("Todavia no hay operaciones cerradas.")
+
+    if state["equity"]:
+        eq = pd.DataFrame(state["equity"])
+        fig = go.Figure(go.Scatter(x=eq["date"], y=eq["equity"], mode="lines", line=dict(color="#4facde", width=2), name="Cartera"))
+        fig.add_hline(y=paper.CAPITAL, line_dash="dot", line_color="rgba(200,200,200,0.4)")
+        fig.update_layout(height=260, margin=dict(l=40, r=20, t=20, b=30), paper_bgcolor="#0c1118", plot_bgcolor="#131c27",
+                          font_color="#c8d6e5", yaxis=dict(tickprefix="$", gridcolor="#1e2d40"), xaxis=dict(gridcolor="#1e2d40"))
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+    with st.expander("Diario de decisiones (dia a dia)"):
+        for e in reversed(state["log"]):
+            st.markdown(f"**{e['date']}**  \n" + "  \n".join(f"· {x}" for x in e["events"]))
+
+
+with tab_paper1:
+    render_paper(st.session_state.paper["bt15"], "bt15")
+with tab_paper2:
+    render_paper(st.session_state.paper["combo"], "combo")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 6 — COMO FUNCIONA PROPHET

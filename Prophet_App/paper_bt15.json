@@ -1,0 +1,364 @@
+{
+  "strategy": "bt15",
+  "last_date": "2026-11-04",
+  "slots": [
+    {
+      "cash": 0.0,
+      "position": {
+        "ticker": "SBUX",
+        "signal_date": "2026-10-09",
+        "signal_close": 90.75,
+        "signal_dev": -4.78,
+        "signal_drop": -12.62,
+        "fill_date": "2026-10-12",
+        "fill_px": 91.2556,
+        "shares": 3.6417854735515105,
+        "cash_in": 333.3333333333333
+      },
+      "pending": null
+    },
+    {
+      "cash": 0.0,
+      "position": {
+        "ticker": "GOOGL",
+        "signal_date": "2026-10-30",
+        "signal_close": 279.84,
+        "signal_dev": -6.7,
+        "signal_drop": -18.55,
+        "fill_date": "2026-11-02",
+        "fill_px": 282.6012,
+        "shares": 0.9358430710775444,
+        "cash_in": 265.4703949727872
+      },
+      "pending": null
+    },
+    {
+      "cash": 0.0,
+      "position": {
+        "ticker": "AMZN",
+        "signal_date": "2026-10-22",
+        "signal_close": 250.38,
+        "signal_dev": -5.6,
+        "signal_drop": -11.84,
+        "fill_date": "2026-10-23",
+        "fill_px": 248.9744,
+        "shares": 1.2308124174852182,
+        "cash_in": 307.4408214422811
+      },
+      "pending": {
+        "side": "sell",
+        "ticker": "AMZN",
+        "reason": "yhat +7%",
+        "decided": "2026-11-04"
+      }
+    }
+  ],
+  "closed": [
+    {
+      "ticker": "SNPS",
+      "signal_date": "2026-10-12",
+      "signal_close": 502.51,
+      "signal_dev": -5.67,
+      "signal_drop": 33.08,
+      "fill_date": "2026-10-13",
+      "fill_px": 497.5387,
+      "shares": 0.6679548030341601,
+      "cash_in": 333.3333333333333,
+      "exit_date": "2026-10-19",
+      "exit_px": 461.769,
+      "exit_reason": "stop loss 7%",
+      "days": 6,
+      "pnl_pct": -0.07189,
+      "pnl_cash": -25.89,
+      "cash_out": 307.44
+    },
+    {
+      "ticker": "AVGO",
+      "signal_date": "2026-10-12",
+      "signal_close": 354.73,
+      "signal_dev": -5.7,
+      "signal_drop": -10.44,
+      "fill_date": "2026-10-13",
+      "fill_px": 349.7748,
+      "shares": 0.950135137040373,
+      "cash_in": 333.3333333333333,
+      "exit_date": "2026-10-23",
+      "exit_px": 321.3392,
+      "exit_reason": "stop loss 7%",
+      "days": 10,
+      "pnl_pct": -0.0813,
+      "pnl_cash": -29.02,
+      "cash_out": 304.32
+    },
+    {
+      "ticker": "GOOG",
+      "signal_date": "2026-10-23",
+      "signal_close": 317.28,
+      "signal_dev": -4.32,
+      "signal_drop": -15.42,
+      "fill_date": "2026-10-26",
+      "fill_px": 318.204,
+      "shares": 0.9532113929494137,
+      "cash_in": 304.31571233520066,
+      "exit_date": "2026-10-30",
+      "exit_px": 279.5502,
+      "exit_reason": "stop loss 7%",
+      "days": 4,
+      "pnl_pct": -0.12148,
+      "pnl_cash": -38.85,
+      "cash_out": 265.47
+    }
+  ],
+  "equity": [
+    {
+      "date": "2026-10-01",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-02",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-05",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-06",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-07",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-08",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-09",
+      "equity": 1000.0
+    },
+    {
+      "date": "2026-10-12",
+      "equity": 1002.77
+    },
+    {
+      "date": "2026-10-13",
+      "equity": 1004.85
+    },
+    {
+      "date": "2026-10-14",
+      "equity": 989.15
+    },
+    {
+      "date": "2026-10-15",
+      "equity": 992.65
+    },
+    {
+      "date": "2026-10-16",
+      "equity": 971.18
+    },
+    {
+      "date": "2026-10-19",
+      "equity": 981.77
+    },
+    {
+      "date": "2026-10-20",
+      "equity": 987.02
+    },
+    {
+      "date": "2026-10-21",
+      "equity": 989.22
+    },
+    {
+      "date": "2026-10-22",
+      "equity": 985.7
+    },
+    {
+      "date": "2026-10-23",
+      "equity": 976.65
+    },
+    {
+      "date": "2026-10-26",
+      "equity": 980.05
+    },
+    {
+      "date": "2026-10-27",
+      "equity": 988.77
+    },
+    {
+      "date": "2026-10-28",
+      "equity": 996.03
+    },
+    {
+      "date": "2026-10-29",
+      "equity": 953.42
+    },
+    {
+      "date": "2026-10-30",
+      "equity": 938.84
+    },
+    {
+      "date": "2026-11-02",
+      "equity": 943.62
+    },
+    {
+      "date": "2026-11-03",
+      "equity": 952.17
+    },
+    {
+      "date": "2026-11-04",
+      "equity": 999.77
+    }
+  ],
+  "log": [
+    {
+      "date": "2026-10-01",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-05",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-06",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-08",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-09",
+      "events": [
+        "slot 1: orden de COMPRA SBUX (-4.8% bajo yhat, caida del dia -12.6%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-12",
+      "events": [
+        "slot 1: COMPRA SBUX a 91.26 (señal 2026-10-09, -4.8% bajo yhat)",
+        "slot 2: orden de COMPRA AVGO (-5.7% bajo yhat, caida del dia -10.4%) para la apertura siguiente",
+        "slot 3: orden de COMPRA SNPS (-5.7% bajo yhat, caida del dia +33.1%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-13",
+      "events": [
+        "slot 2: COMPRA AVGO a 349.77 (señal 2026-10-12, -5.7% bajo yhat)",
+        "slot 3: COMPRA SNPS a 497.54 (señal 2026-10-12, -5.7% bajo yhat)"
+      ]
+    },
+    {
+      "date": "2026-10-14",
+      "events": []
+    },
+    {
+      "date": "2026-10-15",
+      "events": []
+    },
+    {
+      "date": "2026-10-16",
+      "events": [
+        "slot 3: orden de VENTA SNPS (stop loss 7%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-19",
+      "events": [
+        "slot 3: VENTA SNPS a 461.77 por stop loss 7% (-7.2%, 6 d)",
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-20",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-21",
+      "events": [
+        "sin candidatos que cumplan el criterio"
+      ]
+    },
+    {
+      "date": "2026-10-22",
+      "events": [
+        "slot 2: orden de VENTA AVGO (stop loss 7%) para la apertura siguiente",
+        "slot 3: orden de COMPRA AMZN (-5.6% bajo yhat, caida del dia -11.8%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-23",
+      "events": [
+        "slot 2: VENTA AVGO a 321.34 por stop loss 7% (-8.1%, 10 d)",
+        "slot 3: COMPRA AMZN a 248.97 (señal 2026-10-22, -5.6% bajo yhat)",
+        "slot 2: orden de COMPRA GOOG (-4.3% bajo yhat, caida del dia -15.4%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-26",
+      "events": [
+        "slot 2: COMPRA GOOG a 318.20 (señal 2026-10-23, -4.3% bajo yhat)"
+      ]
+    },
+    {
+      "date": "2026-10-27",
+      "events": []
+    },
+    {
+      "date": "2026-10-28",
+      "events": []
+    },
+    {
+      "date": "2026-10-29",
+      "events": [
+        "slot 2: orden de VENTA GOOG (stop loss 7%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-10-30",
+      "events": [
+        "slot 2: VENTA GOOG a 279.55 por stop loss 7% (-12.1%, 4 d)",
+        "slot 2: orden de COMPRA GOOGL (-6.7% bajo yhat, caida del dia -18.6%) para la apertura siguiente"
+      ]
+    },
+    {
+      "date": "2026-11-02",
+      "events": [
+        "slot 2: COMPRA GOOGL a 282.60 (señal 2026-10-30, -6.7% bajo yhat)"
+      ]
+    },
+    {
+      "date": "2026-11-03",
+      "events": []
+    },
+    {
+      "date": "2026-11-04",
+      "events": [
+        "slot 3: orden de VENTA AMZN (yhat +7%) para la apertura siguiente"
+      ]
+    }
+  ]
+}
