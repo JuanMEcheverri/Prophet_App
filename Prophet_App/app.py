@@ -14,6 +14,37 @@ from datetime import date, timedelta
 import paper   # cartera de papel (Prophet_App/paper.py)
 from names import NAMES, label as ticker_label
 
+# Explicacion de cada columna (aparece al pasar el raton por la cabecera; las tablas se ordenan al hacer clic)
+COL_HELP = {
+    "Ticker": "Simbolo en bolsa", "Nombre": "Nombre de la empresa", "Precio Hoy": "Ultimo cierre en USD",
+    "Caida dia%": "Cierre de hoy frente al cierre anterior", "yhat": "Precio 'justo' que estima Prophet para hoy",
+    "Dev%": "Precio / yhat − 1. Negativo = por debajo del precio justo",
+    "Señal": "COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap",
+    "Thr Compra": "Umbral de compra: yhat × (1 − entrada %)", "Thr Venta": "Umbral de venta: yhat × (1 + salida %)",
+    "SL Ref": "Precio al que saltaria el stop loss si comprases hoy", "Dist TP%": "Distancia del precio al umbral de venta",
+    "Dist SL%": "Distancia del precio al stop loss", "R2": "Que tan bien explica Prophet el precio del ultimo año (1 = perfecto)",
+    "Pass": "Si cumple todos los filtros del screening", "Sigma%": "Ruido: desviacion tipica de (precio − yhat)/yhat",
+    "Growth%/yr": "Crecimiento anual implicito en la tendencia de Prophet", "ADR%": "Rango diario medio (max − min)/cierre de 90 dias",
+    "Motivo": "Por que no pasa el screening", "Entrada": "Fecha de compra", "Precio Ent.": "Precio de compra por accion (USD)",
+    "Prec. Ent. €": "Precio de compra por accion en EUR al cambio de ese dia", "P&L%": "Ganancia o perdida en porcentaje",
+    "P&L EUR": "Ganancia o perdida en euros", "Dias": "Dias naturales", "Dev yhat%": "Precio actual / yhat − 1",
+    "SL Ref $": "Precio de stop loss (entrada − SL %)", "TP Ref $": "Objetivo de venta: yhat × (1 + salida %)",
+    "Estado": "Situacion de la posicion segun las reglas", "Nota": "Nota libre", "Slot": "Hueco de la cartera (max. 3)",
+    "Acciones": "Numero de acciones enteras", "Señal": "Fecha de la señal", "Dev señal%": "Cuanto estaba bajo yhat el dia de la señal",
+    "Caida señal%": "Caida del dia de la señal", "Compra": "Fecha de compra (apertura siguiente a la señal)",
+    "Precio compra": "Precio de compra por accion (USD)", "Invertido": "Dinero puesto en la posicion, comision incluida",
+    "P&L $": "Ganancia o perdida en dolares", "Vender si >=": "Precio al que la regla vende: yhat × (1 + salida %)",
+    "Stop loss": "Precio al que la regla vende por perdida", "Venta": "Fecha de venta", "Precio venta": "Precio de venta (USD)",
+    "Fecha": "Dia futuro del yhat", "yhat_lo": "Limite inferior de la banda (IC)", "yhat_hi": "Limite superior de la banda (IC)",
+}
+
+
+def _with_help(cc):
+    for k, v in cc.items():
+        if isinstance(v, dict) and k in COL_HELP and not v.get("help"):
+            v["help"] = COL_HELP[k]
+    return cc
+
 warnings.filterwarnings("ignore")
 logging.getLogger("prophet").setLevel(logging.ERROR)
 logging.getLogger("cmdstanpy").setLevel(logging.ERROR)
@@ -971,7 +1002,7 @@ with tab_hoy:
         use_container_width=True,
         height=420,
         hide_index=True,
-        column_config={
+        column_config=_with_help({
             "Ticker":     st.column_config.TextColumn("Ticker", width=70),
             "Nombre":     st.column_config.TextColumn("Nombre", width=170),
             "Precio Hoy": st.column_config.NumberColumn("Precio $", format="$%.2f"),
@@ -985,7 +1016,7 @@ with tab_hoy:
             "Dist TP%":   st.column_config.NumberColumn("Dist TP%", format="+%.1f%%"),
             "Dist SL%":   st.column_config.NumberColumn("Dist SL%", format="%.1f%%"),
             "R2":         st.column_config.ProgressColumn("R²", min_value=0, max_value=1, format="%.2f"),
-        },
+        }),
     )
     st.caption(
         "Dev% = (Precio / yhat − 1) × 100  |  "
@@ -1020,7 +1051,7 @@ with tab_screen:
         use_container_width=True,
         height=500,
         hide_index=True,
-        column_config={
+        column_config=_with_help({
             "Ticker":       st.column_config.TextColumn("Ticker", width=70),
             "Nombre":       st.column_config.TextColumn("Nombre", width=170),
             "Pass":         st.column_config.CheckboxColumn("Pasa"),
@@ -1029,7 +1060,7 @@ with tab_screen:
             "Growth%/yr":   st.column_config.NumberColumn("Crec%/yr", format="%.1f%%"),
             "ADR%":         st.column_config.NumberColumn("ADR%", format="%.1f%%"),
             "Motivo":       st.column_config.TextColumn("Motivo", width=220),
-        },
+        }),
     )
     n_pass = screen_log["Pass"].sum()
     n_fail = len(screen_log) - n_pass
@@ -1162,7 +1193,7 @@ with tab_proj:
             use_container_width=True,
             height=520,
             hide_index=True,
-            column_config={
+            column_config=_with_help({
                 "Ticker":     st.column_config.TextColumn("Ticker", width=70),
                 "Fecha":      st.column_config.DateColumn("Fecha", width=100),
                 "Dias":       st.column_config.NumberColumn("Dias", format="%d"),
@@ -1174,7 +1205,7 @@ with tab_proj:
                 "Precio Hoy": st.column_config.NumberColumn("Precio Hoy $", format="$%.2f"),
                 "Dev%":       st.column_config.NumberColumn("Dev%", format="%.1f%%"),
                 "Señal":      st.column_config.TextColumn("Señal", width=140),
-            },
+            }),
         )
         st.caption(f"{len(df_proj)} filas  |  {len(sel_tickers)} acciones")
 
@@ -1347,7 +1378,7 @@ with tab_pos:
             use_container_width=True,
             height=350,
             hide_index=True,
-            column_config={
+            column_config=_with_help({
                 "Ticker":      st.column_config.TextColumn("Ticker", width=70),
                 "Entrada":     st.column_config.DateColumn("Entrada", width=95),
                 "Precio Ent.": st.column_config.NumberColumn("Prec. Ent. $", format="$%.2f"),
@@ -1363,7 +1394,7 @@ with tab_pos:
                 "Dist SL%":    st.column_config.NumberColumn("Dist SL%", format="%.1f%%"),
                 "Estado":      st.column_config.TextColumn("Estado", width=150),
                 "Nota":        st.column_config.TextColumn("Nota", width=180),
-            },
+            }),
         )
 
     # ── Mis salidas (posiciones cerradas) ────────────────────────────────────
@@ -1385,12 +1416,12 @@ with tab_pos:
         r1.metric("Ventas registradas", len(df_cl))
         r2.metric("P&L realizado", f"€{df_cl['P&L EUR'].fillna(0).sum():+,.2f}")
         r3.metric("Acierto", f"{(df_cl['P&L EUR'].fillna(0) > 0).mean()*100:.0f}%")
-        st.dataframe(df_cl, use_container_width=True, hide_index=True, column_config={
+        st.dataframe(df_cl, use_container_width=True, hide_index=True, column_config=_with_help({
             "Prec. Ent. $": st.column_config.NumberColumn(format="$%.2f"), "Prec. Ent. €": st.column_config.NumberColumn(format="€%.2f"),
             "Prec. Sal. $": st.column_config.NumberColumn(format="$%.2f"), "Prec. Sal. €": st.column_config.NumberColumn(format="€%.2f"),
             "Capital €": st.column_config.NumberColumn(format="€%.0f"), "P&L%": st.column_config.NumberColumn(format="%.1f%%"),
             "P&L EUR": st.column_config.NumberColumn(format="€%.2f"),
-        })
+        }))
 
     # Eliminar posiciones (abiertas o cerradas)
     if st.session_state.positions:
@@ -1499,12 +1530,12 @@ def render_paper(state, key):
             rows.append({"Slot": i + 1, "Estado": "libre", "Ticker": None, "Nombre": None, "Acciones": None, "Señal": None, "Dev señal%": None,
                          "Caida señal%": None, "Compra": None, "Precio compra": None, "Invertido": None, "Precio hoy": None, "P&L%": None, "P&L $": None, "Dias": None, "Vender si >=": None, "Stop loss": None})
     st.markdown("#### Posiciones abiertas y ordenes")
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, column_config={
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True, column_config=_with_help({
         "Dev señal%": st.column_config.NumberColumn(format="%.1f%%"), "Caida señal%": st.column_config.NumberColumn(format="%.1f%%"),
         "Precio compra": st.column_config.NumberColumn(format="$%.2f"), "Precio hoy": st.column_config.NumberColumn(format="$%.2f"),
         "Invertido": st.column_config.NumberColumn(format="$%.2f"), "P&L $": st.column_config.NumberColumn(format="$%.2f"),
         "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "Vender si >=": st.column_config.NumberColumn(format="$%.2f"),
-        "Stop loss": st.column_config.NumberColumn(format="$%.2f")})
+        "Stop loss": st.column_config.NumberColumn(format="$%.2f")}))
 
     st.markdown("#### Operaciones cerradas")
     if state["closed"]:
@@ -1512,10 +1543,10 @@ def render_paper(state, key):
                               "Compra": c["fill_date"], "Precio compra": c["fill_px"], "Venta": c["exit_date"], "Precio venta": c["exit_px"],
                               "Motivo": c["exit_reason"], "Dias": c["days"], "P&L%": c["pnl_pct"] * 100, "P&L $": c["pnl_cash"]}
                              for c in state["closed"]]).sort_values("Venta", ascending=False)
-        st.dataframe(df_c, use_container_width=True, hide_index=True, column_config={
+        st.dataframe(df_c, use_container_width=True, hide_index=True, column_config=_with_help({
             "Dev señal%": st.column_config.NumberColumn(format="%.1f%%"), "Caida señal%": st.column_config.NumberColumn(format="%.1f%%"),
             "Precio compra": st.column_config.NumberColumn(format="$%.2f"), "Precio venta": st.column_config.NumberColumn(format="$%.2f"),
-            "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "P&L $": st.column_config.NumberColumn(format="$%.2f")})
+            "P&L%": st.column_config.NumberColumn(format="%.1f%%"), "P&L $": st.column_config.NumberColumn(format="$%.2f")}))
     else:
         st.caption("Todavia no hay operaciones cerradas.")
 

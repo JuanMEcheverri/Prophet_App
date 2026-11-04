@@ -19,7 +19,7 @@ def _versions_html(md):
         cells = [c.strip() for c in r.strip("|").split("|")]
         cells = [re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", html.escape(c)).replace("`", "") for c in cells]
         body.append("<tr>" + "".join(f"<td>{c}</td>" for c in cells) + "</tr>")
-    return ("<div class='tbl'><table><thead><tr>" + "".join(f"<th>{html.escape(h)}</th>" for h in head) +
+    return ("<div class='tbl'><table><thead><tr>" + "".join(f"<th title='clic para ordenar'>{html.escape(h)}</th>" for h in head) +
             "</tr></thead><tbody>" + "".join(body) + "</tbody></table></div>")
 
 
@@ -142,8 +142,49 @@ function classify(dev, s) {{
 function slider(id, label, min, max, step, val, suffix='') {{
   return `<div class="ctl"><label for="${{id}}">${{label}} <b id="${{id}}_v">${{val}}${{suffix}}</b></label><input type="range" id="${{id}}" min="${{min}}" max="${{max}}" step="${{step}}" value="${{val}}"></div>`;
 }}
+const COLHELP = {{
+  'Ticker': 'Simbolo en bolsa y nombre de la empresa', 'Precio': 'Precio de la operacion o ultimo cierre (USD)', 'Cierre': 'Ultimo cierre (USD)',
+  'yhat': 'Precio "justo" que estima Prophet para ese dia (tendencia + estacionalidad)', 'Dev %': 'Precio / yhat − 1. Negativo = por debajo del precio justo',
+  'Bajo/sobre yhat': 'Precio / yhat − 1 en el dia de la señal', 'Bajo yhat': 'Cuanto estaba el precio por debajo de yhat el dia de la señal',
+  'Caida dia': 'Cierre de hoy frente al cierre anterior', 'Caida del dia': 'Cierre de hoy frente al cierre anterior',
+  'Señal': 'COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap',
+  'Thr compra': 'Umbral de compra: yhat × (1 − entrada %)', 'Thr venta': 'Umbral de venta: yhat × (1 + salida %)',
+  'SL ref': 'Precio al que saltaria el stop loss si comprases hoy', 'Dist TP': 'Distancia del precio actual al umbral de venta', 'Dist SL': 'Distancia del precio actual al stop loss',
+  'R²': 'Que tan bien explica Prophet el precio del ultimo año (1 = perfecto)', 'Pasa': 'Si la accion cumple todos los filtros del screening',
+  'Sigma': 'Ruido: desviacion tipica de (precio − yhat)/yhat en el entrenamiento', 'Crec./año': 'Crecimiento anual implicito en la tendencia de Prophet',
+  'ADR': 'Rango diario medio (max − min)/cierre de los ultimos 90 dias: volatilidad intradia', 'Motivo': 'Por que no pasa el screening / por que se vendio',
+  'Fecha': 'Dia futuro al que corresponde el yhat', 'Dias': 'Dias naturales', 'yhat lo': 'Limite inferior de la banda de incertidumbre (IC 95 %)', 'yhat hi': 'Limite superior de la banda (IC 95 %)',
+  'Precio hoy': 'Ultimo cierre (USD)', 'Entrada': 'Fecha de compra', 'Prec. ent. $': 'Precio de compra por accion en USD', 'Prec. ent. €': 'Precio de compra por accion en EUR (al cambio de ese dia)',
+  'Prec. hoy $': 'Ultimo cierre en USD', 'P&L %': 'Ganancia o perdida en porcentaje', 'P&L €': 'Ganancia o perdida en euros sobre el capital invertido', 'P&L': 'Ganancia o perdida en porcentaje',
+  'P&L $': 'Ganancia o perdida en dolares', 'TP ref (yhat)': 'Objetivo de venta: yhat × (1 + salida %)', 'Estado': 'Situacion de la posicion segun las reglas', 'Nota': 'Nota libre',
+  'Slot': 'Hueco de la cartera (maximo 3 a la vez)', 'Acciones': 'Numero de acciones enteras', 'Compra': 'Fecha de compra (apertura siguiente a la señal)', 'Precio compra': 'Precio de compra por accion (USD, con 0,05 % de deslizamiento)',
+  'Invertido': 'Dinero puesto en la posicion, comision incluida', 'Vender si ≥': 'Precio al que la regla vende: yhat × (1 + salida %)', 'Stop loss': 'Precio al que la regla vende por perdida',
+  'Venta': 'Fecha de venta', 'Salida': 'Fecha de venta', 'Prec. sal. $': 'Precio de venta por accion en USD', 'Capital €': 'Capital invertido en euros', 'Pasa screening': 'Si cumple los filtros del screening', 'Version': 'Version de la app', 'Resumen': 'Que cambio',
+}};
+function parseCell(td) {{
+  const s = (td.textContent || '').trim();
+  if (s === '—' || s === '') return {{n: null, s}};
+  const num = s.replace(/[$€%+\\s]/g, '').replace(/\\./g, '').replace(',', '.');
+  const n = parseFloat(num);
+  return {{n: isNaN(n) || !/^-?\\d/.test(num) ? null : n, s}};
+}}
+document.addEventListener('click', e => {{
+  const th = e.target.closest('.tbl th'); if (!th) return;
+  const table = th.closest('table'), idx = Array.from(th.parentNode.children).indexOf(th);
+  const asc = th.getAttribute('data-sort') !== 'asc';
+  Array.from(table.querySelectorAll('thead th')).forEach(h => {{ h.removeAttribute('data-sort'); h.textContent = h.textContent.replace(/ [▲▼]$/, ''); }});
+  th.setAttribute('data-sort', asc ? 'asc' : 'desc'); th.textContent += asc ? ' ▲' : ' ▼';
+  const tb = table.querySelector('tbody'), rows = Array.from(tb.rows);
+  rows.sort((a, b) => {{
+    const A = parseCell(a.cells[idx]), B = parseCell(b.cells[idx]);
+    if (A.n != null && B.n != null) return asc ? A.n - B.n : B.n - A.n;
+    if (A.n == null && B.n != null) return 1; if (B.n == null && A.n != null) return -1;
+    return asc ? A.s.localeCompare(B.s) : B.s.localeCompare(A.s);
+  }});
+  rows.forEach(r => tb.appendChild(r));
+}});
 function table(id, headers, rows) {{
-  const th = headers.map(h => `<th class="${{h[1]?'num':''}}" data-k="${{h[2]||''}}">${{esc(h[0])}}</th>`).join('');
+  const th = headers.map(h => `<th class="${{h[1]?'num':''}}" title="${{esc(COLHELP[h[0]] || h[0])}} · clic para ordenar" data-k="${{h[2]||''}}">${{esc(h[0])}}</th>`).join('');
   const body = rows.map(r => '<tr>' + r.map((c, i) => {{
     let v = c, cls = headers[i][1] ? 'num' : '';
     if (Array.isArray(c)) {{ v = c[0]; cls += ' ' + (c[1]||''); }}
