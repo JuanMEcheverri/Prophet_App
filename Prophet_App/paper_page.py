@@ -69,7 +69,7 @@ table {{ border-collapse:collapse; width:100%; font-size:13px; }} th, td {{ padd
 th {{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); position:sticky; top:0; background:var(--panel); cursor:pointer; }}
 td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; }} tr:last-child td {{ border-bottom:0; }}
 .good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }} .warn {{ color:var(--accent); font-weight:500; }}
-.pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }}
+.pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }} .pill.knife {{ background:var(--bad); color:#fff; }}
 .banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
 a.tk {{ color:var(--fg); text-decoration:none; border-bottom:1px dotted var(--blue); }} a.tk:hover {{ color:var(--blue); }}
 .btn {{ font:600 13px var(--sans); color:var(--fg); background:var(--panel); border:1px solid var(--line); padding:7px 12px; cursor:pointer; white-space:nowrap; }}
@@ -207,7 +207,7 @@ const COLHELP = {{
   'yhat': 'Precio "justo" que estima Prophet para ese dia (tendencia + estacionalidad)', 'Dev %': 'Precio / yhat − 1. Negativo = por debajo del precio justo',
   'Bajo/sobre yhat': 'Precio / yhat − 1 en el dia de la señal', 'Bajo yhat': 'Cuanto estaba el precio por debajo de yhat el dia de la señal',
   'Caida dia': 'Cierre de hoy frente al cierre anterior', 'Caida del dia': 'Cierre de hoy frente al cierre anterior',
-  'Señal': 'COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap',
+  'Señal': 'COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap; CUCHILLO CAYENDO si la caida de HOY supera el stop loss (comprar ayer ya habria saltado el SL)',
   'Thr compra': 'Umbral de compra: yhat × (1 − entrada %)', 'Thr venta': 'Umbral de venta: yhat × (1 + salida %)',
   'SL ref': 'Precio al que saltaria el stop loss si comprases hoy', 'Dist TP': 'Distancia del precio actual al umbral de venta', 'Dist SL': 'Distancia del precio actual al stop loss',
   'R²': 'Que tan bien explica Prophet el precio del ultimo año (1 = perfecto)', 'Pasa': 'Si la accion cumple todos los filtros del screening',
@@ -273,6 +273,8 @@ function renderSignals() {{
     const drop = t.prev ? (t.close / t.prev - 1) * 100 : null;
     let [sig, cls] = classify(dev, S);
     if (cls === 'buy' && DROP_REQ != null && !(drop != null && drop <= -DROP_REQ)) {{ sig = '⚪ NEUTRAL (sin caida ≥ ' + DROP_REQ + ' %)'; cls = 'neu'; }}
+    // caida de un solo dia mayor que el stop loss: si hubieras comprado ayer ya habrias saltado; no es un dip, es un cuchillo cayendo
+    if (drop != null && drop <= -S.sl) {{ sig = `🔪 CUCHILLO CAYENDO (${{pct(drop)}} hoy, mas que el SL ${{S.sl}} %)`; cls = 'knife'; }}
     if (cls === 'buy') {{ nBuy++; buyList.push(`<b>${{tk}}</b> ${{pct(dev)}}`); }}
     if (cls === 'sell') nSell++;
     const thrB = t.yhat * (1 - S.entry/100), thrS = t.yhat * (1 + S.exit/100), slp = t.close * (1 - S.sl/100);
@@ -289,7 +291,7 @@ function renderSignals() {{
     <div class="kpi"><div class="l">Neutras ⚪</div><div class="v">${{nAll-nBuy-nSell}}</div></div></div>` +
     (buyList.length ? `<div class="banner">${{buyList.length}} acciones en zona de compra: ${{buyList.join(' · ')}}</div>` : '') +
     table('sig_tbl', [['Ticker',0],['Precio',1],['yhat',1],['Dev %',1],['Caida dia',1],['Señal',0],['Thr compra',1],['Thr venta',1],['SL ref',1],['Dist TP',1],['Dist SL',1],['R²',1]], rows.map(r=>r.cells)) +
-    `<p class="note">Dev % = precio / yhat − 1. Señal de compra si Dev entre −${{S.max_dev}} % y −${{S.entry}} %. Caida del dia = cierre vs cierre anterior; la estrategia combinada exige ademas ≤ −5 %.</p>`;
+    `<p class="note">Dev % = precio / yhat − 1. Señal de compra si Dev entre −${{S.max_dev}} % y −${{S.entry}} %. Caida del dia = cierre vs cierre anterior; la estrategia combinada exige ademas ≤ −5 %. <b>🔪 Cuchillo cayendo</b>: la caida de hoy supera el stop loss (${{S.sl}} %): quien hubiera comprado ayer ya habria salido con perdida; mejor esperar a que deje de caer.</p>`;
 }}
 // ---------- Screening ----------
 function renderScreening() {{

@@ -19,7 +19,7 @@ COL_HELP = {
     "Ticker": "Simbolo en bolsa", "Nombre": "Nombre de la empresa", "Precio Hoy": "Ultimo cierre en USD",
     "Caida dia%": "Cierre de hoy frente al cierre anterior", "yhat": "Precio 'justo' que estima Prophet para hoy",
     "Dev%": "Precio / yhat − 1. Negativo = por debajo del precio justo",
-    "Señal": "COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap",
+    "Señal": "COMPRAR si Dev esta entre −cap y −entrada; SOBRE COMPRADO si Dev ≥ salida; MUY BAJO si cae mas que el cap; CUCHILLO CAYENDO si la caida de HOY supera el stop loss",
     "Thr Compra": "Umbral de compra: yhat × (1 − entrada %)", "Thr Venta": "Umbral de venta: yhat × (1 + salida %)",
     "SL Ref": "Precio al que saltaria el stop loss si comprases hoy", "Dist TP%": "Distancia del precio al umbral de venta",
     "Dist SL%": "Distancia del precio al stop loss", "R2": "Que tan bien explica Prophet el precio del ultimo año (1 = perfecto)",
@@ -964,6 +964,9 @@ with tab_hoy:
         drop    = (px / prev_px - 1) * 100 if prev_px else None
         if signal == "🟢 COMPRAR" and _drop_req and not (drop is not None and drop <= -_drop_req):
             signal = f"⚪ NEUTRAL (sin caida ≥{_drop_req:.0f}%)"
+        # caida de un solo dia mayor que el stop loss: no es un dip, es un cuchillo cayendo
+        if drop is not None and drop <= -sl_pct * 100:
+            signal = f"🔪 CUCHILLO CAYENDO ({drop:+.1f}% hoy > SL {sl_pct*100:.0f}%)"
         rows.append({
             "Ticker":       t,
             "Nombre":       NAMES.get(t, ""),
@@ -1021,7 +1024,9 @@ with tab_hoy:
     st.caption(
         "Dev% = (Precio / yhat − 1) × 100  |  "
         "Thr Compra = yhat × (1 − entry_dev)  |  "
-        "Dist TP% = distancia del precio actual al umbral de venta"
+        "Dist TP% = distancia del precio actual al umbral de venta  |  "
+        "🔪 CUCHILLO CAYENDO = la caida de HOY supera el stop loss: quien hubiera comprado ayer ya habria salido con perdida; "
+        "mejor esperar a que deje de caer."
     )
 
 # ═══════════════════════════════════════════════════════════════════════════════
