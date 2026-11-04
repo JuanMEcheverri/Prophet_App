@@ -2,11 +2,11 @@
   {
     "ticker": "MSFT",
     "fecha_entrada": "2026-11-04",
-    "precio_entrada": 555.8,
-    "precio_entrada_eur": 494.8287,
+    "precio_entrada": 555.984,
+    "precio_entrada_eur": 495.0,
     "fx_entrada": 1.1232,
     "moneda_entrada": "EUR",
     "capital": 116.61,
-    "nota": "N26, 116.61 EUR (~0.2357 acciones). Precio = cierre del 2026-11-04; corregir si el precio real de N26 fue otro."
+    "nota": "N26, 116.61 EUR a 495 EUR/accion (~0.2356 acciones)"
   }
 ]
