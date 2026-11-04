@@ -27,7 +27,15 @@ st.set_page_config(
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] { width: 300px !important; }
-.stTabs [data-baseweb="tab"] { font-size: 13px; font-weight: 600; padding: 8px 16px; }
+.stTabs [data-baseweb="tab"] { font-size: 13px; font-weight: 600; padding: 6px 12px; }
+/* Con 9 pestañas no caben en una fila: dejar que salten a dos filas en vez de recortarse.
+   El subrayado animado de Streamlit se posiciona para una sola fila, asi que se oculta y se
+   marca la pestaña activa con un borde propio. */
+.stTabs [data-baseweb="tab-list"] { flex-wrap: wrap; overflow-x: visible !important; row-gap: 4px; }
+.stTabs [data-baseweb="tab-highlight"] { display: none; }
+.stTabs [data-baseweb="tab-border"] { display: none; }
+.stTabs [data-baseweb="tab"] { border-bottom: 3px solid transparent; }
+.stTabs [data-baseweb="tab"][aria-selected="true"] { border-bottom: 3px solid #4facde; }
 /* El propio [data-baseweb="tab-list"] no queda "sticky" (Streamlit le pone
    overflow-x para el scroll horizontal de tabs). El que si funciona es su
    div contenedor directo, que no tiene clase/testid propio, por eso se
