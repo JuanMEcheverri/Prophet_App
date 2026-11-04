@@ -4,7 +4,8 @@ Registro de lo que se sube a `master` (y por tanto a laprofecia.streamlit.app). 
 
 | Versión | Fecha | Commit | Resumen |
 |---|---|---|---|
-| **2.16** | 2026-11-04 | — | Los "Mis presets" del artifact se guardan en la base de datos del propio artifact (colección `presets`, solo el dueño escribe): compartidos entre dispositivos y legibles por Claude; si no hay sesión, se guardan en el navegador. |
+| **2.17** | 2026-11-04 | — | Diario de decisiones de mis posiciones (app y artifact): por sesión, precio, P&L, días y veredicto de las reglas para cada posición abierta, más compras y ventas registradas. Lo escriben la rutina nocturna y la app (`positions_log.json`). |
+| 2.16 | 2026-11-04 | `d6f8cf7` | Los "Mis presets" del artifact se guardan en la base de datos del propio artifact (colección `presets`, solo el dueño escribe): compartidos entre dispositivos y legibles por Claude; si no hay sesión, se guardan en el navegador. |
 | 2.15 | 2026-11-04 | `1901463` | Señal "🔪 CUCHILLO CAYENDO" (app y artifact) cuando la caída de un solo día supera el stop loss: no es un dip comprable, quien hubiera comprado ayer ya habría salido con pérdida. |
 | 2.14 | 2026-11-04 | `2cae62c` | Artifact: fila de presets también en Screening; en Proyecciones, resumen de las acciones con más días en zona de compra dentro del horizonte, repartidos en primeros / medios / finales días y con el primer día de entrada. |
 | 2.13 | 2026-11-04 | `52a6f39` | Artifact: clic en un ticker de cualquier tabla abre su gráfica; tres botones "Mi preset" que guardan en el navegador la combinación de sliders de estrategia y screening (clic = cargar, mantener pulsado = sobrescribir). |

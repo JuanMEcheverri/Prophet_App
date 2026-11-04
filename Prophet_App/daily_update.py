@@ -146,12 +146,21 @@ def main():
     except OSError:
         versions_md = ""
     from names import NAMES
+    import poslog
+    positions = _json("positions.json", [])
+    plog = _json("positions_log.json", [])
+    plog, added = poslog.update_log(plog, D.date().isoformat(), positions, day_data,
+                                    dict(sl=est["sl_pct_pct"], exit_dev=est["exit_dev_pct"], hold=est["max_hold"]))
+    if added:
+        with open(os.path.join(APP_DIR, "positions_log.json"), "w", encoding="utf-8") as f:
+            json.dump(plog, f, indent=2, ensure_ascii=False)
+        print(f"[daily] diario de mis posiciones: sesion {D.date()} añadida ({len(plog[-1]['events'])} lineas)", flush=True)
     page_data = dict(
         D=D.date().isoformat(), version=app_version(), tickers=tick_data, names=NAMES,
         screening=dict(min_r2=scr_raw["min_r2"], max_sigma=scr_raw["max_sigma_pct"], min_growth=scr_raw["min_growth_pct"],
                        max_growth=scr_raw["max_growth_pct"], max_adr=scr_raw["max_adr_pct"]),
         strategy=dict(entry=est["entry_dev_pct"], exit=est["exit_dev_pct"], sl=est["sl_pct_pct"], hold=est["max_hold"], max_dev=est["max_dev_pct"]),
-        positions=_json("positions.json", []), paper=states, cfgs=paper.STRATEGIES, versions_md=versions_md,
+        positions=positions, positions_log=plog, paper=states, cfgs=paper.STRATEGIES, versions_md=versions_md,
     )
     html = paper_page.build(page_data)
     out = os.path.join(APP_DIR, "paper_page.html")

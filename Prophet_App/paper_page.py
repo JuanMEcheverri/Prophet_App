@@ -455,6 +455,10 @@ function renderPositions() {{
   else h += table('cl_tbl', [['Ticker',0],['Entrada',0],['Prec. ent. $',1],['Salida',0],['Prec. sal. $',1],['Dias',1],['Capital €',1],['P&L %',1],['P&L €',1],['Motivo',0]],
     closed.map(p => [lblHtml(p.ticker), p.fecha_entrada, usd(p.precio_entrada), p.fecha_salida, usd(p.precio_salida), Math.round((new Date(p.fecha_salida)-new Date(p.fecha_entrada))/86400000), fmt(p.capital,0)+' €', [pct(p.pnl_pct), p.pnl_pct>0?'good':'poor'], [fmt(p.pnl_eur)+' €', p.pnl_eur>0?'good':'poor'], esc(p.motivo_salida||'')]));
   h += '<p class="note">Las entradas y salidas se registran desde la app de Streamlit; aqui se muestran en solo lectura.</p>';
+  const plog = DATA.positions_log || [];
+  h += `<h3>Diario de decisiones de mis posiciones</h3>` + (plog.length ? `<details open><summary>${{plog.length}} sesiones (la mas reciente arriba)</summary>` +
+    plog.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b><ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('') + '</details>'
+    : '<p class="note">Todavia no hay sesiones registradas.</p>');
   document.getElementById('pos_out').innerHTML = h;
 }}
 // ---------- Carteras de papel ----------

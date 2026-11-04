@@ -12,6 +12,7 @@ import warnings, logging, json, os, base64
 import requests
 from datetime import date, timedelta
 import paper   # cartera de papel (Prophet_App/paper.py)
+import poslog  # diario de decisiones de mis posiciones
 from names import NAMES, label as ticker_label
 
 # Explicacion de cada columna (aparece al pasar el raton por la cabecera; las tablas se ordenan al hacer clic)
@@ -1427,6 +1428,31 @@ with tab_pos:
             "Capital €": st.column_config.NumberColumn(format="€%.0f"), "P&L%": st.column_config.NumberColumn(format="%.1f%%"),
             "P&L EUR": st.column_config.NumberColumn(format="€%.2f"),
         }))
+
+    # ── Diario de decisiones de mis posiciones ───────────────────────────────
+    st.markdown("---")
+    st.markdown("#### Diario de decisiones de mis posiciones")
+    if "positions_log" not in st.session_state:
+        st.session_state.positions_log = load_json("positions_log.json", []) or []
+    _pl_last = max((v["date"] for v in cur_prices.values()), default=None)
+    if _pl_last and _pl_last < TODAY and st.session_state.positions:
+        _pl_day = {}
+        for _t, _info in cur_prices.items():
+            if _info["date"] == _pl_last:
+                _yh = get_yhat_at(sdata[_t]["fc_dict"], pd.Timestamp(_pl_last)) if _t in sdata else None
+                _pl_day[_t] = dict(close=_info["px"], yhat=(_yh[0] if _yh else None))
+        _new_log, _added = poslog.update_log(st.session_state.positions_log, _pl_last.isoformat(), st.session_state.positions, _pl_day,
+                                             dict(sl=sl_pct * 100, exit_dev=exit_dev * 100, hold=max_hold))
+        if _added:
+            st.session_state.positions_log = _new_log
+            save_json("positions_log.json", _new_log, f"Diario de posiciones: sesion {_pl_last}")
+    if st.session_state.positions_log:
+        with st.expander(f"{len(st.session_state.positions_log)} sesiones (la mas reciente arriba)", expanded=True):
+            for e in reversed(st.session_state.positions_log):
+                st.markdown(f"**{e['date']}**  \n" + "  \n".join(f"· {x}" for x in e["events"]))
+    else:
+        st.caption("Todavia no hay sesiones registradas: se añade una linea por sesion cuando hay posiciones abiertas "
+                   "(la rutina nocturna o la app al abrirse tras una sesion completa).")
 
     # Eliminar posiciones (abiertas o cerradas)
     if st.session_state.positions:
