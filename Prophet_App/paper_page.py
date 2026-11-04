@@ -71,6 +71,7 @@ td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeri
 .good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }} .warn {{ color:var(--accent); font-weight:500; }}
 .pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }}
 .banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
+a.tk {{ color:var(--fg); text-decoration:none; border-bottom:1px dotted var(--blue); }} a.tk:hover {{ color:var(--blue); }}
 .btn {{ font:600 13px var(--sans); color:var(--fg); background:var(--panel); border:1px solid var(--line); padding:7px 12px; cursor:pointer; white-space:nowrap; }}
 .btn:hover {{ border-color:var(--blue); color:var(--blue); }} .btn:focus-visible {{ outline:2px solid var(--blue); outline-offset:2px; }}
 .chart {{ background:var(--panel); border:1px solid var(--line); min-height:420px; }}
@@ -92,7 +93,16 @@ const VERSIONS_HTML = {json.dumps(versions_html)};
 const DOCS_HTML = {json.dumps(DOCS_HTML)};
 const T = DATA.tickers, D = DATA.D, NM = DATA.names || {{}};
 const lbl = tk => (tk && NM[tk]) ? `${{tk}} · ${{NM[tk]}}` : (tk || '—');
-const lblHtml = tk => (tk && NM[tk]) ? `<b>${{tk}}</b> <span class="muted">${{esc(NM[tk])}}</span>` : (tk || '—');
+const lblHtml = tk => tk ? `<a class="tk" href="#chart" data-tk="${{tk}}" title="Ver la grafica de ${{tk}}"><b>${{tk}}</b>${{NM[tk] ? ` <span class="muted">${{esc(NM[tk])}}</span>` : ''}}</a>` : '—';
+document.addEventListener('click', e => {{
+  const a = e.target.closest('a.tk'); if (!a) return;
+  e.preventDefault();
+  const tk = a.getAttribute('data-tk'), sel = document.getElementById('chart_t');
+  if (sel && Array.from(sel.options).some(o => o.value === tk)) sel.value = tk;
+  const q = document.getElementById('chart_q'); if (q) q.value = '';
+  show('chart');
+  window.scrollTo({{top: 0, behavior: 'smooth'}});
+}});
 const S = {{...DATA.strategy}};      // entry, exit, sl, hold, max_dev (en %)
 const SC = {{...DATA.screening}};    // min_r2, max_sigma, min_growth, max_growth, max_adr
 const fmt = (x, d=2) => (x==null||isNaN(x)) ? '—' : x.toLocaleString('es-ES', {{minimumFractionDigits:d, maximumFractionDigits:d}});
