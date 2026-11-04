@@ -162,11 +162,16 @@ def save_selection(tickers):
 
 # Un archivo JSON independiente por seccion del sidebar (igual que positions.json
 # y selected_tickers.json), para que cada grupo de parametros se recuerde solo.
+# Backtest 15 (walk-forward 2021-2026, ver backtests/results/15/report_refit5.md):
+# la config antigua (3/20/15/15) perdia contra QQQ en 4 de 5 años. La combo mas
+# consistente fuera de muestra: entrada 4% bajo yhat, salida al volver a yhat +7%,
+# SL 7%, hasta 60 dias. Aun asi NO bate a QQQ de forma clara: usar como apoyo, no
+# como sistema con capital pequeño (las comisiones se comen la ventaja).
 ESTRATEGIA_DEFAULTS = {
-    "entry_dev_pct": 3,
-    "exit_dev_pct":  20,
-    "sl_pct_pct":    15,
-    "max_hold":      15,
+    "entry_dev_pct": 4,
+    "exit_dev_pct":  7,
+    "sl_pct_pct":    7,
+    "max_hold":      60,
     "max_dev_pct":   15,
 }
 CAPITAL_DEFAULTS = {
@@ -186,7 +191,7 @@ PROPHET_DEFAULTS = {
     "intv_w_pct":      95,
     "chpt_scale":      0.03,
     "fc_days":         28,
-    "t_start_preset":  "Personalizado",
+    "t_start_preset":  "Ultimo 1 año",   # todos los backtests (07-15) entrenan con ventana movil de 1 año
     "t_start_custom":  "2022-01-01",
     "t_end_inp":       "",
 }
@@ -247,24 +252,15 @@ DEFAULT_SELECTION = [
     "REGN","VRTX","XEL","AEP","EBAY","EA","MNST","MDLZ","MAR","PAYX","CDNS",
 ]
 
-# Los 55 tickers que quedaron tras excluir del Nasdaq-100 los 34 con P&L
-# promedio negativo en el backtest de estrategia (ver backtests/README.md,
-# seccion 3 y resumen ejecutivo) — junto con ESTRATEGIA/CAPITAL/SCREENING/
-# PROPHET_DEFAULTS de arriba, es la configuracion que dio +19% en la
-# simulacion de portafolio (backtest 14).
-VALIDATED_TICKERS = [
-    "ADBE","ADI","AEP","AMAT","AMD","AMGN","AMZN","AVGO","CDNS","CEG",
-    "COST","CSCO","CTAS","DDOG","DLTR","DXCM","EXC","FAST","FSLR","FTNT",
-    "GEHC","GFS","GILD","GOOG","GOOGL","IDXX","ISRG","KHC","KLAC","LRCX",
-    "MAR","MELI","META","MNST","MRVL","MU","NTAP","NVDA","NXPI","ON",
-    "PANW","PAYX","PCAR","PDD","QCOM","REGN","SNPS","TSLA","TTD","TXN",
-    "VRTX","XEL","ZBRA","ZM","ZS",
-]
+# Universo completo. La lista de 55 del backtest 07 se descarto en el backtest 15:
+# excluir tickers por su P&L pasado no distingue del azar (percentil 68 frente a
+# 200 listas aleatorias) y la alpha por ticker no persiste de un semestre al siguiente.
+VALIDATED_TICKERS = sorted(set(NASDAQ100) - {"EA", "WBD", "ANSS"})   # ya no cotizan en Yahoo
 
 
 def restore_validated_config():
     """Restaura estrategia/capital/screening/prophet + seleccion de tickers
-    a la configuracion validada por backtest (ver backtests/README.md),
+    a la configuracion del backtest 15 (ver backtests/results/15/report_refit5.md),
     sobreescribiendo cualquier ajuste manual hecho despues desde el sidebar."""
     for defaults, fname in [
         (ESTRATEGIA_DEFAULTS, "estrategia.json"),
@@ -274,7 +270,7 @@ def restore_validated_config():
     ]:
         for k, v in defaults.items():
             st.session_state[f"cfg_{k}"] = v
-        save_section(fname, defaults, "Restaurar config validada por backtest (Prophet Trader)")
+        save_section(fname, defaults, "Restaurar config backtest 15 (Prophet Trader)")
         st.session_state[f"_last_saved_{fname}"] = dict(defaults)
 
     st.session_state.ticker_multiselect = list(VALIDATED_TICKERS)
@@ -289,20 +285,22 @@ with st.sidebar:
     st.caption("💾 Persistencia: " + ("GitHub (cloud) ✅" if USE_GITHUB_STORAGE else "Disco local"))
 
     if st.session_state.pop("_just_restored_config", False):
-        st.success("Configuracion validada por backtest restaurada ✅")
+        st.success("Configuracion del backtest 15 restaurada ✅")
 
     st.button(
-        "↩️ Restaurar config validada (backtest)",
+        "↩️ Restaurar config backtest 15",
         use_container_width=True,
         on_click=restore_validated_config,
-        help="Sobreescribe Estrategia/Capital/Screening/Prophet y la seleccion "
-             "de acciones con la configuracion que dio +19% en la simulacion de "
-             "portafolio (ver Prophet_App/backtests/README.md): entry 3% / TP 20% "
-             "/ SL 15% / max_hold 15d / max_dev 15%, R2>=0.68 / sigma<=6% / growth "
-             "2-35%/yr / ADR<=4%, changepoint_prior_scale=0.03, IC 95%, 28 dias de "
-             "proyeccion, entrenamiento desde 2022-01-01, y los 55 tickers que "
-             "quedaron tras excluir los 34 con P&L negativo. Usalo si ajustaste "
-             "sliders manualmente y quieres volver al punto de partida probado.",
+        help="Sobreescribe Estrategia/Capital/Screening/Prophet y la seleccion de "
+             "acciones con la combinacion mas consistente fuera de muestra del backtest "
+             "15 (walk-forward 2021-2026, ver backtests/results/15/report_refit5.md): "
+             "entrada 4% bajo yhat / salida al volver a yhat +7% / SL 7% / hasta 60 dias "
+             "/ cap de caida 15%, screening R2>=0.68 / sigma<=6% / growth 2-35%/yr / "
+             "ADR<=4%, changepoint_prior_scale=0.03, IC 95%, 28 dias de proyeccion, "
+             "ventana movil de 1 año y el universo completo (sin lista de 55).\n\n"
+             "⚠️ Ni esta config ni la anterior baten a QQQ de forma clara en cartera: "
+             "con 1.000 EUR las comisiones (~13%/año) se comen la ventaja. Usar como "
+             "apoyo para comprar caidas, no como sistema automatico.",
     )
     st.divider()
 
@@ -311,19 +309,28 @@ with st.sidebar:
         entry_dev = st.slider("Entrada: caida bajo yhat (%)", 1, 12, key="cfg_entry_dev_pct",
                               help="Comprar cuando precio < yhat × (1 − X%). yhat es el valor "
                                    "'justo' que predice Prophet para hoy — cuanto mas bajo pongas "
-                                   "esto, menos señales de compra veras, pero mas seguras.") / 100
+                                   "esto, menos señales de compra veras, pero mas seguras.\n\n"
+                                   "📊 Backtest 15: caidas del 1-3% son ruido (alpha negativa en "
+                                   "todos los años); a partir del 4-7% aparece algo de señal. "
+                                   "Default: 4%.") / 100
         exit_dev  = st.slider("Salida: subida sobre yhat (%)", 3, 30, key="cfg_exit_dev_pct",
-                              help="Vender (take profit) cuando precio > yhat × (1 + X%). Es tu "
-                                   "objetivo de ganancia una vez el precio vuelve o supera el "
-                                   "valor esperado por Prophet.") / 100
+                              help="Vender cuando precio > yhat × (1 + X%): el precio ha vuelto "
+                                   "a (y superado) el valor justo. Anclado a yhat, no a tu precio "
+                                   "de entrada.\n\n📊 Backtest 15: la salida anclada a yhat +7% "
+                                   "fue la mejor familia de salidas; el TP +20% sobre la entrada "
+                                   "casi nunca se alcanzaba. Default: 7%.") / 100
         sl_pct    = st.slider("Stop Loss (%)", 3, 20, key="cfg_sl_pct_pct",
                               help="Si el precio cae este % por debajo de TU precio de entrada "
                                    "(no de yhat), se marca como stop loss: la tesis de reversion "
-                                   "a la media fallo y toca cortar la perdida.") / 100
+                                   "a la media fallo y toca cortar la perdida.\n\n📊 Backtest 15: "
+                                   "el nivel del SL apenas cambia el resultado (7-15% equivalentes); "
+                                   "un SL muy ajustado (3-6%) solo añade rotacion. Default: 7%.") / 100
         max_hold  = st.slider("Dias max en posicion", 5, 90, key="cfg_max_hold",
-                              help="Dias maximos que mantienes una posicion abierta. Si no llega "
-                                   "al Take Profit ni al Stop Loss antes, se marca 'VENCER PRONTO' "
-                                   "para que decidas cerrarla manualmente.")
+                              help="Dias naturales maximos con la posicion abierta. Si no llega "
+                                   "a la salida por yhat ni al Stop Loss antes, se marca 'VENCER "
+                                   "PRONTO' para que decidas cerrarla.\n\n📊 Backtest 15: dar "
+                                   "tiempo a la reversion (30-60 dias) dobla la alpha por operacion "
+                                   "frente a 10-15 dias y reduce comisiones. Default: 60.")
         max_dev   = st.slider("Cap caida maxima (%)", 5, 30, key="cfg_max_dev_pct",
                               help="No entrar si precio < yhat × (1 − cap%). Una caida mayor a "
                                    "esto suele indicar una mala noticia real (no ruido) o que el "
@@ -534,8 +541,10 @@ def train_models(tickers, t_start, t_end, seas_mode, intv_w, chpt_scale,
             hi = strip(high[t].dropna())
             lo = strip(low[t].dropna())
 
-            if len(cl) < 250:
-                log.append({"Ticker": t, "Pass": False, "Motivo": "Datos insuficientes (<250)"})
+            # con la ventana de 1 año llegan ~251 cierres; con festivos o un dia sin dato
+            # el umbral 250 descartaba tickers validos. Mismo minimo que el backtest 15.
+            if len(cl) < 200:
+                log.append({"Ticker": t, "Pass": False, "Motivo": "Datos insuficientes (<200)"})
                 continue
 
             # ADR (ultimos 90 dias)
@@ -1123,7 +1132,8 @@ with tab_pos:
             pnl_pct    = (cpx / epx - 1) * 100 if cpx else None
             pnl_eur    = cap * (cpx / epx - 1) if cpx else None
             sl_px      = epx * (1 - sl_pct)
-            tp_px      = epx * (1 + exit_dev)
+            # salida anclada a yhat (como la pestaña de señales y el backtest 15), no al precio de entrada
+            tp_px      = yht[0] * (1 + exit_dev) if yht else None
             dist_tp    = (tp_px / cpx - 1) * 100 if (tp_px and cpx) else None
             dist_sl    = (sl_px / cpx - 1) * 100 if cpx else None
             dev_yhat   = (cpx / yht[0] - 1) * 100 if (cpx and yht) else None

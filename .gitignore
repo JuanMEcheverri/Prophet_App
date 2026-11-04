@@ -11,3 +11,6 @@ env/
 Thumbs.db
 Prophet_App/positions.json
 Prophet_App/selected_tickers.json
+Prophet_App/backtests/results/15/fits/
+Prophet_App/backtests/results/15/*.parquet
+Prophet_App/backtests/results/15/*.json

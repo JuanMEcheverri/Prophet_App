@@ -1,5 +1,29 @@
 # Backtests de Prophet Trader
 
+> **Actualización 2026-11-04 — Backtest 15 (`15_walkforward.py` + `wf15/`)**
+>
+> Los backtests 01-14 de abajo eligieron todos sus parámetros (ventana, hiperparámetros,
+> lista de 55 tickers, SL/TP, max_dev) sobre el mismo año 2025-26 que luego reportaron
+> como +19%, sin benchmark. El backtest 15 lo rehace como walk-forward honesto 2021-2026
+> (parámetros del año Y elegidos solo con años < Y), con fills a la apertura siguiente,
+> comisiones, EUR/USD, control incondicional por ticker, control sin Prophet (regresión
+> lineal / SMA100), test de exclusión de tickers con placebo y comparación con QQQ.
+>
+> **Resultado** (`results/15/report_refit5.md`): la config 3/20/15/15 pierde contra QQQ
+> en los 4 años fuera de muestra (−27 %, −2 %, −22 %, −34 % vs +1, +14, +26, +17 % en
+> EUR); SL/TP disparan en el 3 % de las operaciones; Prophet no supera a una tendencia
+> lineal; la lista de 55 no se distingue de exclusiones aleatorias. Lo único con señal:
+> entrada ≥ 4 %, salida al volver a yhat +7 %, hasta 60 días (alpha +0,5-1,9 %/op fuera
+> de muestra), que es ahora el default de la app, pero tampoco bate a QQQ de forma
+> clara. Veredicto: no usar como sistema con capital pequeño (comisiones ~13 %/año).
+>
+> El resumen ejecutivo que sigue se conserva como registro histórico; sus conclusiones
+> están superadas por el backtest 15.
+>
+> Cómo correr: `python 15_walkforward.py fit --workers 8` (banco de ajustes, ~25 min),
+> luego `level1`, `select`, `universe`, `portfolio`, `report`. Resultados en `results/15/`
+> (los parquet no se versionan).
+
 Este directorio contiene todos los scripts de backtesting usados para afinar
 `Prophet_App/app.py`: la ventana de entrenamiento de Prophet, sus
 hiperparámetros, las reglas de entrada/salida de la estrategia, el screening,
