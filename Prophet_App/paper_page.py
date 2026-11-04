@@ -219,6 +219,7 @@ const COLHELP = {{
   'P&L $': 'Ganancia o perdida en dolares', 'TP ref (yhat)': 'Objetivo de venta: yhat × (1 + salida %)', 'Estado': 'Situacion de la posicion segun las reglas', 'Nota': 'Nota libre',
   'Slot': 'Hueco de la cartera (maximo 3 a la vez)', 'Acciones': 'Numero de acciones enteras', 'Compra': 'Fecha de compra (apertura siguiente a la señal)', 'Precio compra': 'Precio de compra por accion (USD, con 0,05 % de deslizamiento)',
   'Invertido': 'Dinero puesto en la posicion, comision incluida', 'Vender si ≥': 'Precio al que la regla vende: yhat × (1 + salida %)', 'Stop loss': 'Precio al que la regla vende por perdida',
+  'Dias en zona de compra': 'Cuantos dias del horizonte el precio de hoy quedaria entre −cap y −entrada frente al yhat de ese dia', 'Primer dia': 'Primer dia del horizonte en que entraria en zona de compra', 'Dev % hoy': 'Precio de hoy / yhat de hoy − 1', 'yhat hoy': 'Precio justo estimado para hoy', 'Señal hoy': 'Señal con el yhat de hoy',
   'Venta': 'Fecha de venta', 'Salida': 'Fecha de venta', 'Prec. sal. $': 'Precio de venta por accion en USD', 'Capital €': 'Capital invertido en euros', 'Pasa screening': 'Si cumple los filtros del screening', 'Version': 'Version de la app', 'Resumen': 'Que cambio',
 }};
 function parseCell(td) {{
@@ -383,7 +384,34 @@ function renderProj() {{
   }}
   const sortBy = document.getElementById('proj_sort').value;
   if (sortBy === 'dev') rows.sort((a,b)=>a.dev-b.dev); else if (sortBy === 'fecha') rows.sort((a,b)=>a.cells[1].localeCompare(b.cells[1])||a.cells[0].localeCompare(b.cells[0]));
-  document.getElementById('proj_out').innerHTML = `<p class="note">${{rows.length}} filas · ${{tks.length}} acciones · Dev % = como estaria el precio de hoy frente al yhat de ese dia futuro.</p>` +
+  // Resumen: en cuantos dias del horizonte el precio de HOY estaria en zona de compra frente al yhat de ese dia,
+  // repartido en primeros / medios / finales dias del horizonte (tercios)
+  const allOk = Object.keys(T).filter(tk => passes(T[tk], SC)).sort();
+  const summ = [];
+  for (const tk of allOk) {{
+    const t = T[tk]; if (!t.fit_d || !t.close) continue;
+    const iD = t.fit_d.indexOf(D);
+    let n = 0, b = [0, 0, 0], tot = 0, firstBuy = null;
+    for (let i = iD+1; i < t.fit_d.length; i++) {{
+      const dd = Math.round((new Date(t.fit_d[i]) - new Date(D)) / 86400000);
+      if (dd > days) break;
+      tot++;
+      const dev = (t.close / t.yhat_s[i] - 1) * 100;
+      if (dev <= -S.entry && dev > -S.max_dev) {{ n++; b[Math.min(2, Math.floor((dd - 1) * 3 / days))]++; if (firstBuy === null) firstBuy = dd; }}
+    }}
+    if (n > 0) {{
+      const devToday = (t.close / t.yhat - 1) * 100;
+      summ.push({{n, cells: [lblHtml(tk), usd(t.close), usd(t.yhat), [pct(devToday), devToday<0?'poor':'good'], `${{n}} de ${{tot}}`, b[0], b[1], b[2], firstBuy, `<span class="pill ${{classify(devToday, S)[1]}}">${{classify(devToday, S)[0]}}</span>`]}});
+    }}
+  }}
+  summ.sort((a, b) => b.n - a.n);
+  const third = Math.max(1, Math.round(days / 3));
+  const summHtml = summ.length ? table('proj_summ', [['Ticker',0],['Precio hoy',1],['yhat hoy',1],['Dev % hoy',1],['Dias en zona de compra',1],[`Primeros (1-${{third}} d)`,1],[`Medios (${{third+1}}-${{2*third}} d)`,1],[`Finales (${{2*third+1}}-${{days}} d)`,1],['Primer dia',1],['Señal hoy',0]], summ.slice(0, 25).map(r => r.cells))
+    : '<p class="note">Ninguna accion entra en zona de compra en el horizonte con los umbrales actuales.</p>';
+  document.getElementById('proj_out').innerHTML =
+    `<h3>Resumen · acciones con mas dias en zona de compra (precio de hoy frente al yhat de cada dia futuro, ${{days}} dias)</h3>` + summHtml +
+    `<p class="note">Lectura: si una accion esta en zona de compra solo en los dias "finales", es que el yhat sube con el tiempo y el precio de hoy se queda rezagado; si lo esta en los "primeros" y deja de estarlo, el yhat baja. La columna "Primer dia" es el primer dia del horizonte en que entraria en zona de compra.</p>` +
+    `<h3>Detalle por dia</h3><p class="note">${{rows.length}} filas · ${{tks.length}} acciones · Dev % = como estaria el precio de hoy frente al yhat de ese dia futuro.</p>` +
     table('proj_tbl', [['Ticker',0],['Fecha',0],['Dias',1],['yhat',1],['yhat lo',1],['yhat hi',1],['Thr compra',1],['Thr venta',1],['Precio hoy',1],['Dev %',1],['Señal',0]], rows.map(r=>r.cells));
 }}
 // ---------- Posiciones ----------

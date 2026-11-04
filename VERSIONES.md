@@ -4,7 +4,8 @@ Registro de lo que se sube a `master` (y por tanto a laprofecia.streamlit.app). 
 
 | Versión | Fecha | Commit | Resumen |
 |---|---|---|---|
-| **2.13** | 2026-11-04 | — | Artifact: clic en un ticker de cualquier tabla abre su gráfica; tres botones "Mi preset" que guardan en el navegador la combinación de sliders de estrategia y screening (clic = cargar, mantener pulsado = sobrescribir). |
+| **2.14** | 2026-11-04 | — | Artifact: fila de presets también en Screening; en Proyecciones, resumen de las acciones con más días en zona de compra dentro del horizonte, repartidos en primeros / medios / finales días y con el primer día de entrada. |
+| 2.13 | 2026-11-04 | `52a6f39` | Artifact: clic en un ticker de cualquier tabla abre su gráfica; tres botones "Mi preset" que guardan en el navegador la combinación de sliders de estrategia y screening (clic = cargar, mantener pulsado = sobrescribir). |
 | 2.12 | 2026-11-04 | `a1a71f1` | Todas las tablas se ordenan al hacer clic en la cabecera (en el artifact; en la app Streamlit ya lo hacían) y cada cabecera muestra una explicación de la columna al pasar el ratón, en app y artifact. |
 | 2.11 | 2026-11-04 | `5405140` | Botones "Cuadrar con Backtest 15" y "Cuadrar con Combinado" en Señales de hoy (app y artifact): ponen estrategia y screening como la cartera de papel elegida y, en el combinado, exigen caída del día ≥ 5 % para marcar COMPRAR. Columna de caída del día en Señales. Charts del artifact lista siempre todas las acciones en orden alfabético. |
 | 2.10 | 2026-11-04 | `8753d95` | Nombre de la empresa junto al ticker en todas las tablas (app y artifact), buscador por ticker o nombre en Charts del artifact, y corrección de la librería de gráficos del artifact (la versión de Plotly enlazada no existía). |
