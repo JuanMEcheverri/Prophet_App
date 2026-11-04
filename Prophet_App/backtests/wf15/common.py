@@ -64,8 +64,11 @@ PERIODS = [
 C0 = dict(entry=3, max_dev=15, sl=15, tp=20, hold=15)
 C_LIVE = dict(entry=2, max_dev=15, sl=6, tp=7, hold=15)
 
-SCREEN_DEFAULTS = dict(min_r2=0.68, max_sigma=0.06, min_growth=0.02, max_growth=0.35, max_adr=0.04)
-SCREEN_LIVE = dict(min_r2=0.68, max_sigma=0.06, min_growth=0.02, max_growth=0.49, max_adr=0.07)   # screening.json en vivo
+# Perfil revisado el 2026-11-04 (ADR<=4%, growth<=20%, sin minimo, R2/sigma desactivados): mejor alpha
+# y positivo en los 6 periodos. El informe report_refit5.md se genero con el perfil antiguo (SCREEN_OLD).
+SCREEN_DEFAULTS = dict(min_r2=0.50, max_sigma=0.15, min_growth=-0.50, max_growth=0.20, max_adr=0.04)
+SCREEN_OLD = dict(min_r2=0.68, max_sigma=0.06, min_growth=0.02, max_growth=0.35, max_adr=0.04)
+SCREEN_LIVE = dict(min_r2=0.68, max_sigma=0.06, min_growth=0.02, max_growth=0.49, max_adr=0.07)   # lo que habia en vivo antes
 
 # Costes
 FEE_EUR = 1.0            # por operacion (compra o venta), como CAPITAL_DEFAULTS

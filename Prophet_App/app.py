@@ -180,11 +180,14 @@ CAPITAL_DEFAULTS = {
     "max_n":   3,
     "fee":     1.00,
 }
+# Screening revisado con 5 años de datos (entrada 4% bajo yhat, 30 dias): R2 y sigma no filtraban
+# nada; el minimo de crecimiento quitaba justo las acciones que mejor revierten; el tope de
+# crecimiento y el ADR si ayudan. Perfil con mejor alpha y positivo en los 6 periodos:
 SCREENING_DEFAULTS = {
-    "min_r2":         0.68,
-    "max_sigma_pct":  6,
-    "min_growth_pct": 2,
-    "max_growth_pct": 35,
+    "min_r2":         0.50,   # = sin filtro (minimo del slider)
+    "max_sigma_pct":  15,     # = sin filtro (maximo del slider)
+    "min_growth_pct": -50,    # = sin minimo
+    "max_growth_pct": 20,
     "max_adr_pct":    4,
 }
 PROPHET_DEFAULTS = {
@@ -296,8 +299,8 @@ with st.sidebar:
              "acciones con la combinacion mas consistente fuera de muestra del backtest "
              "15 (walk-forward 2021-2026, ver backtests/results/15/report_refit5.md): "
              "entrada 4% bajo yhat / salida al volver a yhat +7% / SL 7% / hasta 60 dias "
-             "/ cap de caida 15%, screening R2>=0.68 / sigma<=6% / growth 2-35%/yr / "
-             "ADR<=4%, changepoint_prior_scale=0.03, IC 95%, 28 dias de proyeccion, "
+             "/ cap de caida 15%, screening solo ADR<=4% y crecimiento<=20%/yr (sin minimo; "
+             "R2 y sigma desactivados), changepoint_prior_scale=0.03, IC 95%, 28 dias de proyeccion, "
              "ventana movil de 1 año y el universo completo (sin lista de 55).\n\n"
              "⚠️ Ni esta config ni la anterior baten a QQQ de forma clara en cartera: "
              "con 1.000 EUR las comisiones (~13%/año) se comen la ventaja. Usar como "
@@ -362,24 +365,32 @@ with st.sidebar:
     with st.expander("🔍 Screening"):
         min_r2     = st.slider("R² minimo Prophet", 0.50, 0.99, step=0.01, key="cfg_min_r2",
                                help="R² mide que tan bien el modelo de Prophet explica el precio "
-                                    "historico: 1 = ajuste casi perfecto, 0 = sin relacion. Si es "
-                                    "bajo, el yhat de esa accion no es confiable y se descarta.")
+                                    "historico: 1 = ajuste casi perfecto, 0 = sin relacion.\n\n"
+                                    "📊 Backtest 15: con ventana de 1 año casi todas las acciones "
+                                    "superan 0.68, asi que este filtro no cambia nada. Default: 0.50 "
+                                    "(desactivado).")
         max_sigma  = st.slider("Residual sigma max (%)", 2, 15, key="cfg_max_sigma_pct",
                                help="Sigma es la desviacion estandar del error (precio real vs "
-                                    "yhat) en %: mide el 'ruido' que Prophet NO logra explicar. "
-                                    "Sigma alto = señales de compra/venta menos fiables.") / 100
-        min_growth = st.slider("Crecimiento anual min (%)", 1, 30, key="cfg_min_growth_pct",
+                                    "yhat) en %: mide el 'ruido' que Prophet NO logra explicar.\n\n"
+                                    "📊 Backtest 15: no cambia la rentabilidad de las señales. "
+                                    "Default: 15 (desactivado).") / 100
+        min_growth = st.slider("Crecimiento anual min (%)", -50, 30, key="cfg_min_growth_pct",
                                help="Crecimiento anualizado minimo de la tendencia (yhat) para "
-                                    "incluir la accion — descarta acciones estancadas o en "
-                                    "declive de largo plazo.") / 100
+                                    "incluir la accion.\n\n📊 Backtest 15: exigir crecimiento "
+                                    "positivo era contraproducente — las acciones con tendencia "
+                                    "plana o bajista son justo las que mejor revierten tras una "
+                                    "caida (+1.3%/op frente a un dia normal, positivo los 5 años). "
+                                    "Default: -50 (sin minimo).") / 100
         max_growth = st.slider("Crecimiento anual max (%)", 5, 120, key="cfg_max_growth_pct",
-                               help="Crecimiento anualizado maximo permitido — descarta acciones "
-                                    "con una tendencia demasiado explosiva/no sostenible, donde "
-                                    "'comprar en la caida' es mas arriesgado.") / 100
+                               help="Crecimiento anualizado maximo permitido.\n\n📊 Backtest 15: "
+                                    "las acciones con tendencia explosiva (>35%/año) tienen alpha "
+                                    "negativa tras una caida: no revierten, siguen cayendo o ya "
+                                    "venian de subir demasiado. Default: 20.") / 100
         max_adr    = st.slider("ADR diario max (%)", 1, 10, key="cfg_max_adr_pct",
                                help="Average Daily Range: rango (maximo−minimo)/cierre promedio "
-                                    "de los ultimos 90 dias. Filtra acciones demasiado volatiles "
-                                    "dia a dia para una estrategia de reversion a la media.") / 100
+                                    "de los ultimos 90 dias.\n\n📊 Backtest 15: no sube la "
+                                    "rentabilidad pero reduce la caida tipica de una operacion "
+                                    "fallida de -8.6% a -4.7%. Default: 4.") / 100
     save_section_if_changed("screening.json", SCREENING_DEFAULTS,
                             "Actualizar screening (Prophet Trader)")
 
