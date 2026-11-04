@@ -36,6 +36,7 @@ DOCS_HTML = """
 def build(data):
     """data: dict con D, version, tickers{...}, screening, strategy, capital, positions, paper{bt15,combo}, cfgs, versions_md."""
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    payload_safe = payload.replace("</", "<\\/")   # fuera del f-string: Python < 3.12 no admite '\' dentro de {}
     D = data["D"]
     versions_html = _versions_html(data.get("versions_md", ""))
     return f"""<title>Prophet Trader</title>
@@ -86,7 +87,7 @@ details {{ margin-top:10px; }} summary {{ cursor:pointer; color:var(--muted); fo
   <div id="panels"></div>
   <div class="foot">Fuente: Yahoo Finance (cierres ajustados). Repositorio: JuanMEcheverri/Prophet_App. Simulacion sin dinero real; no es una recomendacion de inversion.</div>
 </div>
-<script id="data" type="application/json">{payload.replace("</", "<\\/")}</script>
+<script id="data" type="application/json">{payload_safe}</script>
 <script>
 const DATA = JSON.parse(document.getElementById('data').textContent);
 const VERSIONS_HTML = {json.dumps(versions_html)};

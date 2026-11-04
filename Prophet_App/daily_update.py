@@ -72,6 +72,9 @@ def main():
             df.index = df.index.tz_localize(None)
         df.index = df.index.normalize()
     cal = close["QQQ"].dropna().index
+    if len(cal) < 2:
+        raise SystemExit("[daily] ERROR: no se pudieron descargar precios de Yahoo Finance (0 sesiones de QQQ). "
+                         "Revisa la red del entorno: debe permitir *.yahoo.com y *.finance.yahoo.com")
     D = last_complete_session(cal)
     i = cal.get_loc(D)
     print(f"[daily] ultima sesion completa: {D.date()}  (hoy ET {datetime.now(ZoneInfo('America/New_York')):%Y-%m-%d %H:%M})", flush=True)
