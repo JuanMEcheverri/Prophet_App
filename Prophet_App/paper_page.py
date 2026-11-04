@@ -41,7 +41,7 @@ def build(data):
     return f"""<title>Prophet Trader</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.0/plotly.min.js"></script>
 <style>
 :root {{ --bg:#f3f4f1; --panel:#fff; --fg:#1d2229; --muted:#5d6673; --line:#d9dcd6; --accent:#b86a00; --accent-soft:#fff1dc; --ok:#2c7a4b; --ok-soft:#e2f1e7; --bad:#b23a3a; --bad-soft:#f7e2e2; --blue:#2f7fb8;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; }}
@@ -199,6 +199,7 @@ function fillTickerSelects() {{
 function renderChart() {{
   const tk = document.getElementById('chart_t').value, t = T[tk];
   const box = document.getElementById('chart_box');
+  if (typeof Plotly === 'undefined') {{ box.innerHTML = '<p class="note" style="padding:16px">No se pudo cargar la libreria de graficos (Plotly). Recarga la pagina; si persiste, avisa.</p>'; return; }}
   if (!t || !t.fit_d) {{ box.innerHTML = '<p class="note">Sin ajuste para esta accion.</p>'; return; }}
   const iD = t.fit_d.indexOf(D);
   const hd = t.fit_d.slice(0, iD+1), fd = t.fit_d.slice(iD+1);
