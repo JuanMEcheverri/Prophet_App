@@ -6,6 +6,8 @@ $logDir = Join-Path $repo "Prophet_App\logs"
 New-Item -ItemType Directory -Force $logDir | Out-Null
 $log = Join-Path $logDir ("daily_" + (Get-Date -Format "yyyy-MM-dd") + ".log")
 Set-Location $repo
+# El repo es de JuanMEcheverri; otra cuenta de gh puede estar activa (push 403). Se fuerza la del dueño.
+& "C:\Program Files\GitHub CLI\gh.exe" auth switch --user JuanMEcheverri *>> $log
 git pull --rebase -q origin master *>> $log
 Get-Content (Join-Path $repo "Prophet_App\daily_prompt.md") -Raw |
   & "C:\Users\FEVER\.local\bin\claude.exe" -p `
