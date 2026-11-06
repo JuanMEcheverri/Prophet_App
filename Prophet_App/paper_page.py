@@ -72,6 +72,9 @@ td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeri
 .good {{ color:var(--ok); font-weight:500; }} .poor {{ color:var(--bad); font-weight:500; }} .warn {{ color:var(--accent); font-weight:500; }}
 .pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }} .pill.knife {{ background:var(--bad); color:#fff; }}
 .banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
+tr:has(.kn) td {{ background:#fff4bf; }} .kn {{ cursor:help; }}
+@media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) tr:has(.kn) td {{ background:#4a3f12; }} }}
+:root[data-theme="dark"] tr:has(.kn) td {{ background:#4a3f12; }}
 a.tk {{ color:var(--fg); text-decoration:none; border-bottom:1px dotted var(--blue); }} a.tk:hover {{ color:var(--blue); }}
 .btn {{ font:600 13px var(--sans); color:var(--fg); background:var(--panel); border:1px solid var(--line); padding:7px 12px; cursor:pointer; white-space:nowrap; }}
 .btn:hover {{ border-color:var(--blue); color:var(--blue); }} .btn:focus-visible {{ outline:2px solid var(--blue); outline-offset:2px; }}
@@ -490,6 +493,12 @@ function spark(points, base=1000) {{
   const c = ys[ys.length-1] >= base ? 'var(--ok)' : 'var(--bad)';
   return `<svg viewBox="0 0 ${{w}} ${{h}}" width="100%" height="${{h}}"><path d="${{path}} L${{X(ys.length-1).toFixed(1)}},${{h-4}} L4,${{h-4}} Z" fill="${{c}}" opacity="0.12"/><line x1="4" x2="${{w-4}}" y1="${{Y(base).toFixed(1)}}" y2="${{Y(base).toFixed(1)}}" stroke="var(--muted)" stroke-dasharray="3 3"/><path d="${{path}}" fill="none" stroke="${{c}}" stroke-width="2"/></svg>`;
 }}
+// Operaciones de las carteras de papel cuya señal fue un "cuchillo cayendo" (caida del dia mayor que el SL).
+// Se dejan a proposito (decision del 2026-11-06) para medir si el filtro de cuchillo aporta; se marcan en amarillo.
+function knifeTk(tk, drop, sl) {{
+  if (drop == null || drop > -sl) return lblHtml(tk);
+  return `<span class="kn" title="Cuchillo cayendo: el dia de la señal cayo ${{pct(drop)}}, mas que el stop loss (${{sl}} %). La señal de hoy y el Slack lo habrian excluido, pero esta cartera se dejo sin ese filtro a proposito (decision del 6-nov-2026) para medir si comprar cuchillos sale bien o mal. Revision prevista: 13-nov-2026.">🔪 ${{lblHtml(tk)}}</span>`;
+}}
 function renderPaper(key) {{
   const st = DATA.paper[key], cfg = DATA.cfgs[key];
   const closed = st.closed, n = closed.length, wins = closed.filter(c=>c.pnl_cash>0).length;
@@ -498,11 +507,11 @@ function renderPaper(key) {{
   const rows = st.slots.map((slot,i) => {{
     const p = slot.position, o = slot.pending;
     if (p) {{ const t = T[p.ticker]||{{}}, cpx = t.close, pnl = cpx ? (cpx/p.fill_px-1)*100 : null, yh = t.yhat;
-      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), lblHtml(p.ticker), p.shares, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(p.cash_in), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [usd(cpx ? (cpx-p.fill_px)*p.shares : null), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
-    if (o) return [i+1, 'compra pendiente (apertura siguiente)', lblHtml(o.ticker), '—', o.signal_date, pct(o.dev), pct(o.drop), '—','—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—','—'];
+      return [i+1, 'abierta' + (o && o.side==='sell' ? ` · venta pendiente (${{o.reason}})` : ''), knifeTk(p.ticker, p.signal_drop, cfg.sl), p.shares, p.signal_date, pct(p.signal_dev), pct(p.signal_drop), p.fill_date, usd(p.fill_px), usd(p.cash_in), usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [usd(cpx ? (cpx-p.fill_px)*p.shares : null), pnl>0?'good':pnl<0?'poor':''], Math.round((new Date(D)-new Date(p.fill_date))/86400000), usd(yh ? yh*(1+cfg.exit_dev/100) : null), usd(p.fill_px*(1-cfg.sl/100))]; }}
+    if (o) return [i+1, 'compra pendiente (apertura siguiente)', knifeTk(o.ticker, o.drop, cfg.sl), '—', o.signal_date, pct(o.dev), pct(o.drop), '—','—','—', usd((T[o.ticker]||{{}}).close), '—','—','—','—','—'];
     return [i+1, 'libre', '—','—','—','—','—','—','—','—','—','—','—','—','—','—'];
   }});
-  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [lblHtml(c.ticker), c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
+  const crow = closed.slice().sort((a,b)=>b.exit_date.localeCompare(a.exit_date)).map(c => [knifeTk(c.ticker, c.signal_drop, cfg.sl), c.shares||'—', c.signal_date, pct(c.signal_dev), c.fill_date, usd(c.fill_px), c.exit_date, usd(c.exit_px), c.exit_reason, c.days, [pct(c.pnl_pct*100), c.pnl_pct>0?'good':'poor'], [usd(c.pnl_cash), c.pnl_cash>0?'good':'poor']]);
   const log = st.log.slice().reverse().map(e => `<div class="day"><b>${{e.date}}</b>${{e.oos ? ' <span class="pill buy">fuera de muestra</span>' : ''}}<ul>${{e.events.map(x=>`<li>${{esc(x)}}</li>`).join('')}}</ul></div>`).join('');
   const scr = (st.screening||[]).map(p => `desde ${{p.from}}: ${{esc(p.name)}}`).join(' · ');
   document.getElementById('paper_'+key).innerHTML = `
