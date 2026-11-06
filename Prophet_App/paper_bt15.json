@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-04",
-  "cash": 200.78124670419032,
+  "last_date": "2026-11-05",
+  "cash": 759.070969024747,
   "screening": [
     {
       "from": "2026-09-01",
@@ -39,41 +39,25 @@
       "pending": null
     },
     {
-      "position": {
-        "ticker": "AMZN",
-        "signal_date": "2026-10-26",
-        "signal_close": 249.09,
-        "signal_dev": -4.48,
-        "signal_drop": 0.44,
-        "fill_date": "2026-10-27",
-        "fill_px": 250.5552,
-        "shares": 1,
-        "cash_in": 251.56
-      },
+      "position": null,
       "pending": {
-        "side": "sell",
-        "ticker": "AMZN",
-        "reason": "yhat +7%",
-        "decided": "2026-11-04"
+        "side": "buy",
+        "ticker": "TSLA",
+        "signal_date": "2026-11-05",
+        "signal_close": 343.69,
+        "dev": -9.93,
+        "drop": -10.77
       }
     },
     {
-      "position": {
-        "ticker": "DLTR",
-        "signal_date": "2026-09-09",
-        "signal_close": 118.39,
-        "signal_dev": -5.56,
-        "signal_drop": -4.55,
-        "fill_date": "2026-09-10",
-        "fill_px": 118.3792,
-        "shares": 2,
-        "cash_in": 237.76
-      },
+      "position": null,
       "pending": {
-        "side": "sell",
-        "ticker": "DLTR",
-        "reason": "yhat +7%",
-        "decided": "2026-11-04"
+        "side": "buy",
+        "ticker": "NVDA",
+        "signal_date": "2026-11-05",
+        "signal_close": 181.6,
+        "dev": -8.6,
+        "drop": -9.26
       }
     }
   ],
@@ -131,6 +115,42 @@
       "pnl_pct": 0.24087,
       "pnl_cash": 78.98,
       "cash_out": 416.19
+    },
+    {
+      "ticker": "AMZN",
+      "signal_date": "2026-10-26",
+      "signal_close": 249.09,
+      "signal_dev": -4.48,
+      "signal_drop": 0.44,
+      "fill_date": "2026-10-27",
+      "fill_px": 250.5552,
+      "shares": 1,
+      "cash_in": 251.56,
+      "exit_date": "2026-11-05",
+      "exit_px": 271.2943,
+      "exit_reason": "yhat +7%",
+      "days": 9,
+      "pnl_pct": 0.08277,
+      "pnl_cash": 18.73,
+      "cash_out": 270.29
+    },
+    {
+      "ticker": "DLTR",
+      "signal_date": "2026-09-09",
+      "signal_close": 118.39,
+      "signal_dev": -5.56,
+      "signal_drop": -4.55,
+      "fill_date": "2026-09-10",
+      "fill_px": 118.3792,
+      "shares": 2,
+      "cash_in": 237.76,
+      "exit_date": "2026-11-05",
+      "exit_px": 144.4977,
+      "exit_reason": "yhat +7%",
+      "days": 56,
+      "pnl_pct": 0.22063,
+      "pnl_cash": 50.24,
+      "cash_out": 288.0
     }
   ],
   "equity": [
@@ -363,6 +383,11 @@
       "date": "2026-11-04",
       "equity": 1093.25,
       "oos": false
+    },
+    {
+      "date": "2026-11-05",
+      "equity": 1080.71,
+      "oos": true
     }
   ],
   "log": [
@@ -635,6 +660,16 @@
         "slot 3: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
       ],
       "oos": false
+    },
+    {
+      "date": "2026-11-05",
+      "events": [
+        "slot 2: VENTA 1 x AMZN a 271.29 por yhat +7% (+8.3%, +18.73 $, 9 d); efectivo 471.08 $",
+        "slot 3: VENTA 2 x DLTR a 144.50 por yhat +7% (+22.1%, +50.24 $, 56 d); efectivo 759.07 $",
+        "slot 2: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente",
+        "slot 3: orden de COMPRA NVDA (-8.6% bajo yhat, caida del dia -9.3%; cierre 181.60 $) para la apertura siguiente"
+      ],
+      "oos": true
     }
   ]
 }

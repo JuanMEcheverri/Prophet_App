@@ -1,7 +1,7 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-04",
-  "cash": 1.1122979774475539,
+  "last_date": "2026-11-05",
+  "cash": 433.6054649391175,
   "screening": [
     {
       "from": "2026-09-01",
@@ -25,22 +25,14 @@
   "oos_from": "2026-11-05",
   "slots": [
     {
-      "position": {
-        "ticker": "DLTR",
-        "signal_date": "2026-09-15",
-        "signal_close": 112.79,
-        "signal_dev": -4.77,
-        "signal_drop": -5.35,
-        "fill_date": "2026-09-16",
-        "fill_px": 113.9269,
-        "shares": 3,
-        "cash_in": 342.78
-      },
+      "position": null,
       "pending": {
-        "side": "sell",
-        "ticker": "DLTR",
-        "reason": "yhat +7%",
-        "decided": "2026-11-04"
+        "side": "buy",
+        "ticker": "TSLA",
+        "signal_date": "2026-11-05",
+        "signal_close": 343.69,
+        "dev": -9.93,
+        "drop": -10.77
       }
     },
     {
@@ -72,7 +64,26 @@
       "pending": null
     }
   ],
-  "closed": [],
+  "closed": [
+    {
+      "ticker": "DLTR",
+      "signal_date": "2026-09-15",
+      "signal_close": 112.79,
+      "signal_dev": -4.77,
+      "signal_drop": -5.35,
+      "fill_date": "2026-09-16",
+      "fill_px": 113.9269,
+      "shares": 3,
+      "cash_in": 342.78,
+      "exit_date": "2026-11-05",
+      "exit_px": 144.4977,
+      "exit_reason": "yhat +7%",
+      "days": 50,
+      "pnl_pct": 0.26834,
+      "pnl_cash": 89.71,
+      "cash_out": 432.49
+    }
+  ],
   "equity": [
     {
       "date": "2026-09-01",
@@ -303,6 +314,11 @@
       "date": "2026-11-04",
       "equity": 1153.63,
       "oos": false
+    },
+    {
+      "date": "2026-11-05",
+      "equity": 1114.99,
+      "oos": true
     }
   ],
   "log": [
@@ -623,6 +639,14 @@
         "slot 1: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
       ],
       "oos": false
+    },
+    {
+      "date": "2026-11-05",
+      "events": [
+        "slot 1: VENTA 3 x DLTR a 144.50 por yhat +7% (+26.8%, +89.71 $, 50 d); efectivo 433.61 $",
+        "slot 1: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente"
+      ],
+      "oos": true
     }
   ]
 }
