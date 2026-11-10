@@ -35,8 +35,10 @@ def verdict(p, close, yhat, cfg):
 
 def update_log(log, date_s, positions, day_data, cfg):
     """log: lista de {date, events}. day_data: {ticker: {close, yhat}}. Añade la sesion si no existe."""
-    if any(e["date"] == date_s for e in log):
+    if any(e["date"] == date_s and not e.get("parcial") for e in log):
         return log, False
+    # una entrada 'parcial' (registrada durante el dia, antes del cierre) se reemplaza por la completa
+    log = [e for e in log if e["date"] != date_s]
     cfg = {**cfg, "date": date_s}
     events = []
     for p in positions:
