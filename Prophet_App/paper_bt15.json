@@ -57,7 +57,7 @@
         "ticker": "NVDA",
         "signal_date": "2026-11-05",
         "signal_close": 181.6,
-        "signal_dev": -8.6,
+        "signal_dev": -8.59,
         "signal_drop": -9.26,
         "fill_date": "2026-11-06",
         "fill_px": 191.1956,
@@ -410,7 +410,8 @@
     {
       "date": "2026-09-01",
       "events": [
-        "slot 1: orden de COMPRA MAR (-4.2% bajo yhat, caida del dia -2.1%; cierre 334.55 $) para la apertura siguiente"
+        "slot 1: orden de COMPRA MAR (-4.2% bajo yhat, caida del dia -2.1%; cierre 334.55 $) para la apertura siguiente",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
@@ -418,28 +419,35 @@
       "date": "2026-09-02",
       "events": [
         "slot 1: COMPRA 1 x MAR a 336.21 = 337.21 $ (señal 2026-09-01, -4.2% bajo yhat); efectivo 662.79 $",
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 995.93 $, efectivo 662.79 $ · MAR 1 acc. 336.21->333.14 $ (-0.9%, 0 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-03",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 998.86 $, efectivo 662.79 $ · MAR 1 acc. 336.21->336.07 $ (-0.0%, 1 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-04",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 999.30 $, efectivo 662.79 $ · MAR 1 acc. 336.21->336.51 $ (+0.1%, 2 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-08",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 991.58 $, efectivo 662.79 $ · MAR 1 acc. 336.21->328.79 $ (-2.2%, 6 d)"
       ],
       "oos": false
     },
@@ -447,7 +455,8 @@
       "date": "2026-09-09",
       "events": [
         "slot 2: orden de COMPRA SNPS (-8.0% bajo yhat, caida del dia +0.3%; cierre 393.22 $) para la apertura siguiente",
-        "slot 3: orden de COMPRA DLTR (-5.6% bajo yhat, caida del dia -4.6%; cierre 118.39 $) para la apertura siguiente"
+        "slot 3: orden de COMPRA DLTR (-5.6% bajo yhat, caida del dia -4.6%; cierre 118.39 $) para la apertura siguiente",
+        "estado al cierre: valor 994.31 $, efectivo 662.79 $ · MAR 1 acc. 336.21->331.52 $ (-1.4%, 7 d)"
       ],
       "oos": false
     },
@@ -455,24 +464,32 @@
       "date": "2026-09-10",
       "events": [
         "slot 2: COMPRA 1 x SNPS a 396.50 = 397.50 $ (señal 2026-09-09, -8.0% bajo yhat); efectivo 265.29 $",
-        "slot 3: COMPRA 2 x DLTR a 118.38 = 237.76 $ (señal 2026-09-09, -5.6% bajo yhat); efectivo 27.54 $"
+        "slot 3: COMPRA 2 x DLTR a 118.38 = 237.76 $ (señal 2026-09-09, -5.6% bajo yhat); efectivo 27.54 $",
+        "estado al cierre: valor 991.10 $, efectivo 27.54 $ · MAR 1 acc. 336.21->329.07 $ (-2.1%, 8 d); SNPS 1 acc. 396.50->397.17 $ (+0.2%, 0 d); DLTR 2 acc. 118.38->118.66 $ (+0.2%, 0 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-11",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 995.95 $, efectivo 27.54 $ · MAR 1 acc. 336.21->334.69 $ (-0.5%, 9 d); SNPS 1 acc. 396.50->397.38 $ (+0.2%, 1 d); DLTR 2 acc. 118.38->118.17 $ (-0.2%, 1 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-14",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 987.77 $, efectivo 27.54 $ · MAR 1 acc. 336.21->340.46 $ (+1.3%, 12 d); SNPS 1 acc. 396.50->381.43 $ (-3.8%, 4 d); DLTR 2 acc. 118.38->119.17 $ (+0.7%, 4 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-15",
       "events": [
-        "slot 2: orden de VENTA SNPS (stop loss 7%) para la apertura siguiente"
+        "slot 2: orden de VENTA SNPS (stop loss 7%) para la apertura siguiente",
+        "estado al cierre: valor 958.06 $, efectivo 27.54 $ · MAR 1 acc. 336.21->337.24 $ (+0.3%, 13 d); SNPS 1 acc. 396.50->367.70 $ (-7.3%, 5 d); DLTR 2 acc. 118.38->112.79 $ (-4.7%, 5 d)"
       ],
       "oos": false
     },
@@ -480,146 +497,224 @@
       "date": "2026-09-16",
       "events": [
         "slot 2: VENTA 1 x SNPS a 367.32 por stop loss 7% (-7.4%, -31.18 $, 6 d); efectivo 393.85 $",
-        "slot 2: orden de COMPRA AVGO (-5.0% bajo yhat, caida del dia +0.1%; cierre 338.89 $) para la apertura siguiente"
+        "slot 2: orden de COMPRA AVGO (-5.0% bajo yhat, caida del dia +0.1%; cierre 338.89 $) para la apertura siguiente",
+        "estado al cierre: valor 953.62 $, efectivo 393.85 $ · MAR 1 acc. 336.21->334.97 $ (-0.4%, 14 d); DLTR 2 acc. 118.38->112.40 $ (-5.1%, 6 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-17",
       "events": [
-        "slot 2: COMPRA 1 x AVGO a 346.16 = 347.16 $ (señal 2026-09-16, -5.0% bajo yhat); efectivo 46.69 $"
+        "slot 2: COMPRA 1 x AVGO a 346.16 = 347.16 $ (señal 2026-09-16, -5.0% bajo yhat); efectivo 46.69 $",
+        "estado al cierre: valor 956.16 $, efectivo 46.69 $ · MAR 1 acc. 336.21->334.00 $ (-0.7%, 15 d); AVGO 1 acc. 346.16->346.67 $ (+0.1%, 0 d); DLTR 2 acc. 118.38->114.40 $ (-3.4%, 7 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-18",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 966.49 $, efectivo 46.69 $ · MAR 1 acc. 336.21->338.92 $ (+0.8%, 16 d); AVGO 1 acc. 346.16->356.96 $ (+3.1%, 1 d); DLTR 2 acc. 118.38->111.96 $ (-5.4%, 8 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-21",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 976.67 $, efectivo 46.69 $ · MAR 1 acc. 336.21->342.66 $ (+1.9%, 19 d); AVGO 1 acc. 346.16->362.66 $ (+4.8%, 4 d); DLTR 2 acc. 118.38->112.33 $ (-5.1%, 11 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-22",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 989.37 $, efectivo 46.69 $ · MAR 1 acc. 336.21->348.06 $ (+3.5%, 20 d); AVGO 1 acc. 346.16->364.54 $ (+5.3%, 5 d); DLTR 2 acc. 118.38->115.04 $ (-2.8%, 12 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-23",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 979.66 $, efectivo 46.69 $ · MAR 1 acc. 336.21->351.66 $ (+4.6%, 21 d); AVGO 1 acc. 346.16->354.99 $ (+2.5%, 6 d); DLTR 2 acc. 118.38->113.16 $ (-4.4%, 13 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-24",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 975.56 $, efectivo 46.69 $ · MAR 1 acc. 336.21->351.51 $ (+4.6%, 22 d); AVGO 1 acc. 346.16->350.36 $ (+1.2%, 7 d); DLTR 2 acc. 118.38->113.50 $ (-4.1%, 14 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-25",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 979.67 $, efectivo 46.69 $ · MAR 1 acc. 336.21->352.03 $ (+4.7%, 23 d); AVGO 1 acc. 346.16->352.81 $ (+1.9%, 8 d); DLTR 2 acc. 118.38->114.07 $ (-3.6%, 15 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-28",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 986.87 $, efectivo 46.69 $ · MAR 1 acc. 336.21->358.57 $ (+6.7%, 26 d); AVGO 1 acc. 346.16->349.57 $ (+1.0%, 11 d); DLTR 2 acc. 118.38->116.02 $ (-2.0%, 18 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-29",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 990.01 $, efectivo 46.69 $ · MAR 1 acc. 336.21->361.62 $ (+7.6%, 27 d); AVGO 1 acc. 346.16->355.10 $ (+2.6%, 12 d); DLTR 2 acc. 118.38->113.30 $ (-4.3%, 19 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-09-30",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 981.59 $, efectivo 46.69 $ · MAR 1 acc. 336.21->355.67 $ (+5.8%, 28 d); AVGO 1 acc. 346.16->351.19 $ (+1.5%, 13 d); DLTR 2 acc. 118.38->114.02 $ (-3.7%, 20 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-01",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 973.98 $, efectivo 46.69 $ · MAR 1 acc. 336.21->354.79 $ (+5.5%, 29 d); AVGO 1 acc. 346.16->343.64 $ (-0.7%, 14 d); DLTR 2 acc. 118.38->114.43 $ (-3.3%, 21 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-02",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 985.11 $, efectivo 46.69 $ · MAR 1 acc. 336.21->358.96 $ (+6.8%, 30 d); AVGO 1 acc. 346.16->355.14 $ (+2.6%, 15 d); DLTR 2 acc. 118.38->112.16 $ (-5.3%, 22 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-05",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 991.47 $, efectivo 46.69 $ · MAR 1 acc. 336.21->355.89 $ (+5.9%, 33 d); AVGO 1 acc. 346.16->362.51 $ (+4.7%, 18 d); DLTR 2 acc. 118.38->113.19 $ (-4.4%, 25 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-06",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1016.16 $, efectivo 46.69 $ · MAR 1 acc. 336.21->361.28 $ (+7.5%, 34 d); AVGO 1 acc. 346.16->375.81 $ (+8.6%, 19 d); DLTR 2 acc. 118.38->116.19 $ (-1.8%, 26 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-07",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1012.30 $, efectivo 46.69 $ · MAR 1 acc. 336.21->356.50 $ (+6.0%, 35 d); AVGO 1 acc. 346.16->376.51 $ (+8.8%, 20 d); DLTR 2 acc. 118.38->116.30 $ (-1.8%, 27 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-08",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1005.15 $, efectivo 46.69 $ · MAR 1 acc. 336.21->361.08 $ (+7.4%, 36 d); AVGO 1 acc. 346.16->360.14 $ (+4.0%, 21 d); DLTR 2 acc. 118.38->118.62 $ (+0.2%, 28 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-09",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1011.39 $, efectivo 46.69 $ · MAR 1 acc. 336.21->365.88 $ (+8.8%, 37 d); AVGO 1 acc. 346.16->361.54 $ (+4.4%, 22 d); DLTR 2 acc. 118.38->118.64 $ (+0.2%, 29 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-12",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1005.94 $, efectivo 46.69 $ · MAR 1 acc. 336.21->369.30 $ (+9.8%, 40 d); AVGO 1 acc. 346.16->354.73 $ (+2.5%, 25 d); DLTR 2 acc. 118.38->117.61 $ (-0.6%, 32 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-13",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1008.06 $, efectivo 46.69 $ · MAR 1 acc. 336.21->371.50 $ (+10.5%, 41 d); AVGO 1 acc. 346.16->357.31 $ (+3.2%, 26 d); DLTR 2 acc. 118.38->116.28 $ (-1.8%, 33 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-14",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1008.28 $, efectivo 46.69 $ · MAR 1 acc. 336.21->371.82 $ (+10.6%, 42 d); AVGO 1 acc. 346.16->346.25 $ (+0.0%, 27 d); DLTR 2 acc. 118.38->121.76 $ (+2.9%, 34 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-15",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1025.55 $, efectivo 46.69 $ · MAR 1 acc. 336.21->385.71 $ (+14.7%, 43 d); AVGO 1 acc. 346.16->344.33 $ (-0.5%, 28 d); DLTR 2 acc. 118.38->124.41 $ (+5.1%, 35 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-16",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1011.85 $, efectivo 46.69 $ · MAR 1 acc. 336.21->388.05 $ (+15.4%, 44 d); AVGO 1 acc. 346.16->328.75 $ (-5.0%, 29 d); DLTR 2 acc. 118.38->124.18 $ (+4.9%, 36 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-19",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1018.28 $, efectivo 46.69 $ · MAR 1 acc. 336.21->390.70 $ (+16.2%, 47 d); AVGO 1 acc. 346.16->334.59 $ (-3.3%, 32 d); DLTR 2 acc. 118.38->123.15 $ (+4.0%, 39 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-20",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1028.29 $, efectivo 46.69 $ · MAR 1 acc. 336.21->397.31 $ (+18.2%, 48 d); AVGO 1 acc. 346.16->334.37 $ (-3.4%, 33 d); DLTR 2 acc. 118.38->124.96 $ (+5.6%, 40 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-21",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1039.45 $, efectivo 46.69 $ · MAR 1 acc. 336.21->404.00 $ (+20.2%, 49 d); AVGO 1 acc. 346.16->337.80 $ (-2.4%, 34 d); DLTR 2 acc. 118.38->125.48 $ (+6.0%, 41 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-22",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1028.81 $, efectivo 46.69 $ · MAR 1 acc. 336.21->396.80 $ (+18.0%, 50 d); AVGO 1 acc. 346.16->323.24 $ (-6.6%, 35 d); DLTR 2 acc. 118.38->131.04 $ (+10.7%, 42 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-23",
       "events": [
-        "slot 2: orden de VENTA AVGO (stop loss 7%) para la apertura siguiente"
+        "slot 2: orden de VENTA AVGO (stop loss 7%) para la apertura siguiente",
+        "estado al cierre: valor 1009.70 $, efectivo 46.69 $ · MAR 1 acc. 336.21->390.71 $ (+16.2%, 51 d); AVGO 1 acc. 346.16->321.68 $ (-7.1%, 36 d); DLTR 2 acc. 118.38->125.31 $ (+5.9%, 43 d)"
       ],
       "oos": false
     },
@@ -627,36 +722,48 @@
       "date": "2026-10-26",
       "events": [
         "slot 2: VENTA 1 x AVGO a 324.37 por stop loss 7% (-6.3%, -23.79 $, 39 d); efectivo 370.06 $",
-        "slot 2: orden de COMPRA AMZN (-4.5% bajo yhat, caida del dia +0.4%; cierre 249.09 $) para la apertura siguiente"
+        "slot 2: orden de COMPRA AMZN (-4.5% bajo yhat, caida del dia +0.4%; cierre 249.09 $) para la apertura siguiente",
+        "estado al cierre: valor 1014.65 $, efectivo 370.06 $ · MAR 1 acc. 336.21->394.75 $ (+17.4%, 54 d); DLTR 2 acc. 118.38->124.92 $ (+5.5%, 46 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-27",
       "events": [
-        "slot 2: COMPRA 1 x AMZN a 250.56 = 251.56 $ (señal 2026-10-26, -4.5% bajo yhat); efectivo 118.50 $"
+        "slot 2: COMPRA 1 x AMZN a 250.56 = 251.56 $ (señal 2026-10-26, -4.5% bajo yhat); efectivo 118.50 $",
+        "estado al cierre: valor 1009.13 $, efectivo 118.50 $ · MAR 1 acc. 336.21->390.23 $ (+16.1%, 55 d); AMZN 1 acc. 250.56->253.10 $ (+1.0%, 0 d); DLTR 2 acc. 118.38->123.65 $ (+4.5%, 47 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-28",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1021.86 $, efectivo 118.50 $ · MAR 1 acc. 336.21->394.40 $ (+17.3%, 56 d); AMZN 1 acc. 250.56->254.60 $ (+1.6%, 1 d); DLTR 2 acc. 118.38->127.18 $ (+7.4%, 48 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-29",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1026.00 $, efectivo 118.50 $ · MAR 1 acc. 336.21->399.65 $ (+18.9%, 57 d); AMZN 1 acc. 250.56->243.79 $ (-2.7%, 2 d); DLTR 2 acc. 118.38->132.03 $ (+11.5%, 49 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-10-30",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1025.89 $, efectivo 118.50 $ · MAR 1 acc. 336.21->399.30 $ (+18.8%, 58 d); AMZN 1 acc. 250.56->240.35 $ (-4.1%, 3 d); DLTR 2 acc. 118.38->133.87 $ (+13.1%, 50 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-11-02",
       "events": [
-        "slot 1: orden de VENTA MAR (hold 60d) para la apertura siguiente"
+        "slot 1: orden de VENTA MAR (hold 60d) para la apertura siguiente",
+        "estado al cierre: valor 1057.63 $, efectivo 118.50 $ · MAR 1 acc. 336.21->416.30 $ (+23.8%, 61 d); AMZN 1 acc. 250.56->245.63 $ (-2.0%, 6 d); DLTR 2 acc. 118.38->138.60 $ (+17.1%, 53 d)"
       ],
       "oos": false
     },
@@ -664,7 +771,8 @@
       "date": "2026-11-03",
       "events": [
         "slot 1: VENTA 1 x MAR a 417.19 por hold 60d (+24.1%, +78.98 $, 62 d); efectivo 534.69 $",
-        "slot 1: orden de COMPRA ZBRA (-4.4% bajo yhat, caida del dia -8.8%; cierre 329.50 $) para la apertura siguiente"
+        "slot 1: orden de COMPRA ZBRA (-4.4% bajo yhat, caida del dia -8.8%; cierre 329.50 $) para la apertura siguiente",
+        "estado al cierre: valor 1053.52 $, efectivo 534.69 $ · AMZN 1 acc. 250.56->250.69 $ (+0.1%, 7 d); DLTR 2 acc. 118.38->134.07 $ (+13.3%, 54 d)"
       ],
       "oos": false
     },
@@ -673,7 +781,8 @@
       "events": [
         "slot 1: COMPRA 1 x ZBRA a 332.91 = 333.91 $ (señal 2026-11-03, -4.4% bajo yhat); efectivo 200.78 $",
         "slot 2: orden de VENTA AMZN (yhat +7%) para la apertura siguiente",
-        "slot 3: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
+        "slot 3: orden de VENTA DLTR (yhat +7%) para la apertura siguiente",
+        "estado al cierre: valor 1093.25 $, efectivo 200.78 $ · ZBRA 1 acc. 332.91->332.44 $ (-0.1%, 0 d); AMZN 1 acc. 250.56->266.03 $ (+6.2%, 8 d); DLTR 2 acc. 118.38->147.00 $ (+24.2%, 55 d)"
       ],
       "oos": false
     },
@@ -683,7 +792,8 @@
         "slot 2: VENTA 1 x AMZN a 271.29 por yhat +7% (+8.3%, +18.73 $, 9 d); efectivo 471.08 $",
         "slot 3: VENTA 2 x DLTR a 144.50 por yhat +7% (+22.1%, +50.24 $, 56 d); efectivo 759.07 $",
         "slot 2: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente",
-        "slot 3: orden de COMPRA NVDA (-8.6% bajo yhat, caida del dia -9.3%; cierre 181.60 $) para la apertura siguiente"
+        "slot 3: orden de COMPRA NVDA (-8.6% bajo yhat, caida del dia -9.3%; cierre 181.60 $) para la apertura siguiente",
+        "estado al cierre: valor 1080.71 $, efectivo 759.07 $ · ZBRA 1 acc. 332.91->321.64 $ (-3.4%, 1 d)"
       ],
       "oos": true
     },
@@ -691,13 +801,17 @@
       "date": "2026-11-06",
       "events": [
         "slot 2: COMPRA 1 x TSLA a 349.09 = 350.09 $ (señal 2026-11-05, -9.9% bajo yhat); efectivo 408.98 $",
-        "slot 3: COMPRA 2 x NVDA a 191.20 = 383.39 $ (señal 2026-11-05, -8.6% bajo yhat); efectivo 25.59 $"
+        "slot 3: COMPRA 2 x NVDA a 191.20 = 383.39 $ (señal 2026-11-05, -8.6% bajo yhat); efectivo 25.59 $",
+        "estado al cierre: valor 1079.11 $, efectivo 25.59 $ · ZBRA 1 acc. 332.91->322.02 $ (-3.3%, 2 d); TSLA 1 acc. 349.09->358.22 $ (+2.6%, 0 d); NVDA 2 acc. 191.20->186.64 $ (-2.4%, 0 d)"
       ],
       "oos": true
     },
     {
       "date": "2026-11-09",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1087.69 $, efectivo 25.59 $ · ZBRA 1 acc. 332.91->326.71 $ (-1.9%, 5 d); TSLA 1 acc. 349.09->378.05 $ (+8.3%, 3 d); NVDA 2 acc. 191.20->178.67 $ (-6.6%, 3 d)"
+      ],
       "oos": true
     }
   ]

@@ -213,6 +213,21 @@ def step(state, date, day_data):
             log.append(f"slot {i+1}: orden de COMPRA {t} ({dev:+.1f}% bajo yhat" + (f", caida del dia {drop:+.1f}%" if drop is not None else "") + f"; cierre {close:.2f} $) para la apertura siguiente")
         if not cands:
             log.append("sin candidatos que cumplan el criterio" + (" (o sin efectivo para una accion entera)" if state["cash"] < 300 else ""))
+    # estado de la cartera al cierre, siempre (para que ningun dia del diario quede vacio)
+    held_txt = []
+    for slot in state["slots"]:
+        p = slot["position"]
+        if not p:
+            continue
+        dd = day_data.get(p["ticker"]) or {}
+        c = dd.get("close")
+        d = (date - _d(p["fill_date"])).days
+        held_txt.append(f"{p['ticker']} {p['shares']} acc. {p['fill_px']:.2f}->{c:.2f} $ ({c / p['fill_px'] - 1:+.1%}, {d} d)" if c
+                        else f"{p['ticker']} {p['shares']} acc. (sin cierre)")
+    if not any("orden de" in x or "COMPRA" in x or "VENTA" in x for x in log):
+        log.append("sin operaciones: " + ("mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)" if held_txt else "sin posiciones")
+                   + ("" if free else "; sin huecos libres para comprar"))
+    log.append(f"estado al cierre: valor {eq:.2f} $, efectivo {state['cash']:.2f} $" + (" · " + "; ".join(held_txt) if held_txt else ""))
     state["log"].append({"date": date_s, "events": log, "oos": date_s >= state["oos_from"]})
     state["log"] = state["log"][-400:]
     state["last_date"] = date_s

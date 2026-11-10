@@ -8,6 +8,10 @@
 Uso: python daily_update.py            (desde cualquier directorio)
 """
 import os, sys, json, time, warnings, logging
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace"); sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 from datetime import datetime, time as dtime
 from zoneinfo import ZoneInfo
 

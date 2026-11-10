@@ -346,70 +346,89 @@
     {
       "date": "2026-09-01",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-02",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-03",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-04",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-08",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-09",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-10",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-11",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-14",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: sin posiciones",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
     {
       "date": "2026-09-15",
       "events": [
-        "slot 1: orden de COMPRA DLTR (-4.8% bajo yhat, caida del dia -5.4%; cierre 112.79 $) para la apertura siguiente"
+        "slot 1: orden de COMPRA DLTR (-4.8% bajo yhat, caida del dia -5.4%; cierre 112.79 $) para la apertura siguiente",
+        "estado al cierre: valor 1000.00 $, efectivo 1000.00 $"
       ],
       "oos": false
     },
@@ -417,42 +436,52 @@
       "date": "2026-09-16",
       "events": [
         "slot 1: COMPRA 3 x DLTR a 113.93 = 342.78 $ (señal 2026-09-15, -4.8% bajo yhat); efectivo 657.22 $",
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 994.42 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->112.40 $ (-1.3%, 0 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-17",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1000.42 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->114.40 $ (+0.4%, 1 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-18",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 993.10 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->111.96 $ (-1.7%, 2 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-21",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 994.21 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->112.33 $ (-1.4%, 5 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-22",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1002.34 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->115.04 $ (+1.0%, 6 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-23",
       "events": [
-        "slot 2: orden de COMPRA ABNB (-6.4% bajo yhat, caida del dia -7.6%; cierre 149.58 $) para la apertura siguiente"
+        "slot 2: orden de COMPRA ABNB (-6.4% bajo yhat, caida del dia -7.6%; cierre 149.58 $) para la apertura siguiente",
+        "estado al cierre: valor 996.70 $, efectivo 657.22 $ · DLTR 3 acc. 113.93->113.16 $ (-0.7%, 7 d)"
       ],
       "oos": false
     },
@@ -460,204 +489,263 @@
       "date": "2026-09-24",
       "events": [
         "slot 2: COMPRA 2 x ABNB a 150.78 = 302.55 $ (señal 2026-09-23, -6.4% bajo yhat); efectivo 354.67 $",
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 997.95 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->113.50 $ (-0.4%, 8 d); ABNB 2 acc. 150.78->151.39 $ (+0.4%, 0 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-25",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1011.82 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->114.07 $ (+0.1%, 9 d); ABNB 2 acc. 150.78->157.47 $ (+4.4%, 1 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-28",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1014.89 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->116.02 $ (+1.8%, 12 d); ABNB 2 acc. 150.78->156.08 $ (+3.5%, 4 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-29",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1008.49 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->113.30 $ (-0.6%, 13 d); ABNB 2 acc. 150.78->156.96 $ (+4.1%, 5 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-09-30",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1018.03 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->114.02 $ (+0.1%, 14 d); ABNB 2 acc. 150.78->160.65 $ (+6.5%, 6 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-01",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1018.90 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->114.43 $ (+0.4%, 15 d); ABNB 2 acc. 150.78->160.47 $ (+6.4%, 7 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-02",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1016.01 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->112.16 $ (-1.6%, 16 d); ABNB 2 acc. 150.78->162.43 $ (+7.7%, 8 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-05",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1022.38 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->113.19 $ (-0.6%, 19 d); ABNB 2 acc. 150.78->164.07 $ (+8.8%, 11 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-06",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1024.02 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->116.19 $ (+2.0%, 20 d); ABNB 2 acc. 150.78->160.39 $ (+6.4%, 12 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-07",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1024.83 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->116.30 $ (+2.1%, 21 d); ABNB 2 acc. 150.78->160.63 $ (+6.5%, 13 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-08",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1036.99 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->118.62 $ (+4.1%, 22 d); ABNB 2 acc. 150.78->163.23 $ (+8.3%, 14 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-09",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1042.33 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->118.64 $ (+4.1%, 23 d); ABNB 2 acc. 150.78->165.87 $ (+10.0%, 15 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-12",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1034.50 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->117.61 $ (+3.2%, 26 d); ABNB 2 acc. 150.78->163.50 $ (+8.4%, 18 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-13",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1034.67 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->116.28 $ (+2.1%, 27 d); ABNB 2 acc. 150.78->165.58 $ (+9.8%, 19 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-14",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1054.07 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->121.76 $ (+6.9%, 28 d); ABNB 2 acc. 150.78->167.06 $ (+10.8%, 20 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-15",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1076.46 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->124.41 $ (+9.2%, 29 d); ABNB 2 acc. 150.78->174.28 $ (+15.6%, 21 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-16",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1074.61 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->124.18 $ (+9.0%, 30 d); ABNB 2 acc. 150.78->173.70 $ (+15.2%, 22 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-19",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1075.04 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->123.15 $ (+8.1%, 33 d); ABNB 2 acc. 150.78->175.46 $ (+16.4%, 25 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-20",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1083.43 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->124.96 $ (+9.7%, 34 d); ABNB 2 acc. 150.78->176.94 $ (+17.4%, 26 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-21",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1078.49 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->125.48 $ (+10.1%, 35 d); ABNB 2 acc. 150.78->173.69 $ (+15.2%, 27 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-22",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1099.31 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->131.04 $ (+15.0%, 36 d); ABNB 2 acc. 150.78->175.76 $ (+16.6%, 28 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-23",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1074.62 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->125.31 $ (+10.0%, 37 d); ABNB 2 acc. 150.78->172.01 $ (+14.1%, 29 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-26",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1071.53 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->124.92 $ (+9.6%, 40 d); ABNB 2 acc. 150.78->171.05 $ (+13.4%, 32 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-27",
       "events": [
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1063.26 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->123.65 $ (+8.5%, 41 d); ABNB 2 acc. 150.78->168.82 $ (+12.0%, 33 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-28",
       "events": [
-        "slot 3: orden de COMPRA ODFL (-5.7% bajo yhat, caida del dia -7.3%; cierre 173.32 $) para la apertura siguiente"
+        "slot 3: orden de COMPRA ODFL (-5.7% bajo yhat, caida del dia -7.3%; cierre 173.32 $) para la apertura siguiente",
+        "estado al cierre: valor 1068.30 $, efectivo 354.67 $ · DLTR 3 acc. 113.93->127.18 $ (+11.6%, 42 d); ABNB 2 acc. 150.78->166.04 $ (+10.1%, 34 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-29",
       "events": [
-        "slot 3: COMPRA 2 x ODFL a 176.28 = 353.56 $ (señal 2026-10-28, -5.7% bajo yhat); efectivo 1.11 $"
+        "slot 3: COMPRA 2 x ODFL a 176.28 = 353.56 $ (señal 2026-10-28, -5.7% bajo yhat); efectivo 1.11 $",
+        "estado al cierre: valor 1074.80 $, efectivo 1.11 $ · DLTR 3 acc. 113.93->132.03 $ (+15.9%, 43 d); ABNB 2 acc. 150.78->166.45 $ (+10.4%, 35 d); ODFL 2 acc. 176.28->172.35 $ (-2.2%, 0 d)"
       ],
       "oos": false
     },
     {
       "date": "2026-10-30",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1076.62 $, efectivo 1.11 $ · DLTR 3 acc. 113.93->133.87 $ (+17.5%, 44 d); ABNB 2 acc. 150.78->164.39 $ (+9.0%, 36 d); ODFL 2 acc. 176.28->172.56 $ (-2.1%, 1 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-11-02",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1111.59 $, efectivo 1.11 $ · DLTR 3 acc. 113.93->138.60 $ (+21.7%, 47 d); ABNB 2 acc. 150.78->171.11 $ (+13.5%, 39 d); ODFL 2 acc. 176.28->176.23 $ (-0.0%, 4 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-11-03",
-      "events": [],
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1092.60 $, efectivo 1.11 $ · DLTR 3 acc. 113.93->134.07 $ (+17.7%, 48 d); ABNB 2 acc. 150.78->166.96 $ (+10.7%, 40 d); ODFL 2 acc. 176.28->177.68 $ (+0.8%, 5 d)"
+      ],
       "oos": false
     },
     {
       "date": "2026-11-04",
       "events": [
-        "slot 1: orden de VENTA DLTR (yhat +7%) para la apertura siguiente"
+        "slot 1: orden de VENTA DLTR (yhat +7%) para la apertura siguiente",
+        "estado al cierre: valor 1153.63 $, efectivo 1.11 $ · DLTR 3 acc. 113.93->147.00 $ (+29.0%, 49 d); ABNB 2 acc. 150.78->176.37 $ (+17.0%, 41 d); ODFL 2 acc. 176.28->179.39 $ (+1.8%, 6 d)"
       ],
       "oos": false
     },
@@ -665,7 +753,8 @@
       "date": "2026-11-05",
       "events": [
         "slot 1: VENTA 3 x DLTR a 144.50 por yhat +7% (+26.8%, +89.71 $, 50 d); efectivo 433.61 $",
-        "slot 1: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente"
+        "slot 1: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente",
+        "estado al cierre: valor 1114.99 $, efectivo 433.61 $ · ABNB 2 acc. 150.78->170.13 $ (+12.8%, 42 d); ODFL 2 acc. 176.28->170.56 $ (-3.2%, 7 d)"
       ],
       "oos": true
     },
@@ -673,7 +762,8 @@
       "date": "2026-11-06",
       "events": [
         "slot 1: COMPRA 1 x TSLA a 349.09 = 350.09 $ (señal 2026-11-05, -9.9% bajo yhat); efectivo 83.51 $",
-        "slot 2: orden de VENTA ABNB (yhat +7%) para la apertura siguiente"
+        "slot 2: orden de VENTA ABNB (yhat +7%) para la apertura siguiente",
+        "estado al cierre: valor 1151.55 $, efectivo 83.51 $ · TSLA 1 acc. 349.09->358.22 $ (+2.6%, 0 d); ABNB 2 acc. 150.78->189.99 $ (+26.0%, 43 d); ODFL 2 acc. 176.28->164.92 $ (-6.4%, 8 d)"
       ],
       "oos": true
     },
@@ -681,7 +771,8 @@
       "date": "2026-11-09",
       "events": [
         "slot 2: VENTA 2 x ABNB a 192.62 por yhat +7% (+27.8%, +81.70 $, 46 d); efectivo 467.76 $",
-        "sin candidatos que cumplan el criterio"
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 1187.59 $, efectivo 467.76 $ · TSLA 1 acc. 349.09->378.05 $ (+8.3%, 3 d); ODFL 2 acc. 176.28->170.89 $ (-3.1%, 11 d)"
       ],
       "oos": true
     }
