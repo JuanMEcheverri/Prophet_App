@@ -14,13 +14,14 @@
   {
     "ticker": "NVDA",
     "fecha_entrada": "2026-11-10",
-    "precio_entrada": 178.6,
-    "precio_entrada_eur": 159.597,
+    "precio_entrada": 174.0,
+    "precio_entrada_eur": 155.485,
     "fx_entrada": 1.1191,
-    "moneda_entrada": "EUR",
-    "capital": 319.19,
+    "moneda_entrada": "USD",
+    "capital": 313.74,
     "plataforma": "DEGIRO",
     "cantidad": 2,
-    "nota": "PROVISIONAL: precio = cotizacion de referencia al registrar; pendiente detallar precio de compra real y gastos"
+    "nota": "DEGIRO: 2 x 174 USD = 348 USD = 310.97 EUR + 2.78 EUR de gastos = 313.74 EUR",
+    "gastos_eur": 2.78
   }
 ]

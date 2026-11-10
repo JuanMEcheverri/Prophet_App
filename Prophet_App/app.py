@@ -1340,7 +1340,9 @@ with tab_pos:
             yht   = get_yhat_at(sdata[t]["fc_dict"], TODAY_TS) if t in sdata else None
 
             pnl_pct    = (cpx / epx - 1) * 100 if cpx else None
-            pnl_eur    = cap * (cpx / epx - 1) if cpx else None
+            gastos     = pos.get("gastos_eur") or 0.0
+            # neto de gastos: lo invertido en la accion es capital − gastos, frente a todo lo pagado
+            pnl_eur    = (cap - gastos) * cpx / epx - cap if cpx else None
             sl_px      = epx * (1 - sl_pct)
             # salida anclada a yhat (como la pestaña de señales y el backtest 15), no al precio de entrada
             tp_px      = yht[0] * (1 + exit_dev) if yht else None
@@ -1368,6 +1370,7 @@ with tab_pos:
                 "Prec. Ent. €": pos.get("precio_entrada_eur"),
                 "Precio Hoy":  round(cpx, 2) if cpx else None,
                 "P&L%":        round(pnl_pct, 1) if pnl_pct is not None else None,
+                "Gastos €":    gastos or None,
                 "P&L EUR":     round(pnl_eur, 2) if pnl_eur is not None else None,
                 "Dias":        days,
                 "Dev yhat%":   round(dev_yhat, 1) if dev_yhat is not None else None,
