@@ -2,14 +2,15 @@
   {
     "ticker": "NVDA",
     "fecha_entrada": "2026-11-10",
-    "precio_entrada": 178.6,
-    "precio_entrada_eur": 159.597,
+    "precio_entrada": 176.2135,
+    "precio_entrada_eur": 157.46,
     "fx_entrada": 1.1191,
     "moneda_entrada": "EUR",
-    "capital": 120.0,
+    "capital": 120.9,
     "plataforma": "N26",
-    "cantidad": 0.7519,
-    "nota": "PROVISIONAL: precio = cotizacion de referencia al registrar; pendiente detallar precio de compra real y gastos"
+    "cantidad": 0.7621,
+    "nota": "N26: 0.7621 acc x 157.46 EUR = 120.00 EUR + 0.90 EUR de comision = 120.90 EUR",
+    "gastos_eur": 0.9
   },
   {
     "ticker": "NVDA",
