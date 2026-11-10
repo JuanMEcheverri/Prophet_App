@@ -180,7 +180,7 @@ async function initPresetsDb() {{
     db.collection('presets').onSnapshot(snap => {{
       DBP = db; DB_STATE = 'db'; DB_PRESETS = {{}};
       snap.docs.forEach(d => {{ if (d.exists) DB_PRESETS[d.id] = d.data(); }});
-      refreshUserButtons();
+      refreshUserButtons(); renderPositions();
       if (!snap.metadata.fromCache) migrateLocalToDb();
     }}, err => {{ DBP = null; DB_STATE = 'local'; refreshUserButtons(); }});
   }} catch (e) {{}}
@@ -461,6 +461,22 @@ function renderProj() {{
 }}
 // ---------- Posiciones ----------
 function renderPositions() {{
+  // logicas de salida a evaluar: las dos carteras de papel y los presets guardados
+  const LOGICS = [
+    {{name: 'Backtest 15', exit: DATA.cfgs.bt15.exit_dev, sl: DATA.cfgs.bt15.sl, hold: DATA.cfgs.bt15.hold}},
+    {{name: 'Combinado', exit: DATA.cfgs.combo.exit_dev, sl: DATA.cfgs.combo.sl, hold: DATA.cfgs.combo.hold}},
+  ].concat(Object.entries(userPresets()).sort().map(([n, pr]) => ({{name: 'Mi preset ' + n, exit: pr.S.exit, sl: pr.S.sl, hold: pr.S.hold}})));
+  function verdictCell(p, L) {{
+    const t = T[p.ticker] || {{}}, c = t.close, y = t.yhat, epx = p.precio_entrada;
+    const days = Math.round((new Date(D) - new Date(p.fecha_entrada)) / 86400000);
+    const slp = epx * (1 - L.sl / 100), tpp = y ? y * (1 + L.exit / 100) : null;
+    let txt, cls, why;
+    if (days >= L.hold) {{ txt = '⏰ VENDER'; cls = 'poor'; why = `${{days}} dias ≥ ${{L.hold}} (plazo maximo)`; }}
+    else if (c && c <= slp) {{ txt = '🛑 VENDER'; cls = 'poor'; why = `cierre ${{usd(c)}} ≤ stop loss ${{usd(slp)}} (−${{L.sl}} % de la entrada)`; }}
+    else if (tpp && c && c >= tpp) {{ txt = '✅ VENDER'; cls = 'good'; why = `cierre ${{usd(c)}} ≥ objetivo ${{usd(tpp)}} (yhat +${{L.exit}} %)`; }}
+    else {{ txt = '⏳ MANTENER'; cls = ''; why = `SL ${{usd(slp)}} (${{c ? pct((slp/c-1)*100) : '—'}}) · objetivo ${{usd(tpp)}} (${{c && tpp ? pct((tpp/c-1)*100) : '—'}}) · quedan ${{L.hold - days}} d`; }}
+    return [`<span title="${{esc(L.name + ': ' + why)}}">${{txt}}</span>`, cls];
+  }}
   const open = DATA.positions.filter(p => !p.cerrada), closed = DATA.positions.filter(p => p.cerrada);
   let h = '';
   // --- metricas de mi cartera (en EUR; el valor actual aplica la variacion del precio en USD a lo invertido en
@@ -507,9 +523,10 @@ function renderPositions() {{
       const est = days >= S.hold ? '⏰ VENCER PRONTO' : (cpx && cpx <= slp) ? '🛑 SL ACTIVADO' : (tpp && cpx && cpx >= tpp) ? '✅ TP ALCANZADO' : '⏳ Activa';
       // P&L neto de gastos: lo invertido en accion es capital − gastos; frente a todo lo pagado (capital)
       const g = p.gastos_eur || 0, pnlEur = cpx ? (p.capital - g) * cpx / epx - p.capital : null, pnlNet = pnlEur == null ? null : pnlEur / p.capital * 100;
-      return [lblHtml(p.ticker), esc(p.plataforma||'—'), p.cantidad!=null ? fmt(p.cantidad, 4) : '—', p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', fmt(p.capital)+' €', g ? fmt(g)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [pnlEur==null?'—':fmt(pnlEur)+' €', pnlEur>0?'good':pnlEur<0?'poor':''], [pct(pnlNet), pnlNet>0?'good':pnlNet<0?'poor':''], days, usd(slp), usd(tpp), est, esc(p.nota||'')];
+      return [lblHtml(p.ticker), esc(p.plataforma||'—'), p.cantidad!=null ? fmt(p.cantidad, 4) : '—', p.fecha_entrada, usd(epx), p.precio_entrada_eur ? fmt(p.precio_entrada_eur)+' €' : '—', fmt(p.capital)+' €', g ? fmt(g)+' €' : '—', usd(cpx), [pct(pnl), pnl>0?'good':pnl<0?'poor':''], [pnlEur==null?'—':fmt(pnlEur)+' €', pnlEur>0?'good':pnlEur<0?'poor':''], [pct(pnlNet), pnlNet>0?'good':pnlNet<0?'poor':''], days, usd(slp), usd(tpp), est, esc(p.nota||'')].concat(LOGICS.map(L => verdictCell(p, L)));
     }});
-    h += table('pos_tbl', [['Ticker',0],['Plataforma',0],['Cantidad',1],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Capital €',1],['Gastos €',1],['Prec. hoy $',1],['P&L %',1],['P&L € neto',1],['P&L % neto',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]], rows);
+    h += table('pos_tbl', [['Ticker',0],['Plataforma',0],['Cantidad',1],['Entrada',0],['Prec. ent. $',1],['Prec. ent. €',1],['Capital €',1],['Gastos €',1],['Prec. hoy $',1],['P&L %',1],['P&L € neto',1],['P&L % neto',1],['Dias',1],['SL ref',1],['TP ref (yhat)',1],['Estado',0],['Nota',0]].concat(LOGICS.map(L => [L.name, 0])), rows);
+    h += '<p class="note">Columnas por logica: lo que diria cada regla de salida hoy (dias maximos → stop loss sobre tu precio de entrada → precio ≥ yhat + salida). Pasa el raton por cada celda para ver el detalle. Los presets salen de lo que tengas guardado en Mis presets.</p>';
   }}
   h += '<h3>Mis salidas</h3>';
   if (!closed.length) h += '<p class="note">Sin ventas registradas.</p>';
