@@ -463,6 +463,41 @@ function renderProj() {{
 function renderPositions() {{
   const open = DATA.positions.filter(p => !p.cerrada), closed = DATA.positions.filter(p => p.cerrada);
   let h = '';
+  // --- metricas de mi cartera (en EUR; el valor actual aplica la variacion del precio en USD a lo invertido en
+  //     la accion, sin recalcular el cambio EUR/USD del dia) ---
+  const valNow = p => {{ const c = (T[p.ticker]||{{}}).close; return c ? (p.capital - (p.gastos_eur||0)) * c / p.precio_entrada : null; }};
+  const invested = open.reduce((a, p) => a + p.capital, 0);
+  const value = open.reduce((a, p) => a + (valNow(p) ?? p.capital), 0);
+  const latent = value - invested, latentPct = invested ? latent / invested * 100 : 0;
+  const fees = DATA.positions.reduce((a, p) => a + (p.gastos_eur||0), 0);
+  const nCl = closed.length, wins = closed.filter(p => (p.pnl_eur||0) > 0).length;
+  const pnlCl = closed.reduce((a, p) => a + (p.pnl_eur||0), 0);
+  // evolucion: valor diario de las posiciones abiertas desde la primera compra (cierres del historico del ajuste)
+  const first = open.length ? open.map(p => p.fecha_entrada).sort()[0] : null;
+  const days = new Set();
+  open.forEach(p => {{ const t = T[p.ticker]; if (t && t.hist_d) t.hist_d.forEach(d => {{ if (d >= first) days.add(d); }}); }});
+  if (first) days.add(D);
+  const evo = Array.from(days).sort().map(d => {{
+    let v = 0;
+    open.forEach(p => {{
+      if (p.fecha_entrada > d) return;
+      const t = T[p.ticker]; let c = null;
+      if (d === D) c = t && t.close; else if (t && t.hist_d) {{ const i = t.hist_d.indexOf(d); if (i >= 0) c = t.hist_y[i]; }}
+      v += c ? (p.capital - (p.gastos_eur||0)) * c / p.precio_entrada : p.capital;
+    }});
+    const inv = open.filter(p => p.fecha_entrada <= d).reduce((a, p) => a + p.capital, 0);
+    return {{date: d, equity: v, base: inv}};
+  }});
+  const evoHtml = evo.length >= 2 ? spark(evo.map(e => ({{equity: e.equity - e.base + 1000}}))) : '<div class="n">aparecera con 2 o mas sesiones</div>';
+  const eur = x => fmt(x) + ' €', cls = x => x > 0 ? 'good' : x < 0 ? 'poor' : '';
+  h += `<div class="kpis">
+    <div class="kpi"><div class="l">Valor cartera</div><div class="v ${{cls(latent)}}">${{eur(value)}}</div><div class="n">${{pct(latentPct)}} sobre lo pagado</div></div>
+    <div class="kpi"><div class="l">Invertido</div><div class="v">${{eur(invested)}}</div><div class="n">${{open.length}} posiciones abiertas · gastos ${{eur(fees)}}</div></div>
+    <div class="kpi"><div class="l">P&amp;L latente</div><div class="v ${{cls(latent)}}">${{(latent>0?'+':'') + eur(latent)}}</div><div class="n">neto de gastos</div></div>
+    <div class="kpi"><div class="l">Cerradas</div><div class="v">${{nCl}}</div><div class="n">acierto ${{nCl ? Math.round(100*wins/nCl) + ' %' : '—'}}</div></div>
+    <div class="kpi"><div class="l">P&amp;L cerrado</div><div class="v ${{cls(pnlCl)}}">${{(pnlCl>0?'+':'') + eur(pnlCl)}}</div></div>
+    <div class="kpi spark"><div class="l">Evolucion (P&amp;L latente diario)</div>${{evoHtml}}</div></div>
+    <p class="note">Valor en euros: lo invertido en cada accion (sin gastos) multiplicado por la variacion de su precio en dolares desde la compra; no incluye el efecto del cambio EUR/USD posterior a la compra.</p>`;
   if (!open.length) h += '<p class="note">No hay posiciones abiertas registradas en la app.</p>';
   else {{
     const rows = open.map(p => {{
