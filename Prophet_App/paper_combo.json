@@ -1,7 +1,7 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-05",
-  "cash": 433.6054649391175,
+  "last_date": "2026-11-09",
+  "cash": 467.75827394485486,
   "screening": [
     {
       "from": "2026-09-01",
@@ -25,28 +25,21 @@
   "oos_from": "2026-11-05",
   "slots": [
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "TSLA",
         "signal_date": "2026-11-05",
         "signal_close": 343.69,
-        "dev": -9.93,
-        "drop": -10.77
-      }
+        "signal_dev": -9.93,
+        "signal_drop": -10.77,
+        "fill_date": "2026-11-06",
+        "fill_px": 349.0945,
+        "shares": 1,
+        "cash_in": 350.09
+      },
+      "pending": null
     },
     {
-      "position": {
-        "ticker": "ABNB",
-        "signal_date": "2026-09-23",
-        "signal_close": 149.58,
-        "signal_dev": -6.39,
-        "signal_drop": -7.56,
-        "fill_date": "2026-09-24",
-        "fill_px": 150.7753,
-        "shares": 2,
-        "cash_in": 302.55
-      },
+      "position": null,
       "pending": null
     },
     {
@@ -82,6 +75,24 @@
       "pnl_pct": 0.26834,
       "pnl_cash": 89.71,
       "cash_out": 432.49
+    },
+    {
+      "ticker": "ABNB",
+      "signal_date": "2026-09-23",
+      "signal_close": 149.58,
+      "signal_dev": -6.39,
+      "signal_drop": -7.56,
+      "fill_date": "2026-09-24",
+      "fill_px": 150.7753,
+      "shares": 2,
+      "cash_in": 302.55,
+      "exit_date": "2026-11-09",
+      "exit_px": 192.6236,
+      "exit_reason": "yhat +7%",
+      "days": 46,
+      "pnl_pct": 0.27755,
+      "pnl_cash": 81.7,
+      "cash_out": 384.25
     }
   ],
   "equity": [
@@ -318,6 +329,16 @@
     {
       "date": "2026-11-05",
       "equity": 1114.99,
+      "oos": true
+    },
+    {
+      "date": "2026-11-06",
+      "equity": 1151.55,
+      "oos": true
+    },
+    {
+      "date": "2026-11-09",
+      "equity": 1187.59,
       "oos": true
     }
   ],
@@ -645,6 +666,22 @@
       "events": [
         "slot 1: VENTA 3 x DLTR a 144.50 por yhat +7% (+26.8%, +89.71 $, 50 d); efectivo 433.61 $",
         "slot 1: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-06",
+      "events": [
+        "slot 1: COMPRA 1 x TSLA a 349.09 = 350.09 $ (señal 2026-11-05, -9.9% bajo yhat); efectivo 83.51 $",
+        "slot 2: orden de VENTA ABNB (yhat +7%) para la apertura siguiente"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-09",
+      "events": [
+        "slot 2: VENTA 2 x ABNB a 192.62 por yhat +7% (+27.8%, +81.70 $, 46 d); efectivo 467.76 $",
+        "sin candidatos que cumplan el criterio"
       ],
       "oos": true
     }

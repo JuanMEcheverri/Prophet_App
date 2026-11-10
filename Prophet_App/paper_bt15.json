@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-05",
-  "cash": 759.070969024747,
+  "last_date": "2026-11-09",
+  "cash": 25.58538337716402,
   "screening": [
     {
       "from": "2026-09-01",
@@ -39,26 +39,32 @@
       "pending": null
     },
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "TSLA",
         "signal_date": "2026-11-05",
         "signal_close": 343.69,
-        "dev": -9.93,
-        "drop": -10.77
-      }
+        "signal_dev": -9.93,
+        "signal_drop": -10.77,
+        "fill_date": "2026-11-06",
+        "fill_px": 349.0945,
+        "shares": 1,
+        "cash_in": 350.09
+      },
+      "pending": null
     },
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "NVDA",
         "signal_date": "2026-11-05",
         "signal_close": 181.6,
-        "dev": -8.6,
-        "drop": -9.26
-      }
+        "signal_dev": -8.6,
+        "signal_drop": -9.26,
+        "fill_date": "2026-11-06",
+        "fill_px": 191.1956,
+        "shares": 2,
+        "cash_in": 383.39
+      },
+      "pending": null
     }
   ],
   "closed": [
@@ -388,6 +394,16 @@
       "date": "2026-11-05",
       "equity": 1080.71,
       "oos": true
+    },
+    {
+      "date": "2026-11-06",
+      "equity": 1079.11,
+      "oos": true
+    },
+    {
+      "date": "2026-11-09",
+      "equity": 1087.69,
+      "oos": true
     }
   ],
   "log": [
@@ -669,6 +685,19 @@
         "slot 2: orden de COMPRA TSLA (-9.9% bajo yhat, caida del dia -10.8%; cierre 343.69 $) para la apertura siguiente",
         "slot 3: orden de COMPRA NVDA (-8.6% bajo yhat, caida del dia -9.3%; cierre 181.60 $) para la apertura siguiente"
       ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-06",
+      "events": [
+        "slot 2: COMPRA 1 x TSLA a 349.09 = 350.09 $ (señal 2026-11-05, -9.9% bajo yhat); efectivo 408.98 $",
+        "slot 3: COMPRA 2 x NVDA a 191.20 = 383.39 $ (señal 2026-11-05, -8.6% bajo yhat); efectivo 25.59 $"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-09",
+      "events": [],
       "oos": true
     }
   ]

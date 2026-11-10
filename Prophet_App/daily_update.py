@@ -79,44 +79,55 @@ def main():
     i = cal.get_loc(D)
     print(f"[daily] ultima sesion completa: {D.date()}  (hoy ET {datetime.now(ZoneInfo('America/New_York')):%Y-%m-%d %H:%M})", flush=True)
 
-    day_data, tick_data, n_fit = {}, {}, 0
-    r2 = sigma = growth = adr = None
-    for t in tickers:
-        cl = close[t].dropna()
-        cl = cl[cl.index <= D]
-        if len(cl) == 0 or cl.index[-1] != D:
-            continue
-        train = cl[(cl.index > D - TRAIN_WINDOW) & (cl.index <= D)]
-        yhat, screen, pred = None, False, None
-        r2 = sigma = growth = adr = None
-        if len(train) >= MIN_ROWS:
-            try:
-                m = Prophet(**C.PROPHET_KW)
-                m.fit(pd.DataFrame({"ds": train.index, "y": train.values}))
-                pred = m.predict(m.make_future_dataframe(periods=FUTURE_DAYS))[["ds", "yhat", "yhat_lower", "yhat_upper"]]
-                pred["ds"] = pred["ds"].dt.normalize()
-                pred = pred.set_index("ds")
-                yhat = float(pred["yhat"].get(D))
-                r2, sigma, growth, adr = C.screening_metrics(train, high[t].reindex(train.index), low[t].reindex(train.index), pred)
-                screen = C.passes_screen(r2, sigma, growth, adr, scr)
-                n_fit += 1
-            except Exception as e:
-                print(f"  {t}: fallo el ajuste ({str(e)[:60]})", flush=True)
-                pred = None
-        o = opn[t].get(D)
-        prev = cl.iloc[:-1]
-        day_data[t] = dict(open=(None if o is None or pd.isna(o) else float(o)), close=float(cl.iloc[-1]),
-                           prev_close=(float(prev.iloc[-1]) if len(prev) else None), yhat=yhat, screen=bool(screen),
-                           metrics=(None if r2 is None else dict(r2=float(r2), sigma=float(sigma), growth=float(growth), adr=float(adr))))
-        td = dict(close=round(float(cl.iloc[-1]), 4), prev=(round(float(prev.iloc[-1]), 4) if len(prev) else None), yhat=yhat,
-                  r2=(None if r2 is None else round(r2, 4)), sigma=(None if sigma is None else round(sigma, 5)),
-                  growth=(None if growth is None else round(growth, 4)), adr=(None if adr is None else round(adr, 5)),
-                  hist_d=[d.strftime("%Y-%m-%d") for d in train.index], hist_y=[round(float(v), 2) for v in train.values])
-        if pred is not None:
-            td.update(fit_d=[d.strftime("%Y-%m-%d") for d in pred.index], yhat_s=[round(float(v), 2) for v in pred["yhat"]],
-                      lo=[round(float(v), 2) for v in pred["yhat_lower"]], hi=[round(float(v), 2) for v in pred["yhat_upper"]])
-        tick_data[t] = td
-    print(f"[daily] {n_fit} ajustes Prophet, {sum(1 for d in day_data.values() if d['screen'])} pasan screening ({time.time()-t0:.0f}s)", flush=True)
+    def build_day(Dx, full):
+        """day_data (y tick_data si full) de la sesion Dx, con ajustes Prophet entrenados solo con cierres <= Dx."""
+        day_data, tick_data, n_fit = {}, {}, 0
+        for t in tickers:
+            cl = close[t].dropna()
+            cl = cl[cl.index <= Dx]
+            if len(cl) == 0 or cl.index[-1] != Dx:
+                continue
+            train = cl[(cl.index > Dx - TRAIN_WINDOW) & (cl.index <= Dx)]
+            yhat, screen, pred = None, False, None
+            r2 = sigma = growth = adr = None
+            if len(train) >= MIN_ROWS:
+                try:
+                    m = Prophet(**C.PROPHET_KW)
+                    m.fit(pd.DataFrame({"ds": train.index, "y": train.values}))
+                    pred = m.predict(m.make_future_dataframe(periods=FUTURE_DAYS))[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+                    pred["ds"] = pred["ds"].dt.normalize()
+                    pred = pred.set_index("ds")
+                    yhat = float(pred["yhat"].get(Dx))
+                    r2, sigma, growth, adr = C.screening_metrics(train, high[t].reindex(train.index), low[t].reindex(train.index), pred)
+                    screen = C.passes_screen(r2, sigma, growth, adr, scr)
+                    n_fit += 1
+                except Exception as e:
+                    print(f"  {t}: fallo el ajuste ({str(e)[:60]})", flush=True)
+                    pred = None
+            o = opn[t].get(Dx)
+            prev = cl.iloc[:-1]
+            day_data[t] = dict(open=(None if o is None or pd.isna(o) else float(o)), close=float(cl.iloc[-1]),
+                               prev_close=(float(prev.iloc[-1]) if len(prev) else None), yhat=yhat, screen=bool(screen),
+                               metrics=(None if r2 is None else dict(r2=float(r2), sigma=float(sigma), growth=float(growth), adr=float(adr))))
+            if full:
+                td = dict(close=round(float(cl.iloc[-1]), 4), prev=(round(float(prev.iloc[-1]), 4) if len(prev) else None), yhat=yhat,
+                          r2=(None if r2 is None else round(r2, 4)), sigma=(None if sigma is None else round(sigma, 5)),
+                          growth=(None if growth is None else round(growth, 4)), adr=(None if adr is None else round(adr, 5)),
+                          hist_d=[d.strftime("%Y-%m-%d") for d in train.index], hist_y=[round(float(v), 2) for v in train.values])
+                if pred is not None:
+                    td.update(fit_d=[d.strftime("%Y-%m-%d") for d in pred.index], yhat_s=[round(float(v), 2) for v in pred["yhat"]],
+                              lo=[round(float(v), 2) for v in pred["yhat_lower"]], hi=[round(float(v), 2) for v in pred["yhat_upper"]])
+                tick_data[t] = td
+        print(f"[daily] sesion {Dx.date()}: {n_fit} ajustes Prophet, {sum(1 for d in day_data.values() if d['screen'])} pasan screening ({time.time()-t0:.0f}s)", flush=True)
+        return day_data, tick_data
+
+    day_cache = {}
+    def day_for(Dx):
+        if Dx not in day_cache:
+            day_cache[Dx] = build_day(Dx, full=(Dx == D))
+        return day_cache[Dx]
+
+    day_data, tick_data = day_for(D)
 
     states = {}
     for key in paper.STRATEGIES:
@@ -127,14 +138,22 @@ def main():
         except OSError:
             state = paper.new_state(key)
         before = state["last_date"]
-        state = paper.step(state, D.date(), day_data)
+        # rellenar sesiones perdidas (PC apagado, fallo) una a una, cada una con sus propios ajustes
+        pending = [x for x in cal if x <= D and (before is None or x.date().isoformat() > before)]
+        if before is None:
+            pending = [D]
+        if len(pending) > 1:
+            print(f"[daily] {key}: rellenando {len(pending)} sesiones pendientes: {', '.join(str(x.date()) for x in pending)}", flush=True)
+        for Dx in pending:
+            state = paper.step(state, Dx.date(), day_for(Dx)[0])
         with open(path, "w", encoding="utf-8") as f:
             json.dump(state, f, indent=2, ensure_ascii=False)
         s = paper.summary(state)
-        print(f"[daily] {key}: {'sesion ya procesada' if before == state['last_date'] else 'procesada ' + state['last_date']} · "
+        print(f"[daily] {key}: {'sesion ya procesada' if before == state['last_date'] else 'procesada hasta ' + state['last_date']} · "
               f"valor {s['equity']:.2f} ({s['ret']:+.1%}) · cerradas {s['n_closed']}", flush=True)
-        for ev in state["log"][-1]["events"] if state["log"] else []:
-            print("   ", ev, flush=True)
+        for e in state["log"][-len(pending):] if pending and before != state["last_date"] else []:
+            for ev in e["events"]:
+                print("   ", e["date"], ev, flush=True)
         states[key] = state
 
     def _json(name, default):
@@ -152,8 +171,14 @@ def main():
     import poslog
     positions = _json("positions.json", [])
     plog = _json("positions_log.json", [])
-    plog, added = poslog.update_log(plog, D.date().isoformat(), positions, day_data,
+    added = False
+    last_logged = max((e["date"] for e in plog), default=None)
+    first_pos = min((p["fecha_entrada"] for p in positions), default=None)
+    for Dx in [x for x in cal if x <= D and (last_logged is None or x.date().isoformat() > last_logged)
+               and (first_pos is not None and x.date().isoformat() >= first_pos)]:
+        plog, a = poslog.update_log(plog, Dx.date().isoformat(), positions, day_for(Dx)[0],
                                     dict(sl=est["sl_pct_pct"], exit_dev=est["exit_dev_pct"], hold=est["max_hold"]))
+        added = added or a
     if added:
         with open(os.path.join(APP_DIR, "positions_log.json"), "w", encoding="utf-8") as f:
             json.dump(plog, f, indent=2, ensure_ascii=False)
