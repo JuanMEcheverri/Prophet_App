@@ -176,7 +176,7 @@ def main():
     positions = _json("positions.json", [])
     plog = _json("positions_log.json", [])
     added = False
-    last_logged = max((e["date"] for e in plog), default=None)
+    last_logged = max((e["date"] for e in plog if not e.get("parcial")), default=None)   # las parciales se rehacen
     first_pos = min((p["fecha_entrada"] for p in positions), default=None)
     for Dx in [x for x in cal if x <= D and (last_logged is None or x.date().isoformat() > last_logged)
                and (first_pos is not None and x.date().isoformat() >= first_pos)]:

@@ -2,10 +2,10 @@
   {
     "date": "2026-11-10",
     "events": [
-      "COMPRA registrada: NVDA a 176.21 $ (157.46 €), 0.7621 acciones en N26 · 120.00 € + 0.90 € de comision = 120.90 €",
-      "COMPRA registrada: NVDA a 174.00 $ (155.49 €), 2 acciones en DEGIRO · 310.97 € + 2.78 € de gastos = 313.74 €",
-      "Sesion en curso: el estado al cierre (precio, P&L y veredicto de las reglas) se añadira cuando cierre la sesion de EE.UU."
-    ],
-    "parcial": true
+      "COMPRA registrada: NVDA a 176.21 $ (157.46 €), capital 120.90 €, 0.7621 acciones en N26 · N26: 0.7621 acc x 157.46 EUR = 120.00 EUR + 0.90 EUR de comision = 120.90 EUR",
+      "NVDA: cierre 168.89 $, P&L -4.2 % (-5.02 €), yhat 181.23 $ (-6.8 %) → ⏳ mantener (SL a -3.0 %, objetivo a +14.8 %, quedan 60 dias)",
+      "COMPRA registrada: NVDA a 174.00 $ (155.49 €), capital 313.74 €, 2.0000 acciones en DEGIRO · DEGIRO: 2 x 174 USD = 348 USD = 310.97 EUR + 2.78 EUR de gastos = 313.74 EUR",
+      "NVDA: cierre 168.89 $, P&L -2.9 % (-9.21 €), yhat 181.23 $ (-6.8 %) → ⏳ mantener (SL a -4.2 %, objetivo a +14.8 %, quedan 60 dias)"
+    ]
   }
 ]

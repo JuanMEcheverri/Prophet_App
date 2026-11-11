@@ -1,6 +1,6 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-09",
+  "last_date": "2026-11-10",
   "cash": 467.75827394485486,
   "screening": [
     {
@@ -40,7 +40,14 @@
     },
     {
       "position": null,
-      "pending": null
+      "pending": {
+        "side": "buy",
+        "ticker": "NVDA",
+        "signal_date": "2026-11-10",
+        "signal_close": 168.89,
+        "dev": -6.63,
+        "drop": -5.47
+      }
     },
     {
       "position": {
@@ -339,6 +346,11 @@
     {
       "date": "2026-11-09",
       "equity": 1187.59,
+      "oos": true
+    },
+    {
+      "date": "2026-11-10",
+      "equity": 1183.58,
       "oos": true
     }
   ],
@@ -773,6 +785,14 @@
         "slot 2: VENTA 2 x ABNB a 192.62 por yhat +7% (+27.8%, +81.70 $, 46 d); efectivo 467.76 $",
         "sin candidatos que cumplan el criterio",
         "estado al cierre: valor 1187.59 $, efectivo 467.76 $ · TSLA 1 acc. 349.09->378.05 $ (+8.3%, 3 d); ODFL 2 acc. 176.28->170.89 $ (-3.1%, 11 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-10",
+      "events": [
+        "slot 2: orden de COMPRA NVDA (-6.6% bajo yhat, caida del dia -5.5%; cierre 168.89 $) para la apertura siguiente",
+        "estado al cierre: valor 1183.58 $, efectivo 467.76 $ · TSLA 1 acc. 349.09->379.78 $ (+8.8%, 4 d); ODFL 2 acc. 176.28->168.02 $ (-4.7%, 12 d)"
       ],
       "oos": true
     }

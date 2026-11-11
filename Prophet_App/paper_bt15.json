@@ -1,6 +1,6 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-09",
+  "last_date": "2026-11-10",
   "cash": 25.58538337716402,
   "screening": [
     {
@@ -64,7 +64,12 @@
         "shares": 2,
         "cash_in": 383.39
       },
-      "pending": null
+      "pending": {
+        "side": "sell",
+        "ticker": "NVDA",
+        "reason": "stop loss 7%",
+        "decided": "2026-11-10"
+      }
     }
   ],
   "closed": [
@@ -403,6 +408,11 @@
     {
       "date": "2026-11-09",
       "equity": 1087.69,
+      "oos": true
+    },
+    {
+      "date": "2026-11-10",
+      "equity": 1064.53,
       "oos": true
     }
   ],
@@ -811,6 +821,14 @@
       "events": [
         "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
         "estado al cierre: valor 1087.69 $, efectivo 25.59 $ · ZBRA 1 acc. 332.91->326.71 $ (-1.9%, 5 d); TSLA 1 acc. 349.09->378.05 $ (+8.3%, 3 d); NVDA 2 acc. 191.20->178.67 $ (-6.6%, 3 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-10",
+      "events": [
+        "slot 3: orden de VENTA NVDA (stop loss 7%) para la apertura siguiente",
+        "estado al cierre: valor 1064.53 $, efectivo 25.59 $ · ZBRA 1 acc. 332.91->321.38 $ (-3.5%, 6 d); TSLA 1 acc. 349.09->379.78 $ (+8.8%, 4 d); NVDA 2 acc. 191.20->168.89 $ (-11.7%, 4 d)"
       ],
       "oos": true
     }
