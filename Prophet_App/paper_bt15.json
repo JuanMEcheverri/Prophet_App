@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-10",
-  "cash": 25.58538337716402,
+  "last_date": "2026-11-11",
+  "cash": 370.0125894776279,
   "screening": [
     {
       "from": "2026-09-01",
@@ -53,23 +53,8 @@
       "pending": null
     },
     {
-      "position": {
-        "ticker": "NVDA",
-        "signal_date": "2026-11-05",
-        "signal_close": 181.6,
-        "signal_dev": -8.59,
-        "signal_drop": -9.26,
-        "fill_date": "2026-11-06",
-        "fill_px": 191.1956,
-        "shares": 2,
-        "cash_in": 383.39
-      },
-      "pending": {
-        "side": "sell",
-        "ticker": "NVDA",
-        "reason": "stop loss 7%",
-        "decided": "2026-11-10"
-      }
+      "position": null,
+      "pending": null
     }
   ],
   "closed": [
@@ -162,6 +147,24 @@
       "pnl_pct": 0.22063,
       "pnl_cash": 50.24,
       "cash_out": 288.0
+    },
+    {
+      "ticker": "NVDA",
+      "signal_date": "2026-11-05",
+      "signal_close": 181.6,
+      "signal_dev": -8.59,
+      "signal_drop": -9.26,
+      "fill_date": "2026-11-06",
+      "fill_px": 191.1956,
+      "shares": 2,
+      "cash_in": 383.39,
+      "exit_date": "2026-11-11",
+      "exit_px": 172.7136,
+      "exit_reason": "stop loss 7%",
+      "days": 5,
+      "pnl_pct": -0.09667,
+      "pnl_cash": -38.96,
+      "cash_out": 344.43
     }
   ],
   "equity": [
@@ -413,6 +416,11 @@
     {
       "date": "2026-11-10",
       "equity": 1064.53,
+      "oos": true
+    },
+    {
+      "date": "2026-11-11",
+      "equity": 1088.29,
       "oos": true
     }
   ],
@@ -829,6 +837,15 @@
       "events": [
         "slot 3: orden de VENTA NVDA (stop loss 7%) para la apertura siguiente",
         "estado al cierre: valor 1064.53 $, efectivo 25.59 $ · ZBRA 1 acc. 332.91->321.38 $ (-3.5%, 6 d); TSLA 1 acc. 349.09->379.78 $ (+8.8%, 4 d); NVDA 2 acc. 191.20->168.89 $ (-11.7%, 4 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-11",
+      "events": [
+        "slot 3: VENTA 2 x NVDA a 172.71 por stop loss 7% (-9.7%, -38.96 $, 5 d); efectivo 370.01 $",
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 1088.29 $, efectivo 370.01 $ · ZBRA 1 acc. 332.91->327.44 $ (-1.6%, 7 d); TSLA 1 acc. 349.09->390.84 $ (+12.0%, 5 d)"
       ],
       "oos": true
     }

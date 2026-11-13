@@ -1,7 +1,7 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-10",
-  "cash": 467.75827394485486,
+  "last_date": "2026-11-11",
+  "cash": 120.98546783828749,
   "screening": [
     {
       "from": "2026-09-01",
@@ -39,15 +39,18 @@
       "pending": null
     },
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "NVDA",
         "signal_date": "2026-11-10",
         "signal_close": 168.89,
-        "dev": -6.63,
-        "drop": -5.47
-      }
+        "signal_dev": -6.63,
+        "signal_drop": -5.47,
+        "fill_date": "2026-11-11",
+        "fill_px": 172.8864,
+        "shares": 2,
+        "cash_in": 346.77
+      },
+      "pending": null
     },
     {
       "position": {
@@ -351,6 +354,11 @@
     {
       "date": "2026-11-10",
       "equity": 1183.58,
+      "oos": true
+    },
+    {
+      "date": "2026-11-11",
+      "equity": 1200.29,
       "oos": true
     }
   ],
@@ -793,6 +801,14 @@
       "events": [
         "slot 2: orden de COMPRA NVDA (-6.6% bajo yhat, caida del dia -5.5%; cierre 168.89 $) para la apertura siguiente",
         "estado al cierre: valor 1183.58 $, efectivo 467.76 $ · TSLA 1 acc. 349.09->379.78 $ (+8.8%, 4 d); ODFL 2 acc. 176.28->168.02 $ (-4.7%, 12 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-11",
+      "events": [
+        "slot 2: COMPRA 2 x NVDA a 172.89 = 346.77 $ (señal 2026-11-10, -6.6% bajo yhat); efectivo 120.99 $",
+        "estado al cierre: valor 1200.29 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->390.84 $ (+12.0%, 5 d); NVDA 2 acc. 172.89->173.73 $ (+0.5%, 0 d); ODFL 2 acc. 176.28->170.50 $ (-3.3%, 13 d)"
       ],
       "oos": true
     }

@@ -7,5 +7,12 @@
       "COMPRA registrada: NVDA a 174.00 $ (155.49 €), capital 313.74 €, 2.0000 acciones en DEGIRO · DEGIRO: 2 x 174 USD = 348 USD = 310.97 EUR + 2.78 EUR de gastos = 313.74 EUR",
       "NVDA: cierre 168.89 $, P&L -2.9 % (-9.21 €), yhat 181.23 $ (-6.8 %) → ⏳ mantener (SL a -4.2 %, objetivo a +14.8 %, quedan 60 dias)"
     ]
+  },
+  {
+    "date": "2026-11-11",
+    "events": [
+      "NVDA: cierre 173.73 $, P&L -1.4 % (-1.70 €), yhat 177.90 $ (-2.3 %) → ⏳ mantener (SL a -5.7 %, objetivo a +9.6 %, quedan 59 dias)",
+      "NVDA: cierre 173.73 $, P&L -0.2 % (-0.49 €), yhat 177.90 $ (-2.3 %) → ⏳ mantener (SL a -6.9 %, objetivo a +9.6 %, quedan 59 dias)"
+    ]
   }
 ]
