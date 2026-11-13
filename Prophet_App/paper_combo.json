@@ -1,6 +1,6 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-11",
+  "last_date": "2026-11-13",
   "cash": 120.98546783828749,
   "screening": [
     {
@@ -359,6 +359,16 @@
     {
       "date": "2026-11-11",
       "equity": 1200.29,
+      "oos": true
+    },
+    {
+      "date": "2026-11-12",
+      "equity": 1194.14,
+      "oos": true
+    },
+    {
+      "date": "2026-11-13",
+      "equity": 1185.99,
       "oos": true
     }
   ],
@@ -809,6 +819,22 @@
       "events": [
         "slot 2: COMPRA 2 x NVDA a 172.89 = 346.77 $ (señal 2026-11-10, -6.6% bajo yhat); efectivo 120.99 $",
         "estado al cierre: valor 1200.29 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->390.84 $ (+12.0%, 5 d); NVDA 2 acc. 172.89->173.73 $ (+0.5%, 0 d); ODFL 2 acc. 176.28->170.50 $ (-3.3%, 13 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-12",
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1194.14 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->397.45 $ (+13.9%, 6 d); NVDA 2 acc. 172.89->166.19 $ (-3.9%, 1 d); ODFL 2 acc. 176.28->171.66 $ (-2.6%, 14 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-13",
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1185.99 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->390.22 $ (+11.8%, 7 d); NVDA 2 acc. 172.89->162.85 $ (-5.8%, 2 d); ODFL 2 acc. 176.28->174.54 $ (-1.0%, 15 d)"
       ],
       "oos": true
     }

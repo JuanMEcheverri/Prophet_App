@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-11",
-  "cash": 370.0125894776279,
+  "last_date": "2026-11-13",
+  "cash": 29.0627006989414,
   "screening": [
     {
       "from": "2026-09-01",
@@ -53,7 +53,17 @@
       "pending": null
     },
     {
-      "position": null,
+      "position": {
+        "ticker": "NVDA",
+        "signal_date": "2026-11-12",
+        "signal_close": 166.19,
+        "signal_dev": -4.77,
+        "signal_drop": -4.34,
+        "fill_date": "2026-11-13",
+        "fill_px": 169.9749,
+        "shares": 2,
+        "cash_in": 340.95
+      },
       "pending": null
     }
   ],
@@ -421,6 +431,16 @@
     {
       "date": "2026-11-11",
       "equity": 1088.29,
+      "oos": true
+    },
+    {
+      "date": "2026-11-12",
+      "equity": 1085.29,
+      "oos": true
+    },
+    {
+      "date": "2026-11-13",
+      "equity": 1068.98,
       "oos": true
     }
   ],
@@ -846,6 +866,22 @@
         "slot 3: VENTA 2 x NVDA a 172.71 por stop loss 7% (-9.7%, -38.96 $, 5 d); efectivo 370.01 $",
         "sin candidatos que cumplan el criterio",
         "estado al cierre: valor 1088.29 $, efectivo 370.01 $ · ZBRA 1 acc. 332.91->327.44 $ (-1.6%, 7 d); TSLA 1 acc. 349.09->390.84 $ (+12.0%, 5 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-12",
+      "events": [
+        "slot 3: orden de COMPRA NVDA (-4.8% bajo yhat, caida del dia -4.3%; cierre 166.19 $) para la apertura siguiente",
+        "estado al cierre: valor 1085.29 $, efectivo 370.01 $ · ZBRA 1 acc. 332.91->317.83 $ (-4.5%, 8 d); TSLA 1 acc. 349.09->397.45 $ (+13.9%, 6 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-13",
+      "events": [
+        "slot 3: COMPRA 2 x NVDA a 169.97 = 340.95 $ (señal 2026-11-12, -4.8% bajo yhat); efectivo 29.06 $",
+        "estado al cierre: valor 1068.98 $, efectivo 29.06 $ · ZBRA 1 acc. 332.91->324.00 $ (-2.7%, 9 d); TSLA 1 acc. 349.09->390.22 $ (+11.8%, 7 d); NVDA 2 acc. 169.97->162.85 $ (-4.2%, 0 d)"
       ],
       "oos": true
     }
