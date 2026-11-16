@@ -1,6 +1,6 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-13",
+  "last_date": "2026-11-16",
   "cash": 120.98546783828749,
   "screening": [
     {
@@ -50,7 +50,12 @@
         "shares": 2,
         "cash_in": 346.77
       },
-      "pending": null
+      "pending": {
+        "side": "sell",
+        "ticker": "NVDA",
+        "reason": "stop loss 7%",
+        "decided": "2026-11-16"
+      }
     },
     {
       "position": {
@@ -369,6 +374,11 @@
     {
       "date": "2026-11-13",
       "equity": 1185.99,
+      "oos": true
+    },
+    {
+      "date": "2026-11-16",
+      "equity": 1161.59,
       "oos": true
     }
   ],
@@ -835,6 +845,14 @@
       "events": [
         "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
         "estado al cierre: valor 1185.99 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->390.22 $ (+11.8%, 7 d); NVDA 2 acc. 172.89->162.85 $ (-5.8%, 2 d); ODFL 2 acc. 176.28->174.54 $ (-1.0%, 15 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-16",
+      "events": [
+        "slot 2: orden de VENTA NVDA (stop loss 7%) para la apertura siguiente",
+        "estado al cierre: valor 1161.59 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->379.74 $ (+8.8%, 10 d); NVDA 2 acc. 172.89->156.14 $ (-9.7%, 5 d); ODFL 2 acc. 176.28->174.29 $ (-1.1%, 18 d)"
       ],
       "oos": true
     }
