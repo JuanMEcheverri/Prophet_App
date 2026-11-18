@@ -1,7 +1,7 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-16",
-  "cash": 120.98546783828749,
+  "last_date": "2026-11-17",
+  "cash": 433.6285556373598,
   "screening": [
     {
       "from": "2026-09-01",
@@ -39,23 +39,8 @@
       "pending": null
     },
     {
-      "position": {
-        "ticker": "NVDA",
-        "signal_date": "2026-11-10",
-        "signal_close": 168.89,
-        "signal_dev": -6.63,
-        "signal_drop": -5.47,
-        "fill_date": "2026-11-11",
-        "fill_px": 172.8864,
-        "shares": 2,
-        "cash_in": 346.77
-      },
-      "pending": {
-        "side": "sell",
-        "ticker": "NVDA",
-        "reason": "stop loss 7%",
-        "decided": "2026-11-16"
-      }
+      "position": null,
+      "pending": null
     },
     {
       "position": {
@@ -108,6 +93,24 @@
       "pnl_pct": 0.27755,
       "pnl_cash": 81.7,
       "cash_out": 384.25
+    },
+    {
+      "ticker": "NVDA",
+      "signal_date": "2026-11-10",
+      "signal_close": 168.89,
+      "signal_dev": -6.63,
+      "signal_drop": -5.47,
+      "fill_date": "2026-11-11",
+      "fill_px": 172.8864,
+      "shares": 2,
+      "cash_in": 346.77,
+      "exit_date": "2026-11-17",
+      "exit_px": 156.8215,
+      "exit_reason": "stop loss 7%",
+      "days": 6,
+      "pnl_pct": -0.09292,
+      "pnl_cash": -34.13,
+      "cash_out": 312.64
     }
   ],
   "equity": [
@@ -379,6 +382,11 @@
     {
       "date": "2026-11-16",
       "equity": 1161.59,
+      "oos": true
+    },
+    {
+      "date": "2026-11-17",
+      "equity": 1157.44,
       "oos": true
     }
   ],
@@ -853,6 +861,15 @@
       "events": [
         "slot 2: orden de VENTA NVDA (stop loss 7%) para la apertura siguiente",
         "estado al cierre: valor 1161.59 $, efectivo 120.99 $ · TSLA 1 acc. 349.09->379.74 $ (+8.8%, 10 d); NVDA 2 acc. 172.89->156.14 $ (-9.7%, 5 d); ODFL 2 acc. 176.28->174.29 $ (-1.1%, 18 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-17",
+      "events": [
+        "slot 2: VENTA 2 x NVDA a 156.82 por stop loss 7% (-9.3%, -34.13 $, 6 d); efectivo 433.63 $",
+        "sin candidatos que cumplan el criterio",
+        "estado al cierre: valor 1157.44 $, efectivo 433.63 $ · TSLA 1 acc. 349.09->380.11 $ (+8.9%, 11 d); ODFL 2 acc. 176.28->171.85 $ (-2.5%, 19 d)"
       ],
       "oos": true
     }
