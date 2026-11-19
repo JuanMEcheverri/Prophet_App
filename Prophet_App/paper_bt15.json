@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-17",
-  "cash": 341.7057884980137,
+  "last_date": "2026-11-18",
+  "cash": 72.09153750619242,
   "screening": [
     {
       "from": "2026-09-01",
@@ -53,15 +53,18 @@
       "pending": null
     },
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "CEG",
         "signal_date": "2026-11-17",
         "signal_close": 268.07,
-        "dev": -6.32,
-        "drop": -3.51
-      }
+        "signal_dev": -6.32,
+        "signal_drop": -3.51,
+        "fill_date": "2026-11-18",
+        "fill_px": 268.6143,
+        "shares": 1,
+        "cash_in": 269.61
+      },
+      "pending": null
     }
   ],
   "closed": [
@@ -466,6 +469,11 @@
     {
       "date": "2026-11-17",
       "equity": 1034.03,
+      "oos": true
+    },
+    {
+      "date": "2026-11-18",
+      "equity": 1038.16,
       "oos": true
     }
   ],
@@ -924,6 +932,14 @@
         "slot 3: VENTA 2 x NVDA a 156.82 por stop loss 7% (-7.7%, -28.31 $, 4 d); efectivo 341.71 $",
         "slot 3: orden de COMPRA CEG (-6.3% bajo yhat, caida del dia -3.5%; cierre 268.07 $) para la apertura siguiente",
         "estado al cierre: valor 1034.03 $, efectivo 341.71 $ · ZBRA 1 acc. 332.91->312.21 $ (-6.2%, 13 d); TSLA 1 acc. 349.09->380.11 $ (+8.9%, 11 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-18",
+      "events": [
+        "slot 3: COMPRA 1 x CEG a 268.61 = 269.61 $ (señal 2026-11-17, -6.3% bajo yhat); efectivo 72.09 $",
+        "estado al cierre: valor 1038.16 $, efectivo 72.09 $ · ZBRA 1 acc. 332.91->319.61 $ (-4.0%, 14 d); TSLA 1 acc. 349.09->383.72 $ (+9.9%, 12 d); CEG 1 acc. 268.61->262.74 $ (-2.2%, 0 d)"
       ],
       "oos": true
     }

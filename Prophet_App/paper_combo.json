@@ -1,6 +1,6 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-17",
+  "last_date": "2026-11-18",
   "cash": 433.6285556373598,
   "screening": [
     {
@@ -387,6 +387,11 @@
     {
       "date": "2026-11-17",
       "equity": 1157.44,
+      "oos": true
+    },
+    {
+      "date": "2026-11-18",
+      "equity": 1167.57,
       "oos": true
     }
   ],
@@ -870,6 +875,15 @@
         "slot 2: VENTA 2 x NVDA a 156.82 por stop loss 7% (-9.3%, -34.13 $, 6 d); efectivo 433.63 $",
         "sin candidatos que cumplan el criterio",
         "estado al cierre: valor 1157.44 $, efectivo 433.63 $ · TSLA 1 acc. 349.09->380.11 $ (+8.9%, 11 d); ODFL 2 acc. 176.28->171.85 $ (-2.5%, 19 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-18",
+      "events": [
+        "sin candidatos que cumplan el criterio",
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo)",
+        "estado al cierre: valor 1167.57 $, efectivo 433.63 $ · TSLA 1 acc. 349.09->383.72 $ (+9.9%, 12 d); ODFL 2 acc. 176.28->175.11 $ (-0.7%, 20 d)"
       ],
       "oos": true
     }
