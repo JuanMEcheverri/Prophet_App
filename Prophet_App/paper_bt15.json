@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-18",
-  "cash": 72.09153750619242,
+  "last_date": "2026-11-23",
+  "cash": 643.4497040253575,
   "screening": [
     {
       "from": "2026-09-01",
@@ -25,18 +25,15 @@
   "oos_from": "2026-11-05",
   "slots": [
     {
-      "position": {
-        "ticker": "ZBRA",
-        "signal_date": "2026-11-03",
-        "signal_close": 329.5,
-        "signal_dev": -4.41,
-        "signal_drop": -8.76,
-        "fill_date": "2026-11-04",
-        "fill_px": 332.9114,
-        "shares": 1,
-        "cash_in": 333.91
-      },
-      "pending": null
+      "position": null,
+      "pending": {
+        "side": "buy",
+        "ticker": "AVGO",
+        "signal_date": "2026-11-23",
+        "signal_close": 313.55,
+        "dev": -9.05,
+        "drop": 3.0
+      }
     },
     {
       "position": {
@@ -53,18 +50,15 @@
       "pending": null
     },
     {
-      "position": {
-        "ticker": "CEG",
-        "signal_date": "2026-11-17",
-        "signal_close": 268.07,
-        "signal_dev": -6.32,
-        "signal_drop": -3.51,
-        "fill_date": "2026-11-18",
-        "fill_px": 268.6143,
-        "shares": 1,
-        "cash_in": 269.61
-      },
-      "pending": null
+      "position": null,
+      "pending": {
+        "side": "buy",
+        "ticker": "ZM",
+        "signal_date": "2026-11-23",
+        "signal_close": 86.03,
+        "dev": -5.32,
+        "drop": 5.87
+      }
     }
   ],
   "closed": [
@@ -193,6 +187,42 @@
       "pnl_pct": -0.07738,
       "pnl_cash": -28.31,
       "cash_out": 312.64
+    },
+    {
+      "ticker": "ZBRA",
+      "signal_date": "2026-11-03",
+      "signal_close": 329.5,
+      "signal_dev": -4.41,
+      "signal_drop": -8.76,
+      "fill_date": "2026-11-04",
+      "fill_px": 332.9114,
+      "shares": 1,
+      "cash_in": 333.91,
+      "exit_date": "2026-11-23",
+      "exit_px": 318.2408,
+      "exit_reason": "stop loss 7%",
+      "days": 19,
+      "pnl_pct": -0.04407,
+      "pnl_cash": -16.67,
+      "cash_out": 317.24
+    },
+    {
+      "ticker": "CEG",
+      "signal_date": "2026-11-17",
+      "signal_close": 268.07,
+      "signal_dev": -6.32,
+      "signal_drop": -3.51,
+      "fill_date": "2026-11-18",
+      "fill_px": 268.6143,
+      "shares": 1,
+      "cash_in": 269.61,
+      "exit_date": "2026-11-23",
+      "exit_px": 255.1174,
+      "exit_reason": "stop loss 7%",
+      "days": 5,
+      "pnl_pct": -0.05025,
+      "pnl_cash": -15.49,
+      "cash_out": 254.12
     }
   ],
   "equity": [
@@ -474,6 +504,21 @@
     {
       "date": "2026-11-18",
       "equity": 1038.16,
+      "oos": true
+    },
+    {
+      "date": "2026-11-19",
+      "equity": 1011.04,
+      "oos": true
+    },
+    {
+      "date": "2026-11-20",
+      "equity": 956.85,
+      "oos": true
+    },
+    {
+      "date": "2026-11-23",
+      "equity": 1028.91,
       "oos": true
     }
   ],
@@ -940,6 +985,34 @@
       "events": [
         "slot 3: COMPRA 1 x CEG a 268.61 = 269.61 $ (señal 2026-11-17, -6.3% bajo yhat); efectivo 72.09 $",
         "estado al cierre: valor 1038.16 $, efectivo 72.09 $ · ZBRA 1 acc. 332.91->319.61 $ (-4.0%, 14 d); TSLA 1 acc. 349.09->383.72 $ (+9.9%, 12 d); CEG 1 acc. 268.61->262.74 $ (-2.2%, 0 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-19",
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1011.04 $, efectivo 72.09 $ · ZBRA 1 acc. 332.91->312.51 $ (-6.1%, 15 d); TSLA 1 acc. 349.09->374.41 $ (+7.3%, 13 d); CEG 1 acc. 268.61->252.03 $ (-6.2%, 1 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-20",
+      "events": [
+        "slot 1: orden de VENTA ZBRA (stop loss 7%) para la apertura siguiente",
+        "slot 3: orden de VENTA CEG (stop loss 7%) para la apertura siguiente",
+        "estado al cierre: valor 956.85 $, efectivo 72.09 $ · ZBRA 1 acc. 332.91->301.53 $ (-9.4%, 16 d); TSLA 1 acc. 349.09->345.82 $ (-0.9%, 14 d); CEG 1 acc. 268.61->237.41 $ (-11.6%, 2 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-23",
+      "events": [
+        "slot 1: VENTA 1 x ZBRA a 318.24 por stop loss 7% (-4.4%, -16.67 $, 19 d); efectivo 389.33 $",
+        "slot 3: VENTA 1 x CEG a 255.12 por stop loss 7% (-5.0%, -15.49 $, 5 d); efectivo 643.45 $",
+        "slot 1: orden de COMPRA AVGO (-9.1% bajo yhat, caida del dia +3.0%; cierre 313.55 $) para la apertura siguiente",
+        "slot 3: orden de COMPRA ZM (-5.3% bajo yhat, caida del dia +5.9%; cierre 86.03 $) para la apertura siguiente",
+        "estado al cierre: valor 1028.91 $, efectivo 643.45 $ · TSLA 1 acc. 349.09->385.46 $ (+10.4%, 17 d)"
       ],
       "oos": true
     }
