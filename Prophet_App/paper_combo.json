@@ -1,6 +1,6 @@
 {
   "strategy": "combo",
-  "last_date": "2026-11-23",
+  "last_date": "2026-11-24",
   "cash": 111.60814029312155,
   "screening": [
     {
@@ -417,6 +417,11 @@
     {
       "date": "2026-11-23",
       "equity": 1153.16,
+      "oos": true
+    },
+    {
+      "date": "2026-11-24",
+      "equity": 1136.51,
       "oos": true
     }
   ],
@@ -934,6 +939,14 @@
       "events": [
         "slot 2: COMPRA 1 x AVGO a 321.02 = 322.02 $ (señal 2026-11-20, -13.9% bajo yhat); efectivo 111.61 $",
         "estado al cierre: valor 1153.16 $, efectivo 111.61 $ · TSLA 1 acc. 349.09->385.46 $ (+10.4%, 17 d); AVGO 1 acc. 321.02->313.55 $ (-2.3%, 0 d); ODFL 2 acc. 176.28->171.27 $ (-2.8%, 25 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-24",
+      "events": [
+        "sin operaciones: mantener todas las posiciones (ninguna toca hold, stop loss ni objetivo); sin huecos libres para comprar",
+        "estado al cierre: valor 1136.51 $, efectivo 111.61 $ · TSLA 1 acc. 349.09->384.68 $ (+10.2%, 18 d); AVGO 1 acc. 321.02->301.08 $ (-6.2%, 1 d); ODFL 2 acc. 176.28->169.57 $ (-3.8%, 26 d)"
       ],
       "oos": true
     }

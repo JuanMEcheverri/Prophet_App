@@ -70,5 +70,12 @@
       "NVDA: cierre 165.05 $, P&L -6.3 % (-7.66 €), yhat 143.01 $ (+15.4 %) → ✅ OBJETIVO: cierre 165.05 $ >= yhat +7 % (153.02 $). La regla dice vender",
       "NVDA: cierre 165.05 $, P&L -5.1 % (-16.14 €), yhat 143.01 $ (+15.4 %) → ✅ OBJETIVO: cierre 165.05 $ >= yhat +7 % (153.02 $). La regla dice vender"
     ]
+  },
+  {
+    "date": "2026-11-24",
+    "events": [
+      "NVDA: cierre 155.38 $, P&L -11.8 % (-14.29 €), yhat 145.94 $ (+6.5 %) → 🛑 STOP LOSS: cierre 155.38 $ <= 163.88 $ (−7 % de la entrada). La regla dice vender",
+      "NVDA: cierre 155.38 $, P&L -10.7 % (-33.57 €), yhat 145.94 $ (+6.5 %) → 🛑 STOP LOSS: cierre 155.38 $ <= 161.82 $ (−7 % de la entrada). La regla dice vender"
+    ]
   }
 ]

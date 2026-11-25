@@ -1,7 +1,7 @@
 {
   "strategy": "bt15",
-  "last_date": "2026-11-23",
-  "cash": 643.4497040253575,
+  "last_date": "2026-11-24",
+  "cash": 79.26873723229721,
   "screening": [
     {
       "from": "2026-09-01",
@@ -25,15 +25,18 @@
   "oos_from": "2026-11-05",
   "slots": [
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "AVGO",
         "signal_date": "2026-11-23",
         "signal_close": 313.55,
-        "dev": -9.05,
-        "drop": 3.0
-      }
+        "signal_dev": -9.05,
+        "signal_drop": 3.0,
+        "fill_date": "2026-11-24",
+        "fill_px": 301.4407,
+        "shares": 1,
+        "cash_in": 302.44
+      },
+      "pending": null
     },
     {
       "position": {
@@ -50,15 +53,18 @@
       "pending": null
     },
     {
-      "position": null,
-      "pending": {
-        "side": "buy",
+      "position": {
         "ticker": "ZM",
         "signal_date": "2026-11-23",
         "signal_close": 86.03,
-        "dev": -5.32,
-        "drop": 5.87
-      }
+        "signal_dev": -5.32,
+        "signal_drop": 5.87,
+        "fill_date": "2026-11-24",
+        "fill_px": 86.9134,
+        "shares": 3,
+        "cash_in": 261.74
+      },
+      "pending": null
     }
   ],
   "closed": [
@@ -519,6 +525,11 @@
     {
       "date": "2026-11-23",
       "equity": 1028.91,
+      "oos": true
+    },
+    {
+      "date": "2026-11-24",
+      "equity": 1030.23,
       "oos": true
     }
   ],
@@ -1013,6 +1024,15 @@
         "slot 1: orden de COMPRA AVGO (-9.1% bajo yhat, caida del dia +3.0%; cierre 313.55 $) para la apertura siguiente",
         "slot 3: orden de COMPRA ZM (-5.3% bajo yhat, caida del dia +5.9%; cierre 86.03 $) para la apertura siguiente",
         "estado al cierre: valor 1028.91 $, efectivo 643.45 $ · TSLA 1 acc. 349.09->385.46 $ (+10.4%, 17 d)"
+      ],
+      "oos": true
+    },
+    {
+      "date": "2026-11-24",
+      "events": [
+        "slot 1: COMPRA 1 x AVGO a 301.44 = 302.44 $ (señal 2026-11-23, -9.1% bajo yhat); efectivo 341.01 $",
+        "slot 3: COMPRA 3 x ZM a 86.91 = 261.74 $ (señal 2026-11-23, -5.3% bajo yhat); efectivo 79.27 $",
+        "estado al cierre: valor 1030.23 $, efectivo 79.27 $ · AVGO 1 acc. 301.44->301.08 $ (-0.1%, 0 d); TSLA 1 acc. 349.09->384.68 $ (+10.2%, 18 d); ZM 3 acc. 86.91->88.40 $ (+1.7%, 0 d)"
       ],
       "oos": true
     }
