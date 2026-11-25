@@ -73,6 +73,11 @@ td.num, th.num {{ text-align:right; font-family:var(--mono); font-variant-numeri
 .pill {{ display:inline-block; font:600 11px var(--mono); padding:1px 7px; border-radius:999px; }} .pill.buy {{ background:var(--ok-soft); color:var(--ok); }} .pill.sell {{ background:var(--bad-soft); color:var(--bad); }} .pill.low {{ background:var(--accent-soft); color:var(--accent); }} .pill.neu {{ border:1px solid var(--line); color:var(--muted); }} .pill.knife {{ background:var(--bad); color:#fff; }}
 .banner {{ background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); padding:8px 12px; margin:8px 0; font-size:13px; }}
 tr:has(.kn) td {{ background:#fff4bf; }} .kn {{ cursor:help; }}
+.nw {{ border:1px solid var(--line); border-radius:6px; padding:10px 12px; margin:12px 0; background:var(--panel); }}
+.nw ul {{ margin:6px 0 0; padding-left:18px; }} .nw li {{ margin:4px 0; font-size:13px; }} .nw li a {{ color:var(--fg); }}
+.nw .hd {{ display:flex; flex-wrap:wrap; gap:6px 12px; align-items:baseline; }} .nw .ex {{ font-size:12.5px; color:var(--muted); margin:6px 0 0; }}
+.pill.mkt {{ background:var(--ok-soft); color:var(--ok); }} .pill.co {{ background:var(--bad-soft); color:var(--bad); }}
+.pill.tg {{ border:1px solid var(--line); color:var(--muted); font-weight:500; }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) tr:has(.kn) td {{ background:#4a3f12; }} }}
 :root[data-theme="dark"] tr:has(.kn) td {{ background:#4a3f12; }}
 a.tk {{ color:var(--fg); text-decoration:none; border-bottom:1px dotted var(--blue); }} a.tk:hover {{ color:var(--blue); }}
@@ -582,10 +587,30 @@ function renderPaper(key) {{
     <h3>Operaciones cerradas</h3>${{crow.length ? table('pc_'+key, [['Ticker',0],['Acciones',1],['Señal',0],['Bajo yhat',1],['Compra',0],['Precio',1],['Venta',0],['Precio',1],['Motivo',0],['Dias',1],['P&L',1],['P&L $',1]], crow) : '<p class="note">Todavia no hay operaciones cerradas.</p>'}}
     <details><summary>Diario de decisiones, dia a dia desde el inicio (${{st.log.length}} sesiones; la mas reciente arriba)</summary>${{log}}</details>`;
 }}
+// ---------- Noticias ----------
+function renderNews() {{
+  const N = DATA.news;
+  if (!N || !N.items) return '<p class="note">Sin noticias en esta version.</p>';
+  const safe = u => /^https?:\\/\\//i.test(u||'') ? esc(u) : '#';
+  const cls = {{mkt:'mkt', sec:'mkt', co:'co', mix:'neu', flat:'neu', na:'neu'}};
+  const tagTxt = {{empresa:'empresa', mercado:'mercado/sector', ambas:'empresa + mercado'}};
+  const cards = N.items.map(x => `<div class="nw"><div class="hd">${{lblHtml(x.ticker)}}
+      <span class="pill ${{cls[x.code]||'neu'}}" title="${{esc(x.expl)}}">${{esc(x.label)}}</span>
+      <span>hoy <b class="${{x.drop!=null&&x.drop<=-DATA.strategy.sl?'poor':''}}">${{pct(x.drop)}}</b> · bajo yhat ${{pct(x.dev)}}</span>
+      <span class="muted">${{x.why.map(esc).join(' · ')}}</span></div>
+    <p class="ex">${{esc(x.expl)}}</p>
+    ${{x.items.length ? `<ul>${{x.items.map(n => `<li${{n.rel===false ? ' style="opacity:.55" title="No menciona a la empresa: noticia del sector o de otra accion"' : ''}}>${{n.rel===false ? '<span class="pill tg">otra</span> ' : ''}}<span class="muted">${{esc(n.date.slice(5,10))}}</span> <a href="${{safe(n.link)}}" target="_blank" rel="noopener noreferrer">${{esc(n.title)}}</a>${{n.source ? ` <span class="muted">· ${{esc(n.source)}}</span>` : ''}}${{n.tag ? ` <span class="pill tg">${{tagTxt[n.tag]}}</span>` : ''}}</li>`).join('')}}</ul>` : `<p class="note">Sin titulares (${{esc(x.error||'')}}).</p>`}}</div>`).join('');
+  return `<p class="note"><b>Para que sirve:</b> saber si la caida de una accion es <b>🌊 de mercado o sector</b> (miedo general: en los casos revisados tendio a recuperarse, p. ej. ABNB, TSLA) o <b>🏢 una noticia propia</b> de la empresa (resultados, guia, un cliente que recorta: tendio a seguir bajando, p. ej. ZBRA, ODFL). La etiqueta combina la caida del dia frente al Nasdaq y las palabras de los titulares; es una <b>pista automatica</b>, lee los titulares antes de decidir.</p>
+    <div class="kpis"><div class="kpi"><div class="l">Nasdaq (QQQ) en la sesion ${{D}}</div><div class="v ${{N.qqq>0?'good':N.qqq<0?'poor':''}}">${{pct(N.qqq, 2)}}</div></div>
+      <div class="kpi"><div class="l">Acciones revisadas</div><div class="v">${{N.items.length}}</div><div class="n">señales, ordenes, carteras y mis posiciones</div></div>
+      <div class="kpi"><div class="l">Titulares leidos</div><div class="v" style="font-size:16px">${{N.fetched}}</div><div class="n">ultimos 7 dias · Yahoo Finance</div></div></div>
+    ${{cards}}`;
+}}
 // ---------- Montaje ----------
 const TABS = [
   ['hoy', '🚨 Señales de hoy', () => presetRow('') + `<div class="controls">${{slider('s_entry','Entrada: caida bajo yhat',1,12,1,S.entry,' %')}}${{slider('s_exit','Salida: subida sobre yhat',3,30,1,S.exit,' %')}}${{slider('s_sl','Stop loss',3,20,1,S.sl,' %')}}${{slider('s_hold','Dias max en posicion',5,90,1,S.hold,' d')}}${{slider('s_maxdev','Cap caida maxima',5,30,1,S.max_dev,' %')}}</div><div id="sig_out"></div>`],
-  ['scr', '🔍 Screening', () => presetRow('_s') + `<div class="controls">${{slider('c_r2','R² minimo',0.5,0.99,0.01,SC.min_r2)}}${{slider('c_sig','Sigma max',2,15,1,SC.max_sigma,' %')}}${{slider('c_gmin','Crecimiento min',-50,30,1,SC.min_growth,' %')}}${{slider('c_gmax','Crecimiento max',5,120,1,SC.max_growth,' %')}}${{slider('c_adr','ADR max',1,10,1,SC.max_adr,' %')}}</div><div id="scr_out"></div>`],
+  ['news', '📰 Noticias', renderNews],
+  ['scr', '🔍 Screening',() => presetRow('_s') + `<div class="controls">${{slider('c_r2','R² minimo',0.5,0.99,0.01,SC.min_r2)}}${{slider('c_sig','Sigma max',2,15,1,SC.max_sigma,' %')}}${{slider('c_gmin','Crecimiento min',-50,30,1,SC.min_growth,' %')}}${{slider('c_gmax','Crecimiento max',5,120,1,SC.max_growth,' %')}}${{slider('c_adr','ADR max',1,10,1,SC.max_adr,' %')}}</div><div id="scr_out"></div>`],
   ['chart', '📊 Charts', () => `<div class="controls"><div class="ctl"><label for="chart_q">Buscar (ticker o nombre)</label><input type="search" id="chart_q" list="chart_list" placeholder="p. ej. MRVL o Marvell" autocomplete="off" style="width:100%;font:13px var(--sans);color:var(--fg);background:var(--panel);border:1px solid var(--line);padding:5px 8px"><datalist id="chart_list"></datalist></div><div class="ctl"><label for="chart_t">Accion</label><select id="chart_t"></select></div></div><div class="chart" id="chart_box"></div><div id="chart_stats"></div>`],
   ['proj', '📋 Proyecciones', () => `<div class="controls"><div class="ctl"><label>Acciones</label><select id="proj_t2"></select></div><div class="ctl"><label>Horizonte (dias)</label><select id="proj_days"><option>7</option><option>14</option><option>21</option><option selected>28</option><option>35</option><option>42</option></select></div><div class="ctl"><label>Ordenar por</label><select id="proj_sort"><option value="dev">Dev % (menor primero)</option><option value="fecha">Fecha</option><option value="ticker">Ticker</option></select></div></div><div id="proj_out"></div>`],
   ['pos', '💼 Mis posiciones', () => `<div id="pos_out"></div>`],

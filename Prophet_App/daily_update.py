@@ -187,8 +187,9 @@ def main():
         with open(os.path.join(APP_DIR, "positions_log.json"), "w", encoding="utf-8") as f:
             json.dump(plog, f, indent=2, ensure_ascii=False)
         print(f"[daily] diario de mis posiciones: sesion {D.date()} añadida ({len(plog[-1]['events'])} lineas)", flush=True)
+    news_data = build_news(D, close, tick_data, states, positions, est, NAMES)
     page_data = dict(
-        D=D.date().isoformat(), version=app_version(), tickers=tick_data, names=NAMES,
+        D=D.date().isoformat(), version=app_version(), tickers=tick_data, names=NAMES, news=news_data,
         screening=dict(min_r2=scr_raw["min_r2"], max_sigma=scr_raw["max_sigma_pct"], min_growth=scr_raw["min_growth_pct"],
                        max_growth=scr_raw["max_growth_pct"], max_adr=scr_raw["max_adr_pct"]),
         strategy=dict(entry=est["entry_dev_pct"], exit=est["exit_dev_pct"], sl=est["sl_pct_pct"], hold=est["max_hold"], max_dev=est["max_dev_pct"]),
@@ -200,6 +201,51 @@ def main():
     with open(out, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"[daily] pagina -> {out} ({len(html)//1024} KB) · total {time.time()-t0:.0f}s", flush=True)
+
+
+def build_news(D, close, tick_data, states, positions, est, NAMES):
+    """Noticias de las acciones 'para comprar' (zona de entrada con screening, cuchillos incluidos), de las ordenes y
+    posiciones de las carteras de papel y de mis posiciones, con la clasificacion mercado vs noticia propia."""
+    import news as NEWS
+    qc = close["QQQ"].dropna()
+    qc = qc[qc.index <= D]
+    qqq = float((qc.iloc[-1] / qc.iloc[-2] - 1) * 100) if len(qc) > 1 else None
+    prof = paper.SCREEN_PROFILES[-1]
+    entry, max_dev, sl = est["entry_dev_pct"], est["max_dev_pct"], est["sl_pct_pct"]
+    why = {}
+    for t, d in tick_data.items():
+        if d.get("yhat") is None or d.get("r2") is None:
+            continue
+        if not (d["r2"] >= prof["min_r2"] and d["sigma"] <= prof["max_sigma"] and prof["min_growth"] <= d["growth"] <= prof["max_growth"]
+                and d["adr"] <= prof["max_adr"]):
+            continue
+        dev = (d["close"] / d["yhat"] - 1) * 100
+        if -max_dev < dev <= -entry:
+            drop = (d["close"] / d["prev"] - 1) * 100 if d.get("prev") else None
+            why.setdefault(t, []).append("señal de compra" + (" (🔪 cuchillo: excluida de las sugerencias)" if drop is not None and drop <= -sl else ""))
+    for key, st in states.items():
+        nm = paper.STRATEGIES[key]["name"].split(" (")[0]
+        for slot in st["slots"]:
+            p, o = slot.get("position"), slot.get("pending")
+            if p:
+                why.setdefault(p["ticker"], []).append(f"en cartera {nm}")
+            if o and o.get("ticker") and o.get("side", "buy") == "buy":
+                why.setdefault(o["ticker"], []).append(f"orden de compra {nm}")
+    for p in positions:
+        if not p.get("cerrada"):
+            why.setdefault(p["ticker"], []).append(f"mi posicion ({p.get('plataforma', '')})")
+    out = []
+    for t, reasons in why.items():
+        d = tick_data.get(t, {})
+        drop = (d["close"] / d["prev"] - 1) * 100 if d.get("close") and d.get("prev") else None
+        dev = (d["close"] / d["yhat"] - 1) * 100 if d.get("close") and d.get("yhat") else None
+        items, err = NEWS.fetch(t, NAMES.get(t, ""))
+        code, label, expl = NEWS.classify(drop, qqq, items)
+        out.append(dict(ticker=t, why=sorted(set(reasons), key=reasons.index), drop=drop, dev=dev, code=code, label=label,
+                        expl=expl, items=items, error=(None if items else err)))
+    out.sort(key=lambda x: (x["drop"] if x["drop"] is not None else 99))
+    print(f"[daily] noticias: {len(out)} acciones, {sum(len(x['items']) for x in out)} titulares (Nasdaq hoy {qqq:+.2f} %)", flush=True)
+    return dict(qqq=qqq, fetched=datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M"), items=out)
 
 
 def _suggest(tick_data, S, SC, drop_req):
